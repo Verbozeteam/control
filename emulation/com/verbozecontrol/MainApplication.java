@@ -5,6 +5,8 @@ import com.verbozecontrol.socket.*;
 import java.util.Arrays;
 import java.util.List;
 
+import java.io.IOException;
+
 import org.json.simple.JSONObject;
 
 public class MainApplication {
@@ -30,15 +32,6 @@ public class MainApplication {
                     System.out.println("disconnected...");
                 }
             });
-
-        JSONObject obj = new JSONObject();
-        obj.put("code", 0);
-
-        communication_manager.SetServerAddress("192.168.1.11", 4567);
-        communication_manager.addToQueue(obj.toString());
-
-        System.out.println("Hello, World!");
-        System.out.println(obj.toString());
     }
 }
 
