@@ -1,49 +1,54 @@
 /* @flow */
 
-import React, { Component } from 'react';
-import {
-    AppRegistry,
-    DeviceEventEmitter,
-    StyleSheet,
-    Button,
-    View,
-    Text
-} from 'react-native';
+import * as React from 'react';
+import { AppRegistry, StyleSheet, Platform } from 'react-native';
 
-const config = require('./config/settings');
+const config = require('./config/config');
+const spec = require('./config/spec');
 
-class VerbozeControl extends Component {
-    constructor(props) {
-        super(props);
+import LinearGradient from 'react-native-linear-gradient';
+import Immersive from 'react-native-immersive';
+
+const Grid = require('./components/Grid');
+
+type PropsType = {};
+
+class VerbozeControl extends React.Component<PropsType> {
+    componentWillMount() {
+        if (Platform.OS === 'android') {
+            Immersive.on();
+            Immersive.setImmersive(true);
+
+            Immersive.addImmersiveListener(this.restoreImmersive);
+        }
+    }
+
+    componentWillUnmount() {
+        if (Platform.OS === 'android') {
+            Immersive.removeImmersiveListener(this.restoreImmersive);
+        }
+    }
+
+    restoreImmersive() {
+        Immersive.on();
     }
 
     render() {
         return (
-            <View style={styles.container}>
-                <Text style={styles.header}>
-                    Verboze Control
-                </Text>
-            </View>
+            <LinearGradient colors={['#56768F', '#0B2140']}
+                style={styles.container}>
+                <Grid grid={spec.grid}
+                    detail={spec.detail}
+                    layout={spec.layout} />
+            </LinearGradient>
         );
-    };
+    }
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF'
-    },
-    header: {
-        fontSize: 40,
-        textAlign: 'center'
-    },
-    text: {
-        fontSize: 16,
-        textAlign: 'center'
+        flex: 1
     }
 });
-
 
 module.exports = VerbozeControl;
