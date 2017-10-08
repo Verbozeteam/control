@@ -38,7 +38,7 @@ class Grid extends React.Component<PropsType, StateType> {
             UIManager.setLayoutAnimationEnabledExperimental(true);
         }
 
-        // initialie class variables
+        // initialize class variables
         this.PRESENTATION_LAYOUT = [];
         this.NUM_PANELS = 0;
         this.DETAIL_TIMER = -1;
@@ -170,6 +170,7 @@ class Grid extends React.Component<PropsType, StateType> {
                 // add to array
                 const panel = <Panel key={'panel-' + index}
                     layout={this.PRESENTATION_LAYOUT[index]}
+                    gradient={grid[i].panels[j].gradient || undefined}
                     toggleDetail={() => this.toggleDetail(index)}
                     title={grid[i].panels[j].title} />;
 
@@ -205,11 +206,11 @@ class Grid extends React.Component<PropsType, StateType> {
                 // create panel and add to array
                 const panel = <Panel key={'panel-' + index}
                     layout={panel_layout}
+                    gradient={grid[i].panels[j].gradient || undefined}
                     toggleDetail={() => this.toggleDetail(index)}
                     title={grid[i].panels[j].title} />;
 
                 panels.push(panel);
-
             }
         }
 
