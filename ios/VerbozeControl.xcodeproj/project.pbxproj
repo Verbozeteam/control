@@ -37,6 +37,7 @@
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		ADBDB9381DFEBF1600ED6528 /* libRCTBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ADBDB9271DFEBF0700ED6528 /* libRCTBlob.a */; };
 		18CD1D71A4204862A528121C /* libBVLinearGradient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A6E4E908995E49D88AAF2EE1 /* libBVLinearGradient.a */; };
+		7A97DAA91DE34367A7482A1D /* HKNova-MediumR.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6624FC0478564B0C8648A632 /* HKNova-MediumR.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -266,6 +267,7 @@
 		ADBDB91F1DFEBF0600ED6528 /* RCTBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTBlob.xcodeproj; path = "../node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj"; sourceTree = "<group>"; };
 		5266E1CC43C84DA2A8D2985B /* BVLinearGradient.xcodeproj */ = {isa = PBXFileReference; name = "BVLinearGradient.xcodeproj"; path = "../node_modules/react-native-linear-gradient/BVLinearGradient.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		A6E4E908995E49D88AAF2EE1 /* libBVLinearGradient.a */ = {isa = PBXFileReference; name = "libBVLinearGradient.a"; path = "libBVLinearGradient.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		6624FC0478564B0C8648A632 /* HKNova-MediumR.ttf */ = {isa = PBXFileReference; name = "HKNova-MediumR.ttf"; path = "../assets/fonts/HKNova-MediumR.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -484,6 +486,7 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* VerbozeControlTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
+				34707D40CDF44ADD86A59457 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -508,6 +511,15 @@
 			);
 			name = Products;
 			sourceTree = "<group>";
+		};
+		34707D40CDF44ADD86A59457 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				6624FC0478564B0C8648A632 /* HKNova-MediumR.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -878,6 +890,7 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
+				7A97DAA91DE34367A7482A1D /* HKNova-MediumR.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

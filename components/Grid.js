@@ -6,30 +6,36 @@ import { StyleSheet, View, Dimensions, LayoutAnimation, Platform, UIManager }
 
 const Panel = require('./Panel');
 
-type Layout = {
+type LayoutType = {
     height: number,
     width: number,
     top?: number,
     left: number
 };
 
-type PropsType = {};
+// TODO: write this
+type GridType = {};
+
+type PropsType = {
+    layout: LayoutType,
+    grid: GridType
+};
 
 type StateType = {
-    detail_panel_index: number
+    detail_panel_index: number,
 };
 
 class Grid extends React.Component<PropsType, StateType> {
 
     state = {
-        detail_panel_index: -1
+        detail_panel_index: -1,
     }
 
-    PRESENTATION_LAYOUT: Array<Layout>;
-    DETAIL_LAYOUT: Layout;
-    COLLAPSED_LAYOUT: Layout;
-    NUM_PANELS: number;
-    DETAIL_TIMER: number;
+    _presentation_layout: Array<LayoutType>;
+    _detail_layout: LayoutType;
+    _collapsed_layout: LayoutType;
+    _num_panels: number;
+    _detail_timer: number;
 
     constructor(props: PropsType) {
         super(props);
@@ -39,21 +45,18 @@ class Grid extends React.Component<PropsType, StateType> {
         }
 
         // initialize class variables
-        this.PRESENTATION_LAYOUT = [];
-        this.NUM_PANELS = 0;
-        this.DETAIL_TIMER = -1;
+        this._presentation_layout = [];
+        this._num_panels = 0;
+        this._detail_timer = -1;
     }
 
     componentWillMount() {
         this.calculatePresentationLayout();
+        this.calculateDetailAndCollapsedLayout();
     }
 
     calculatePresentationLayout() {
-        const layout = this.props.layout;
-        const grid = this.props.grid;
-
-        // reset presentation layout
-        this.PRESENTATION_LAYOUT = [];
+        const { layout, grid } = this.props;
 
         // get screen height and width
         const { height, width }:
@@ -69,7 +72,6 @@ class Grid extends React.Component<PropsType, StateType> {
         const ratio_width = (width - layout.margin * 2) / ratio;
 
         // calculate panel layouts (height, width, top and left offsets)
-        this.NUM_PANELS = 0;
         var top = layout.margin;
         var left = layout.margin;
         for (var i = 0; i < grid.length; i++) {
@@ -96,7 +98,7 @@ class Grid extends React.Component<PropsType, StateType> {
                     - layout.margin * 2;
 
                 // add panel's layout to array
-                this.PRESENTATION_LAYOUT.push({
+                this._presentation_layout.push({
                     height: row_height,
                     width: column_width,
                     top,
@@ -105,7 +107,7 @@ class Grid extends React.Component<PropsType, StateType> {
 
                 // increment top offset
                 top += row_height + layout.margin * 2;
-                this.NUM_PANELS++;
+                this._num_panels++;
             }
 
             // reset top offset and increment left offset
@@ -115,8 +117,7 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     calculateDetailAndCollapsedLayout() {
-        const layout = this.props.layout;
-        const detail = this.props.detail;
+        const { layout, detail } = this.props;
 
         // get screen height and width
         const { height, width }:
@@ -126,10 +127,10 @@ class Grid extends React.Component<PropsType, StateType> {
         // collapsed panels
         const ratio_width = (width - layout.margin * 2) / (detail.ratio + 1);
         const ratio_height = (height - layout.margin * 2) /
-            (this.NUM_PANELS - 1);
+            (this._num_panels - 1);
 
         // calculate detail layout for use when panel enters detail view
-        this.DETAIL_LAYOUT = {
+        this._detail_layout = {
             height: height - layout.margin * 4,
             width: ratio_width * detail.ratio - layout.margin * 2,
             top: layout.margin,
@@ -137,7 +138,7 @@ class Grid extends React.Component<PropsType, StateType> {
         };
 
         // calculate collapsed layout for use when panels become collapsed
-        this.COLLAPSED_LAYOUT = {
+        this._collapsed_layout = {
             height: ratio_height - layout.margin * 2,
             width: ratio_width - layout.margin * 2,
             left: layout.margin
@@ -145,9 +146,11 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     toggleDetail(index: number) {
+        const { detail_panel_index } = this.state;
+
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-        if (this.state.detail_panel_index === index) {
+        if (detail_panel_index === index) {
             this.setState({
                 detail_panel_index: -1
             });
@@ -159,7 +162,7 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     renderPresentationView() {
-        const grid = this.props.grid;
+        const { grid } = this.props;
 
         var panels = [];
         for (var i = 0; i < grid.length; i++) {
@@ -169,7 +172,9 @@ class Grid extends React.Component<PropsType, StateType> {
                 // create panel based on presentation view layout and
                 // add to array
                 const panel = <Panel key={'panel-' + index}
-                    layout={this.PRESENTATION_LAYOUT[index]}
+                    layout={this._presentation_layout[index]}
+                    things={grid[i].panels[j].things}
+                    viewType={'present'}
                     gradient={grid[i].panels[j].gradient || undefined}
                     toggleDetail={() => this.toggleDetail(index)}
                     title={grid[i].panels[j].title} />;
@@ -182,8 +187,7 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     renderDetailWithCollapsedView() {
-        const layout = this.props.layout;
-        const grid = this.props.grid;
+        const { layout, grid } = this.props;
 
         var panels = [];
         var counter = 0;
@@ -193,12 +197,14 @@ class Grid extends React.Component<PropsType, StateType> {
 
                 // decide panel layout based on whether detail or collapsed
                 var panel_layout = null;
+                var view_type = 'collapsed';
                 if (index === this.state.detail_panel_index) {
-                    panel_layout = this.DETAIL_LAYOUT;
+                    panel_layout = this._detail_layout;
+                    view_type = 'detail';
                 } else {
                     panel_layout = {
-                        ...this.COLLAPSED_LAYOUT,
-                        top: (this.COLLAPSED_LAYOUT.height + layout.margin * 2)
+                        ...this._collapsed_layout,
+                        top: (this._collapsed_layout.height + layout.margin * 2)
                             * counter++ + layout.margin
                     };
                 }
@@ -206,6 +212,8 @@ class Grid extends React.Component<PropsType, StateType> {
                 // create panel and add to array
                 const panel = <Panel key={'panel-' + index}
                     layout={panel_layout}
+                    viewType={view_type}
+                    things={grid[i].panels[j].things}
                     gradient={grid[i].panels[j].gradient || undefined}
                     toggleDetail={() => this.toggleDetail(index)}
                     title={grid[i].panels[j].title} />;
@@ -218,11 +226,7 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const layout = this.props.layout;
-
-        // TODO: these functions need not be called in render()
-        this.calculatePresentationLayout();
-        this.calculateDetailAndCollapsedLayout();
+        const { layout } = this.props;
 
         var panels = null;
         if (this.state.detail_panel_index === -1) {
@@ -230,7 +234,6 @@ class Grid extends React.Component<PropsType, StateType> {
         } else {
             panels = this.renderDetailWithCollapsedView();
         }
-
 
         return (
             <View style={[styles.container, {margin: layout.margin}]}>

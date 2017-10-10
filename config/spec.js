@@ -17,18 +17,77 @@ const spec = {
                     },
                     things: [
                         {
-                            id: 'dimmer-d4',
+                            id: 'lightswitch-d31',
+                            category: 'light_switches',
+                            intensity: 0,
+                            title: {
+                                en: 'Main lights',
+                                ar: 'الديمر رقم ١'
+                            }
+                        },
+                        {
+                            id: 'lightswitch-d30',
+                            category: 'light_switches',
+                            intensity: 0,
+                            title: {
+                                en: 'Main lights',
+                                ar: 'الديمر رقم ١'
+                            }
+                        },
+                        {
+                            id: 'lightswitch-d32',
+                            category: 'light_switches',
+                            intensity: 0,
+                            title: {
+                                en: 'Main lights',
+                                ar: 'الديمر رقم ١'
+                            }
+                        },
+                        {
+                            id: 'dimmer-d7',
                             category: 'dimmers',
-                            intensity: 34
+                            intensity: 78,
+                            title: {
+                                en: 'Dimmer 2',
+                                ar: 'الديمر رقم ١'
+                            }
                         }
                     ]
                 }, {
                     ratio: 3,
                     title: {
-                        en: 'Bathroom Ligths',
+                        en: 'Bathroom Lights',
                         ar: 'إضائة الحمام'
                     },
-                    things: []
+                    things: [
+                        {
+                            id: 'dimmer-d10',
+                            category: 'dimmers',
+                            intensity: 78,
+                            title: {
+                                en: 'Dimmer 2',
+                                ar: 'الديمر رقم ١'
+                            }
+                        },
+                        {
+                            id: 'dimmer-d11',
+                            category: 'dimmers',
+                            intensity: 78,
+                            title: {
+                                en: 'Dimmer 2',
+                                ar: 'الديمر رقم ١'
+                            }
+                        },
+                        {
+                            id: 'dimmer-d12',
+                            category: 'dimmers',
+                            intensity: 78,
+                            title: {
+                                en: 'Dimmer 2',
+                                ar: 'الديمر رقم ١'
+                            }
+                        }
+                    ]
                 }
             ]
         }, {
@@ -40,7 +99,26 @@ const spec = {
                         en: 'Air Conditioning',
                         ar: 'التكييف'
                     },
-                    things: []
+                    things: [
+                        {
+                            id: 'lightswitch-d37',
+                            category: 'light_switches',
+                            intensity: 0,
+                            title: {
+                                en: 'Main lights',
+                                ar: 'الديمر رقم ١'
+                            }
+                        },
+                        {
+                            id: 'lightswitch-d50',
+                            category: 'light_switches',
+                            intensity: 1,
+                            title: {
+                                en: 'Main lights',
+                                ar: 'الديمر رقم ١'
+                            }
+                        }
+                    ]
                 }, {
                     ratio: 1,
                     title: {
