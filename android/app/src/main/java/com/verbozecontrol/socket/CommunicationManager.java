@@ -212,7 +212,7 @@ public class CommunicationManager implements Runnable {
             ProcessBuffer(buffer);
 
             // send an empty message just to check if the connection is dead
-            if (curTime - beat_timer > 1000) {
+            if (curTime - beat_timer > 3000) {
                 beat_timer = curTime;
                 try {
                     output.write(2);
@@ -300,4 +300,3 @@ public class CommunicationManager implements Runnable {
         }
     }
 }
-

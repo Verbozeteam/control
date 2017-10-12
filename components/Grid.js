@@ -12,7 +12,9 @@ import type { PanelLayoutType, CollapsedLayoutType, RoomType, GridColumnType }
 type PropsType = {
     ...RoomType,
     thingsState: Object,
-    updateThing: (id: string, update: Object) => null
+    updateThing: (id: string, update: Object, remote_only?: boolean) => null,
+    blockThing: (id: string) => null,
+    unblockThing: (id: string) => null,
 };
 
 type StateType = {
@@ -36,7 +38,9 @@ class Grid extends React.Component<PropsType, StateType> {
             margin: 5
         },
         thingsState: {},
-        updateThing: () => null
+        updateThing: () => null,
+        blockThing: () => null,
+        unblockThing: () => null
     };
 
     _presentation_layout: Array<PanelLayoutType> = [];
@@ -189,7 +193,8 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     renderDetailWithCollapsedView() {
-        const { layout, grid, updateThing, thingsState } = this.props;
+        const { layout, grid, updateThing, blockThing, unblockThing,
+            thingsState } = this.props;
         const { detail_panel_index } = this.state;
 
         var panels = [];
@@ -219,7 +224,9 @@ class Grid extends React.Component<PropsType, StateType> {
                     viewType={view_type}
                     thingsState={thingsState}
                     toggleDetail={() => this.toggleDetail(index)}
-                    updateThing={updateThing}/>;
+                    updateThing={updateThing}
+                    blockThing={blockThing}
+                    unblockThing={unblockThing}/>;
 
                 panels.push(panel);
             }

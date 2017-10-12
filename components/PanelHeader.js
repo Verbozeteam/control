@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontFamily: 'HKNova-MediumR',
         fontSize: 20,
-        color: '#000000'
+        color: '#FFFFFF'
     },
     button_container: {
         width: 70

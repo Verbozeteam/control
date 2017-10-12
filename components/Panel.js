@@ -19,20 +19,22 @@ type PropsType = {
     viewType: ViewType,
     thingsState: Object,
     toggleDetail: () => null,
-    updateThing?: (id: string, update: Object) => null
+    updateThing?: (id: string, update: Object, remote_only?: boolean) => null,
+    blockThing?: (id: string) => null,
+    unblockThing?: (id: string) => null
 }
 
 class Panel extends React.Component<PropsType> {
 
     static defaultProps = {
-        gradient: ['#FFFFFF', '#DDDDDD'],
+        gradient: ['#666666', '#333333'],
         things: [],
         thingsState: {},
     };
 
     render() {
         const { things, layout, viewType, gradient, name, thingsState,
-            toggleDetail, updateThing } = this.props;
+            toggleDetail, updateThing, blockThing, unblockThing } = this.props;
 
 
         var panel_things = [];
@@ -43,15 +45,19 @@ class Panel extends React.Component<PropsType> {
                         panel_things.push(<Dimmer key={things[i].id}
                             {...things[i]}
                             viewType={viewType}
-                            thingState={thingsState[things[i].id]}
-                            updateThing={updateThing}/>);
+                            dimmerState={thingsState[things[i].id]}
+                            updateThing={updateThing}
+                            blockThing={blockThing}
+                            unblockThing={unblockThing}/>);
                         break;
                     case 'light_switches':
                         panel_things.push(<LightSwitch key={things[i].id}
                             {...things[i]}
                             viewType={viewType}
-                            thingState={thingsState[things[i].id]}
-                            updateThing={updateThing}/>);
+                            lightSwitchState={thingsState[things[i].id]}
+                            updateThing={updateThing}
+                            blockThing={blockThing}
+                            unblockThing={unblockThing}/>);
                 }
             }
         }
@@ -78,17 +84,14 @@ class Panel extends React.Component<PropsType> {
         return (
             <TouchableWithoutFeedback onPressIn={() =>
                 viewType !== 'detail' ? toggleDetail() : undefined}>
-                <LinearGradient colors={gradient}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 1}}
-                    style={[layout, styles.container]}>
+                <View style={[layout, styles.container]}>
                     <PanelHeader name={name.en}
                         close={viewType === 'detail' ?
                         () => toggleDetail() : undefined}/>
                     <View style={styles.things_container}>
                         {panel_things}
                     </View>
-                </LinearGradient>
+                </View>
             </TouchableWithoutFeedback>
         );
     }
@@ -99,7 +102,8 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 10,
         borderRadius: 5,
-        position: 'absolute'
+        position: 'absolute',
+        backgroundColor: '#111111'
     },
     things_container: {
         flex: 1,

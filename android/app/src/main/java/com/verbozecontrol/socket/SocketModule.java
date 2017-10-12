@@ -84,6 +84,11 @@ public class SocketModule extends ReactContextBaseJavaModule {
         comm_mgr.SetServerAddress("", 0);
     }
 
+    @ReactMethod
+    public void killThread() {
+        comm_mgr.stop();
+    }
+
     @Override
     public String getName() {
         return TAG;

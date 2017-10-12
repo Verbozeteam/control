@@ -31,6 +31,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     };
 
     _background_gradient: Array<string> = ['#333333', '#000000'];
+    _blocked_things: Array<string> = [];
 
     componentWillMount() {
         if (Platform.OS === 'android') {
@@ -65,6 +66,8 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         if (Platform.OS === 'android') {
             Immersive.removeImmersiveListener(this.restoreImmersive);
         }
+
+        Socket.killThread();
     }
 
     restoreImmersive() {
@@ -96,17 +99,46 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             delete data['config'];
         }
 
-        Object.assign(thingsState, data);
+        for (var key in data) {
+            // check if thing is blocked
+            if (this._blocked_things.indexOf(key) === -1) {
+                thingsState[key] = data[key];
+            }
+        }
+
+        console.log(thingsState);
 
         // console.log('thingsState: ', thingsState);
         this.setState({thingsState});
     }
 
-    updateThing(id: string, update: Object) {
+    updateThing(id: string, update: Object, remote_only?: boolean) {
+        remote_only = remote_only || false;
+
         Socket.write(JSON.stringify({
             thing: id,
             ...update
         }));
+
+        if (!remote_only) {
+            const { thingsState } = this.state;
+            thingsState[id] = update;
+            this.setState({
+                thingsState
+            });
+
+        }
+    }
+
+    blockThing(id: string) {
+        this._blocked_things.push(id);
+    }
+
+    unblockThing(id: string) {
+        const index = this._blocked_things.indexOf(id);
+        if (index !== -1) {
+            this._blocked_things.splice(index, 1);
+        }
     }
 
     render() {
@@ -134,17 +166,16 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         if (rooms) {
             var grid = <Grid {...rooms[0]}
                 thingsState={thingsState}
-                updateThing={this.updateThing}/>;
+                updateThing={this.updateThing.bind(this)}
+                blockThing={this.blockThing.bind(this)}
+                unblockThing={this.unblockThing.bind(this)}/>;
         }
 
         return (
-            <LinearGradient colors={background_gradient}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.container}>
+            <View style={styles.container}>
                 {grid}
                 {loading_text}
-            </LinearGradient>
+            </View>
         );
     }
 }
@@ -152,6 +183,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#000000'
         // alignItems: 'center',
         // justifyContent: 'center'
     },
