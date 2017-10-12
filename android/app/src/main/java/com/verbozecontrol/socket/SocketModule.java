@@ -14,9 +14,13 @@ import com.facebook.react.bridge.WritableMap;
 
 import android.support.annotation.Nullable;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class SocketModule extends ReactContextBaseJavaModule {
+
     private static final String TAG = "Socket";
-    private ReactApplicationContext react_context = null;
+    private ReactContext mReactContext = null;
 
     // socket event names
     private static final String socket_connected = "socket_connected";
@@ -25,40 +29,44 @@ public class SocketModule extends ReactContextBaseJavaModule {
 
     private CommunicationManager comm_mgr = null;
 
-    public SocketModule(ReactApplicationContext react_context) {
-        super(react_context);
-        this.react_context = react_context;
+    public SocketModule(ReactApplicationContext reactContext) {
+        super(reactContext);
+        mReactContext = reactContext;
+
         comm_mgr = CommunicationManager.Create("communication_manager",
             new CommunicationManager.OnConnectedCallback() {
                 @Override
                 public void onConnected() {
                     WritableMap params = Arguments.createMap();
-                    sendEvent(react_context, socket_connected, params);
+                    sendEvent(mReactContext, socket_connected, params);
                 }
             },
+
             new CommunicationManager.OnDataCallback() {
                 @Override
                 public void onData(String json) {
-                    System.out.println("got data " + json + "\n");
+                    WritableMap params = Arguments.createMap();
+                    params.putString("data", json);
+                    sendEvent(mReactContext, socket_data, params);
                 }
             },
+
             new CommunicationManager.OnDisconnectedCallback() {
                 @Override
                 public void onDisconnected() {
-                    System.out.println("disconnected...");
+                    WritableMap params = Arguments.createMap();
+                    sendEvent(mReactContext, socket_disconnected, params);
                 }
-            });
+            }
+        );
     }
 
-    public ~SocketModule() {
+    private void sendEvent(ReactContext reactContext,
+        String eventName, @Nullable WritableMap params) {
 
-    }
-
-    private void sendEvent(ReactContext react_context,
-        String event_name, @Nullable WritableMap params) {
-            react_context.getJSModule(
-                DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(event_name, params);
+        reactContext.getJSModule(
+            DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+            .emit(eventName, params);
     }
 
     @ReactMethod

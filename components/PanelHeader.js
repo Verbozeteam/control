@@ -4,14 +4,14 @@ import * as React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
 type PropsType = {
-    title: string,
+    name: string,
     close?: Function
 };
 
 class PanelHeader extends React.Component<PropsType> {
 
     render() {
-        const { title, close } = this.props;
+        const { name, close } = this.props;
 
         var close_button = null;
         if (close) {
@@ -24,7 +24,7 @@ class PanelHeader extends React.Component<PropsType> {
 
         return (
             <View style={styles.container}>
-                <Text style={styles.title}>{title}</Text>
+                <Text style={styles.name}>{name}</Text>
                 {close_button}
             </View>
         );
@@ -35,9 +35,9 @@ const styles = StyleSheet.create({
     container: {
         height: 40,
         flexDirection: 'row',
-        backgroundColor: '#00FFFF'
+        // backgroundColor: '#00FFFF'
     },
-    title: {
+    name: {
         flex: 1,
         fontFamily: 'HKNova-MediumR',
         fontSize: 20,

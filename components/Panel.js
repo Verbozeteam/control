@@ -9,66 +9,71 @@ const PanelHeader = require('./PanelHeader');
 
 const Dimmer = require('./Dimmer');
 const LightSwitch = require('./LightSwitch');
+const Empty = require('./Empty');
 
-type PanelLayoutType = {
-    top: number,
-    left: number,
-    height: number,
-    width: number
-};
-
-type ViewType = 'present' | 'detail' | 'collapsed';
-
-type Thing = {
-    id: string,
-    category: string,
-    title: {
-        en: string,
-        ar: string
-    },
-    intensity?: number
-};
+import type { PanelLayoutType, PanelType, ViewType } from '../config/flowtypes';
 
 type PropsType = {
+    ...PanelType,
     layout: PanelLayoutType,
     viewType: ViewType,
-    things: Array<Thing>,
-    gradient: [string, string],
+    thingsState: Object,
     toggleDetail: () => null,
-    title: {
-        en: string,
-        ar: string
-    }
-};
+    updateThing?: (id: string, update: Object) => null
+}
 
 class Panel extends React.Component<PropsType> {
 
     static defaultProps = {
         gradient: ['#FFFFFF', '#DDDDDD'],
-        thing: []
+        things: [],
+        thingsState: {},
     };
 
     render() {
-        const { things, layout, viewType, gradient, title,
-            toggleDetail } = this.props;
+        const { things, layout, viewType, gradient, name, thingsState,
+            toggleDetail, updateThing } = this.props;
+
 
         var panel_things = [];
         if (viewType !== 'collapsed') {
-            for (var i = 0; i < things.length; i++) {
+            for (var i = 0;i < things.length; i++) {
                 switch(things[i].category) {
                     case 'dimmers':
                         panel_things.push(<Dimmer key={things[i].id}
+                            {...things[i]}
                             viewType={viewType}
-                            thing={things[i]}/>);
+                            thingState={thingsState[things[i].id]}
+                            updateThing={updateThing}/>);
                         break;
                     case 'light_switches':
                         panel_things.push(<LightSwitch key={things[i].id}
+                            {...things[i]}
                             viewType={viewType}
-                            thing={things[i]}/>);
-                        break;
+                            thingState={thingsState[things[i].id]}
+                            updateThing={updateThing}/>);
                 }
             }
         }
+        // if (viewType !== 'collapsed') {
+        //     for (var i = 0; i < things.length; i++) {
+        //         switch(things[i].category) {
+        //             case 'dimmers':
+        //                 panel_things.push(<Dimmer key={things[i].id}
+        //                     {...things[i]}
+        //                     viewType={viewType}/>);
+        //                 break;
+        //             case 'light_switches':
+        //                 panel_things.push(<LightSwitch key={things[i].id}
+        //                     {...things[i]}
+        //                     viewType={viewType}/>);
+        //                 break;
+        //             case 'empty':
+        //                 panel_things.push(<Empty key={things[i].id}/>);
+        //                 break;
+        //         }
+        //     }
+        // }
 
         return (
             <TouchableWithoutFeedback onPressIn={() =>
@@ -77,7 +82,7 @@ class Panel extends React.Component<PropsType> {
                     start={{x: 0, y: 0}}
                     end={{x: 1, y: 1}}
                     style={[layout, styles.container]}>
-                    <PanelHeader title={title.en}
+                    <PanelHeader name={name.en}
                         close={viewType === 'detail' ?
                         () => toggleDetail() : undefined}/>
                     <View style={styles.things_container}>
@@ -99,7 +104,7 @@ const styles = StyleSheet.create({
     things_container: {
         flex: 1,
         flexDirection: 'row',
-        backgroundColor: '#FF0000'
+        // backgroundColor: '#FF0000'
     }
 });
 

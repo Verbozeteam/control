@@ -17,39 +17,39 @@ const spec = {
                     },
                     things: [
                         {
-                            id: 'lightswitch-d31',
+                            id: 'lightswitch-d00',
                             category: 'light_switches',
                             intensity: 0,
                             title: {
                                 en: 'Main lights',
-                                ar: 'الديمر رقم ١'
+                                ar: 'Main lights'
                             }
                         },
                         {
-                            id: 'lightswitch-d30',
+                            id: 'lightswitch-d01',
                             category: 'light_switches',
                             intensity: 0,
                             title: {
-                                en: 'Main lights',
-                                ar: 'الديمر رقم ١'
+                                en: 'Night stand',
+                                ar: 'Night stand'
                             }
                         },
                         {
-                            id: 'lightswitch-d32',
+                            id: 'lightswitch-d02',
                             category: 'light_switches',
                             intensity: 0,
                             title: {
-                                en: 'Main lights',
-                                ar: 'الديمر رقم ١'
+                                en: 'Hallway',
+                                ar: 'Hallway'
                             }
                         },
                         {
-                            id: 'dimmer-d7',
+                            id: 'dimmer-d00',
                             category: 'dimmers',
-                            intensity: 78,
+                            intensity: 67,
                             title: {
-                                en: 'Dimmer 2',
-                                ar: 'الديمر رقم ١'
+                                en: 'Bed dimmers',
+                                ar: 'Bed dimmers'
                             }
                         }
                     ]
@@ -61,30 +61,34 @@ const spec = {
                     },
                     things: [
                         {
-                            id: 'dimmer-d10',
-                            category: 'dimmers',
-                            intensity: 78,
+                            id: 'lightswitch-d03',
+                            category: 'light_switches',
+                            intensity: 1,
                             title: {
-                                en: 'Dimmer 2',
-                                ar: 'الديمر رقم ١'
+                                en: 'Main lights',
+                                ar: 'Main lights'
                             }
                         },
                         {
-                            id: 'dimmer-d11',
-                            category: 'dimmers',
-                            intensity: 78,
+                            id: 'lightswitch-d04',
+                            category: 'light_switches',
+                            intensity: 0,
                             title: {
-                                en: 'Dimmer 2',
-                                ar: 'الديمر رقم ١'
+                                en: 'Mirror lights',
+                                ar: 'Mirror lights'
                             }
                         },
                         {
-                            id: 'dimmer-d12',
+                            id: 'empty-00',
+                            category: 'empty'
+                        },
+                        {
+                            id: 'dimmer-d01',
                             category: 'dimmers',
-                            intensity: 78,
+                            intensity: 13,
                             title: {
-                                en: 'Dimmer 2',
-                                ar: 'الديمر رقم ١'
+                                en: 'Bathroom dimmer',
+                                ar: 'Bathroom dimmer'
                             }
                         }
                     ]
@@ -99,26 +103,7 @@ const spec = {
                         en: 'Air Conditioning',
                         ar: 'التكييف'
                     },
-                    things: [
-                        {
-                            id: 'lightswitch-d37',
-                            category: 'light_switches',
-                            intensity: 0,
-                            title: {
-                                en: 'Main lights',
-                                ar: 'الديمر رقم ١'
-                            }
-                        },
-                        {
-                            id: 'lightswitch-d50',
-                            category: 'light_switches',
-                            intensity: 1,
-                            title: {
-                                en: 'Main lights',
-                                ar: 'الديمر رقم ١'
-                            }
-                        }
-                    ]
+                    things: []
                 }, {
                     ratio: 1,
                     title: {
