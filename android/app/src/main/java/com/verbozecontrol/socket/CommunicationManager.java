@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import java.nio.charset.StandardCharsets;
@@ -200,10 +201,12 @@ public class CommunicationManager implements Runnable {
 
             // we are connected, do connected stuff
             try {
-                while (input.available() > 0) {
-                    byte[] bb = new byte[1];
-                    input.read(bb, 0, 1);
-                    buffer.add(bb[0]);
+                int num_available = input.available();
+                if (num_available > 0) {
+                    byte[] read_bytes = new byte[num_available];
+                    int num_read = input.read(read_bytes);
+                    if (num_read > 0)
+                        buffer.add(new ArrayList<>(Arrays.asList(read_bytes)));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -212,7 +215,7 @@ public class CommunicationManager implements Runnable {
             ProcessBuffer(buffer);
 
             // send an empty message just to check if the connection is dead
-            if (curTime - beat_timer > 1000) {
+            if (curTime - beat_timer > 3000) {
                 beat_timer = curTime;
                 try {
                     output.write(2);
@@ -231,15 +234,16 @@ public class CommunicationManager implements Runnable {
                 commandsBuffer[bufferStart] = null;
                 bufferStart = (bufferStart + 1) % BUFFER_SIZE;
                 try {
-                    byte[] size = new byte[4];
+                    byte[] cmdBytes = new byte[4 + cmd.length()];
 
-                    size[0] = (byte)((cmd.length() & 0xFF));
-                    size[1] = (byte)((cmd.length() << 8) & 0xFF);
-                    size[2] = (byte)((cmd.length() << 16) & 0xFF);
-                    size[3] = (byte)((cmd.length() << 24) & 0xFF);
+                    cmdBytes[0] = (byte)((cmd.length() & 0xFF));
+                    cmdBytes[1] = (byte)((cmd.length() << 8) & 0xFF);
+                    cmdBytes[2] = (byte)((cmd.length() << 16) & 0xFF);
+                    cmdBytes[3] = (byte)((cmd.length() << 24) & 0xFF);
 
-                    output.write(size);
-                    output.write(cmd.getBytes());
+                    System.arraycopy(cmd.getBytes(), 0, cmdBytes, 4, cmd.length());
+
+                    output.write(cmdBytes);
                 } catch (IOException e) {
                     e.printStackTrace();
                     connected = false;
@@ -249,7 +253,7 @@ public class CommunicationManager implements Runnable {
 
             synchronized (this) {
                 try {
-                    wait(100);
+                    wait(10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -275,7 +279,7 @@ public class CommunicationManager implements Runnable {
     }
 
     private void ProcessBuffer(ArrayList<Byte> buffer) {
-        if (buffer.size() >= 4) {
+        while (buffer.size() >= 4) {
             int payload_size =
                 ((((int)buffer.get(0)) & 0xFF)      ) |
                 ((((int)buffer.get(1)) & 0xFF) << 8 ) |
@@ -296,7 +300,8 @@ public class CommunicationManager implements Runnable {
                 try {
                     m_data_callback.onData(payload_string);
                 } catch (Exception e) {}
-            }
+            } else
+                break;
         }
     }
 }
