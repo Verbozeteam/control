@@ -51,7 +51,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         });
 
         DeviceEventEmitter.addListener(Socket.socket_data, function(data) {
-            console.log(data);
+            // console.log(data);
             this.handleSocketData(JSON.parse(data.data));
         }.bind(this));
 
@@ -94,21 +94,19 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     handleSocketData(data: Object) {
         const { thingsState } = this.state;
 
+        // if config provided, apply it
         if ('config' in data) {
             this.applyConfig(data.config);
             delete data['config'];
         }
 
+        // go through thing ids and update if thing is not blocked
         for (var key in data) {
-            // check if thing is blocked
             if (this._blocked_things.indexOf(key) === -1) {
                 thingsState[key] = data[key];
             }
         }
 
-        console.log(thingsState);
-
-        // console.log('thingsState: ', thingsState);
         this.setState({thingsState});
     }
 
@@ -119,6 +117,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             thing: id,
             ...update
         }));
+        console.log('Socket write: ', id, update, remote_only);
 
         if (!remote_only) {
             const { thingsState } = this.state;

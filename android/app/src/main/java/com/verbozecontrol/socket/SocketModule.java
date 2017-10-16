@@ -86,7 +86,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void killThread() {
-        comm_mgr.stop();
+        comm_mgr.Stop();
     }
 
     @Override

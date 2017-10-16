@@ -152,6 +152,10 @@ public class CommunicationManager implements Runnable {
             lock.lock();
             if (!is_running) {
                 lock.unlock();
+                try {
+                    if (socket != null)
+                        socket.close();
+                } catch (Exception e) {}
                 break;
             }
             lock.unlock();
@@ -165,9 +169,7 @@ public class CommunicationManager implements Runnable {
                             m_disconnected_callback.onDisconnected();
                         } catch (Exception e) {}
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception e) {}
                 socket = null;
                 connected = false;
                 IP = target_IP;
@@ -189,12 +191,9 @@ public class CommunicationManager implements Runnable {
                         m_connected_callback.onConnected();
                     } catch (Exception e) {}
                 } catch (Exception e) {
-                    System.err.println(e.getMessage());
                     try {
                         Thread.sleep(1000);
-                    } catch(InterruptedException e2) {
-                        System.err.println(e2.getMessage());
-                    }
+                    } catch(InterruptedException e2) {}
                     continue;
                 }
             }
@@ -205,11 +204,10 @@ public class CommunicationManager implements Runnable {
                 if (num_available > 0) {
                     byte[] read_bytes = new byte[num_available];
                     int num_read = input.read(read_bytes);
-                    if (num_read > 0)
-                        buffer.add(new ArrayList<>(Arrays.asList(read_bytes)));
+                    for (int i = 0; i < num_read; i++)
+                        buffer.add(read_bytes[i]);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
                 connected = false;
             }
             ProcessBuffer(buffer);
@@ -242,21 +240,20 @@ public class CommunicationManager implements Runnable {
                     cmdBytes[3] = (byte)((cmd.length() << 24) & 0xFF);
 
                     System.arraycopy(cmd.getBytes(), 0, cmdBytes, 4, cmd.length());
-
                     output.write(cmdBytes);
                 } catch (IOException e) {
-                    e.printStackTrace();
                     connected = false;
                 }
             }
 
+            try {
+                output.flush();
+            } catch (Exception e) {}
 
             synchronized (this) {
                 try {
                     wait(10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                } catch (InterruptedException e) {}
             }
 
             // bookkeeping
