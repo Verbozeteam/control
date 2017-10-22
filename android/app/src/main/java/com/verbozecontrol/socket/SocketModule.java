@@ -14,51 +14,60 @@ import com.facebook.react.bridge.WritableMap;
 
 import android.support.annotation.Nullable;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class SocketModule extends ReactContextBaseJavaModule {
+
     private static final String TAG = "Socket";
-    private ReactApplicationContext react_context = null;
+    private ReactContext mReactContext = null;
 
     // socket event names
     private static final String socket_connected = "socket_connected";
     private static final String socket_disconnected = "socket_disconnected";
     private static final String socket_data = "socket_data";
+    private static final String device_discovered = "device_discovered";
 
     private CommunicationManager comm_mgr = null;
 
-    public SocketModule(ReactApplicationContext react_context) {
-        super(react_context);
-        this.react_context = react_context;
+    public SocketModule(ReactApplicationContext reactContext) {
+        super(reactContext);
+        mReactContext = reactContext;
+
         comm_mgr = CommunicationManager.Create("communication_manager",
             new CommunicationManager.OnConnectedCallback() {
                 @Override
                 public void onConnected() {
                     WritableMap params = Arguments.createMap();
-                    sendEvent(react_context, socket_connected, params);
+                    sendEvent(mReactContext, socket_connected, params);
                 }
             },
+
             new CommunicationManager.OnDataCallback() {
                 @Override
                 public void onData(String json) {
-                    System.out.println("got data " + json + "\n");
+                    WritableMap params = Arguments.createMap();
+                    params.putString("data", json);
+                    sendEvent(mReactContext, socket_data, params);
                 }
             },
+
             new CommunicationManager.OnDisconnectedCallback() {
                 @Override
                 public void onDisconnected() {
-                    System.out.println("disconnected...");
+                    WritableMap params = Arguments.createMap();
+                    sendEvent(mReactContext, socket_disconnected, params);
                 }
-            });
+            }
+        );
     }
 
-    public ~SocketModule() {
+    private void sendEvent(ReactContext reactContext,
+        String eventName, @Nullable WritableMap params) {
 
-    }
-
-    private void sendEvent(ReactContext react_context,
-        String event_name, @Nullable WritableMap params) {
-            react_context.getJSModule(
-                DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(event_name, params);
+        reactContext.getJSModule(
+            DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+            .emit(eventName, params);
     }
 
     @ReactMethod
@@ -76,6 +85,26 @@ public class SocketModule extends ReactContextBaseJavaModule {
         comm_mgr.SetServerAddress("", 0);
     }
 
+    @ReactMethod
+    public void killThread() {
+        comm_mgr.Stop();
+    }
+
+    @ReactMethod
+    public void discoverDevices() {
+        comm_mgr.DiscoverDevices(new CommunicationManager.DeviceDiscoveryCallback() {
+            @Override
+            public void onDeviceFound(String addr, String text, int type, String data) {
+                WritableMap params = Arguments.createMap();
+                params.putString("ip", addr);
+                params.putString("name", text);
+                params.putInt("type", type);
+                params.putString("data", data);
+                sendEvent(mReactContext, device_discovered, params);
+            }
+        });
+    }
+
     @Override
     public String getName() {
         return TAG;
@@ -87,6 +116,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
         constants.put(socket_connected, socket_connected);
         constants.put(socket_disconnected, socket_disconnected);
         constants.put(socket_data, socket_data);
+        constants.put(device_discovered, device_discovered);
 
         return constants;
     }

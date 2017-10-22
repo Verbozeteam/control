@@ -3,53 +3,54 @@
 import * as React from 'react';
 import { View, Text, PanResponder, StyleSheet } from 'react-native';
 
-// import Slider from 'react-native-slider';
+import type { GenericThingType, ViewType } from '../config/flowtypes';
 
-type ViewType = 'present' | 'detail';
+import LinearGradient from 'react-native-linear-gradient';
 
 type PropsType = {
-    viewType: ViewType,
-    thing: {
-        id: string,
-        category: 'dimmers',
-        title: {
-            en: string,
-            ar: string
-        },
+    ...GenericThingType,
+    viewType?: ViewType,
+    dimmerState?: {
         intensity: number
-    }
+    },
+    updateThing?: (id: string, update: Object, remote_only?: boolean) => null,
+    blockThing?: (id: string) => null,
+    unblockThing?: (id: string) => null
 };
 
 type StateType = {
-    value: number,
-    gesture_start_value: number
+    touch: boolean,
+    touch_intensity: number,
+    touch_start_intensity: number,
 };
 
 class Dimmer extends React.Component<PropsType, StateType> {
 
     static defaultProps = {
-        viewType: 'present'
+        viewType: 'present',
+        dimmerState: {
+            intensity: 50
+        }
     };
 
     state = {
-        value: 34,
-        gesture_start_value: 34
+        touch: false,
+        touch_intensity: 0,
+        touch_start_intensity: 0,
     };
 
-    _slider_height: number;
-    _min_value: number;
-    _max_value: number;
+    _dimmer_gradient: [string, string] = ['#666666', '#333333'];
+    _slider_gradient: [string, string] = ['#2463E2', '#163F93'];
+
+    _min_value: number = 0;
+    _max_value: number = 100;
+
+    _dimmer_detail_height: number = 200;
+    _dimmer_present_height: number = 100;
+    _dimmer_height: number;
     _ratio: number;
+
     _panResponder: Object;
-
-    constructor(props: PropsType) {
-        super(props);
-
-        this._slider_height = 200;
-        this._min_value = 0;
-        this._max_value = 100;
-        this._ratio = this._slider_height / (this._max_value - this._min_value);
-    }
 
     componentWillMount() {
         this._panResponder = PanResponder.create({
@@ -59,89 +60,139 @@ class Dimmer extends React.Component<PropsType, StateType> {
             onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
 
             onPanResponderGrant: this._onPanResponderGrant.bind(this),
-            onPanResponderMove: this._onPanResponderMove.bind(this)
+            onPanResponderMove: this._onPanResponderMove.bind(this),
+            onPanResponderRelease: this._onPanResponderRelease.bind(this)
         });
     }
 
     _onPanResponderGrant(evt: Object, gestureState: Object) {
-        const { value } = this.state;
+        const { blockThing, id } = this.props;
+        const { intensity } = this.props.dimmerState;
+
+        blockThing(id);
 
         this.setState({
-            gesture_start_value: value
+            touch: true,
+            touch_intensity: intensity,
+            touch_start_intensity: intensity
         });
     }
 
     _onPanResponderMove(evt: Object, gestureState: {dy: number}) {
-        const { gesture_start_value } = this.state;
+        const { id, updateThing } = this.props;
+        const { touch_intensity, touch_start_intensity } = this.state;
 
-        var new_value: number = Math.round(gesture_start_value -
+        var new_intensity: number = Math.round(touch_start_intensity -
             (gestureState.dy / this._ratio));
 
-        if (new_value < this._min_value) {
-            new_value = this._min_value;
+        if (new_intensity < this._min_value) {
+            new_intensity = this._min_value;
         }
 
-        else if (new_value > this._max_value) {
-            new_value = this._max_value;
+        else if (new_intensity > this._max_value) {
+            new_intensity = this._max_value;
         }
+
+        if (new_intensity !== touch_intensity) {
+            this.setState({
+                touch_intensity: new_intensity
+            });
+
+            updateThing(id, {intensity: new_intensity}, true);
+        }
+    }
+
+    _onPanResponderRelease(evt: Object, gestureState: Object) {
+        const { unblockThing, id, updateThing } = this.props;
+        const { touch_intensity } = this.state;
 
         this.setState({
-            value: new_value
+            touch: false
         });
+
+        updateThing(id, {intensity: touch_intensity});
+
+        unblockThing(id);
+    }
+
+    calculateDimmerHeightAndRatio() {
+        const { viewType } = this.props;
+
+        this._dimmer_height = viewType === 'detail' ?
+            this._dimmer_detail_height : this._dimmer_present_height;
+        this._ratio = this._dimmer_height / (this._max_value - this._min_value);
     }
 
     render() {
-        const { thing } = this.props;
-        const { value } = this.state;
+        const { viewType, name } = this.props;
+        var { intensity } = this.props.dimmerState;
+        const { touch, touch_intensity, touch_start_intensity } = this.state;
 
-        console.log('DIMMER: ', thing);
+        this.calculateDimmerHeightAndRatio();
 
-        const slider = (
-            <View {...this._panResponder.panHandlers}
-                style={[{height: this._slider_height}, styles.slider_container]}>
-                <View style={[{height: this._ratio * value}, styles.slider]}></View>
-                <Text style={styles.slider_text}>{value}</Text>
-            </View>
-        );
+        const dimmer_attributes = viewType === 'detail' ?
+            this._panResponder.panHandlers : {};
+
+        if (touch) {
+            intensity = touch_intensity;
+        }
 
         return (
             <View style={styles.container}>
-                {slider}
-                <Text style={styles.title}>{thing.title.en}</Text>
+                <View {...dimmer_attributes}
+                    style={[{height: this._dimmer_height}, styles.dimmer]}>
+
+                    <LinearGradient colors={this._slider_gradient}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 1}}
+                        style={[{height: this._ratio * intensity}, styles.slider]}>
+                    </LinearGradient>
+                    <Text style={styles.dimmer_value}>
+                        {intensity}
+                    </Text>
+                </View>
+                <Text style={styles.name}>{name.en}</Text>
             </View>
         );
     }
 }
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0000FF',
         alignItems: 'center',
         justifyContent: 'center'
     },
-    title: {
+    name: {
         fontSize: 17,
-        fontFamily: 'HKNova-MediumR'
+        fontFamily: 'HKNova-MediumR',
+        color: '#FFFFFF'
     },
-    slider_container: {
+    dimmer: {
         width: 70,
         borderRadius: 5,
-        backgroundColor: '#00FFFF',
+        backgroundColor: '#444444',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     slider: {
         position: 'absolute',
+        width: '100%',
         bottom: 0,
         borderRadius: 5,
-        width: 70,
-        backgroundColor: '#FF0000'
+        backgroundColor: '#0000FF'
     },
-    slider_text: {
+    dimmer_value: {
         fontFamily: 'HKNova-MediumR',
-        fontSize: 17,
-        color: '#000000'
+        fontSize: 30,
+        color: '#FFFFFF',
+        textShadowColor:'#000000',
+        textShadowOffset: {
+            width: 0.1,
+            height: 0.1
+        },
+        textShadowRadius: 5,
     }
 });
 

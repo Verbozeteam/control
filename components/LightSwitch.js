@@ -4,80 +4,108 @@ import * as React from 'react';
 import { View, Text, Image, Animated, TouchableWithoutFeedback, StyleSheet }
     from 'react-native';
 
-type ViewType = 'present' | 'detail';
+import type { GenericThingType, ViewType } from '../config/flowtypes';
+
+import LinearGradient from 'react-native-linear-gradient';
 
 type PropsType = {
-    viewType: ViewType,
-    thing: {
-        id: string,
-        category: 'light_switches',
-        title: {
-            en: string,
-            ar: string
-        },
+    ...GenericThingType,
+    viewType?: ViewType,
+    lightSwitchState?: {
         intensity: 0 | 1
+    },
+    updateThing: (id: string, update: Object) => null,
+};
+
+class LightSwitch extends React.Component<PropsType> {
+
+    static defaultProps = {
+        viewType: 'present',
+        lightSwitchState: {
+            intensity: 0
+        }
+    };
+
+    _switch_gradient: [string, string] = ['#DDDDDD', '#AAAAAA'];
+    _knob_gradient: [string, string] = ['#2463E2', '#163F93'];
+
+    _offset: Object;
+
+    _light_bulb_img_on = require('../assets/images/light_bulb_on.png');
+    _light_bulb_img_off = require('../assets/images/light_bulb_off.png');
+
+
+    constructor(props: PropsType) {
+        super(props);
+
+        const { intensity } = props.lightSwitchState;
+
+        this._offset = new Animated.Value(5 + intensity * 40);
     }
-};
-
-type StateType = {
-    intensity: number
-};
-
-class LightSwitch extends React.Component<PropsType, StateType> {
-
-    static defaultProps: {
-        viewType: 'present'
-    };
-
-    state = {
-        intensity: 0,
-        offset: new Animated.Value(5)
-    };
 
     toggle() {
-        const { intensity, offset } = this.state;
+        const { id, updateThing } = this.props;
+        const { intensity } = this.props.lightSwitchState;
 
-        this.setState({
-            intensity: !intensity
-        });
+        updateThing(id, {intensity: ~~!intensity});
+    }
 
-        Animated.timing(offset, {
-            toValue: 5 + !intensity * 30,
+    evaluateKnobOffset() {
+        const { intensity } = this.props.lightSwitchState;
+
+        Animated.timing(this._offset, {
+            toValue: 5 + intensity * 40,
             duration: 150
         }).start();
     }
 
+    // componentWillUpdate(nextProps: PropsType) {
+    //     const { intensity } = this.props.lightSwitchState;
+    //     const next_intensity = nextProps.lightSwitchState.intensity;
+    //
+    //     if (intensity !== next_intensity) {
+    //
+    //     }
+    // }
+
     render() {
-        const { thing, viewType } = this.props;
-        const { intensity, offset } = this.state;
+        const { viewType, name } = this.props;
+        const { intensity } = this.props.lightSwitchState;
 
-        console.log('LIGHT SWITCH: ', viewType, thing);
+        const light_bulb_img = intensity ?
+            this._light_bulb_img_on : this._light_bulb_img_off
 
-        const switch_button = (
-            <TouchableWithoutFeedback onPress={() => this.toggle()}>
-                <View style={styles.switch}>
-                    <Text style={styles.text_off}>Off</Text>
-                    <Animated.View style={[{top: offset}, styles.knob]}></Animated.View>
-                    <Text style={styles.text_on}>On</Text>
-                </View>
-            </TouchableWithoutFeedback>
-        );
+        this.evaluateKnobOffset();
 
-        var light_bulb_img = '';
-        if (intensity) {
-            light_bulb_img = require('../assets/images/light_bulb_on.png');
-        } else {
-            light_bulb_img = require('../assets/images/light_bulb_off.png');
+        var switch_button = null;
+        if (viewType === 'detail') {
+            switch_button = (
+                <TouchableWithoutFeedback onPressIn={() => this.toggle()}>
+                    <LinearGradient colors={this._switch_gradient}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 1}}
+                        style={styles.switch}>
+                        <Animated.View style={[styles.knob, {top: this._offset}]}>
+                            <LinearGradient colors={this._knob_gradient}
+                                start={{x: 0, y: 0}}
+                                end={{x: 1, y: 1}}
+                                style={styles.knob_gradient}>
+                            </LinearGradient>
+                        </Animated.View>
+                    </LinearGradient>
+                </TouchableWithoutFeedback>
+            );
         }
 
         return (
             <View style={styles.container}>
-                <View style={styles.light_switch}>
+                <View style={styles.light_bulb_container}>
                     <Image style={styles.light_bulb}
-                        source={light_bulb_img}></Image>
-                    {viewType === 'detail' ? switch_button : null}
+                        source={light_bulb_img}
+                        resizeMode='contain'></Image>
                 </View>
-                <Text style={styles.title}>{thing.title.en}</Text>
+                {switch_button}
+                <Text style={styles.name}>{name.en}</Text>
             </View>
         );
     }
@@ -86,49 +114,38 @@ class LightSwitch extends React.Component<PropsType, StateType> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#00FF00',
+        backgroundColor: 'rgba(0, 0, 0, 0)',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
-    light_switch: {
-        width: 120,
-        height: 200,
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
-        justifyContent: 'center'
+    name: {
+        fontSize: 17,
+        fontFamily: 'HKNova-MediumR',
+        color: '#FFFFFF',
+    },
+    light_bulb_container: {
+        height: 120,
+        width: 70
     },
     light_bulb: {
-        width: 70,
-        height: 120
-    },
-    title: {
-        fontSize: 17,
-        fontFamily: 'HKNova-MediumR'
+        flex: 1,
+        width: undefined,
+        height: undefined
     },
     switch: {
         borderRadius: 5,
         height: 100,
         width: 100,
-        backgroundColor: '#0FFFF0'
+        marginTop: 20
     },
     knob: {
-        borderRadius: 5,
-        left: 5,
         height: 50,
         width: 90,
-        backgroundColor: '#FF0000'
+        left: 5,
     },
-    text_on: {
-        position: 'absolute',
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 17,
-        color: '#FF0000'
-    },
-    text_off: {
-        position: 'absolute',
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 17,
-        color: '#FF0000'
+    knob_gradient: {
+        flex: 1,
+        borderRadius: 5
     }
 });
 

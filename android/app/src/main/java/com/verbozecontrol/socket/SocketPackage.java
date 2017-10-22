@@ -13,18 +13,18 @@ public class SocketPackage implements ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext
-        react_context) {
+        reactContext) {
 
         return Collections.emptyList();
     }
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext
-        react_context) {
+        reactContext) {
 
         List<NativeModule> modules = new ArrayList<>();
 
-        modules.add(new SocketModule(react_context));
+        modules.add(new SocketModule(reactContext));
 
         return modules;
     }
