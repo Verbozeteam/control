@@ -3,15 +3,22 @@
 import * as React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
+import type { ViewType } from '../config/flowtypes';
+
 type PropsType = {
     name: string,
+    viewType?: ViewType,
     close?: Function
 };
 
 class PanelHeader extends React.Component<PropsType> {
 
+    static defaultProps = {
+        viewType: 'present'
+    }
+
     render() {
-        const { name, close } = this.props;
+        const { name, close, viewType } = this.props;
 
         var close_button = null;
         if (close) {
@@ -24,7 +31,8 @@ class PanelHeader extends React.Component<PropsType> {
 
         return (
             <View style={styles.container}>
-                <Text style={styles.name}>{name}</Text>
+                <Text style={viewType === 'collapsed' ?
+                    styles.name_large : styles.name}>{name}</Text>
                 {close_button}
             </View>
         );
@@ -41,6 +49,12 @@ const styles = StyleSheet.create({
         flex: 1,
         fontFamily: 'HKNova-MediumR',
         fontSize: 20,
+        color: '#FFFFFF'
+    },
+    name_large: {
+        flex: 1,
+        fontFamily: 'HKNova-MediumR',
+        fontSize: 32,
         color: '#FFFFFF'
     },
     button_container: {

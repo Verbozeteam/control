@@ -26,6 +26,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
     private static final String socket_connected = "socket_connected";
     private static final String socket_disconnected = "socket_disconnected";
     private static final String socket_data = "socket_data";
+    private static final String device_discovered = "device_discovered";
 
     private CommunicationManager comm_mgr = null;
 
@@ -89,6 +90,21 @@ public class SocketModule extends ReactContextBaseJavaModule {
         comm_mgr.Stop();
     }
 
+    @ReactMethod
+    public void discoverDevices() {
+        comm_mgr.DiscoverDevices(new CommunicationManager.DeviceDiscoveryCallback() {
+            @Override
+            public void onDeviceFound(String addr, String text, int type, String data) {
+                WritableMap params = Arguments.createMap();
+                params.putString("ip", addr);
+                params.putString("name", text);
+                params.putInt("type", type);
+                params.putString("data", data);
+                sendEvent(mReactContext, device_discovered, params);
+            }
+        });
+    }
+
     @Override
     public String getName() {
         return TAG;
@@ -100,6 +116,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
         constants.put(socket_connected, socket_connected);
         constants.put(socket_disconnected, socket_disconnected);
         constants.put(socket_data, socket_data);
+        constants.put(device_discovered, device_discovered);
 
         return constants;
     }

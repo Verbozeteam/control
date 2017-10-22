@@ -42,10 +42,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     }
 
     componentDidMount() {
-        console.log(connection_config.address, connection_config.port);
-
-        Socket.connect(connection_config.address, connection_config.port);
-
         DeviceEventEmitter.addListener(Socket.socket_connected, function() {
             console.log('Socket connected!');
         });
@@ -59,7 +55,20 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             console.log('Socket disconnected!');
         });
 
+        // if (__DEV__) {
+        Socket.connect(connection_config.address, connection_config.port);
         this.fetchConfig();
+        // } else {
+        //     Socket.discoverDevices();
+        //
+        //     DeviceEventEmitter.addListener(Socket.device_discovered,
+        //         function(data) {
+        //             console.log('Found name', data.name, data.ip);
+        //             Socket.connect(data.ip, 7990);
+        //             this.fetchConfig();
+        //         }.bind(this)
+        //     );
+        // }
     }
 
     componentWillUnmount() {
@@ -75,6 +84,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     }
 
     fetchConfig() {
+        console.log('fetch config');
         this.setState({
             loading: true
         });
@@ -121,11 +131,10 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
         if (!remote_only) {
             const { thingsState } = this.state;
-            thingsState[id] = update;
+            thingsState[id] = Object.assign(thingsState[id], update);
             this.setState({
                 thingsState
             });
-
         }
     }
 
@@ -170,8 +179,16 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
                 unblockThing={this.unblockThing.bind(this)}/>;
         }
 
+        // const rooms_column = <View style={styles.rooms_column}>
+        //     <View style={styles.room_box}></View>
+        //     <View style={styles.room_box}></View>
+        //     <View style={styles.room_box}></View>
+        //     <View style={styles.room_box}></View>
+        // </View>
+
         return (
             <View style={styles.container}>
+                {/* {rooms_column} */}
                 {grid}
                 {loading_text}
             </View>
@@ -185,6 +202,22 @@ const styles = StyleSheet.create({
         backgroundColor: '#000000'
         // alignItems: 'center',
         // justifyContent: 'center'
+    },
+    rooms_column: {
+        flex: 1,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: 100,
+        backgroundColor: 'red',
+        padding: 5
+    },
+    room_box: {
+        height: 80,
+        width: 80,
+        backgroundColor: 'green',
+        margin: 5
     },
     loading_container: {
         flex: 1,

@@ -66,8 +66,10 @@ class Grid extends React.Component<PropsType, StateType> {
         const { layout, grid } = this.props;
 
         // get screen height and width
-        const { height, width }:
+        var { height, width }:
             {height: number, width: number} = Dimensions.get('screen');
+
+        // width = width - 100;
 
         // stop if grid has no columns
         if (grid.length === 0 ) {
@@ -127,8 +129,10 @@ class Grid extends React.Component<PropsType, StateType> {
         const { layout, detail } = this.props;
 
         // get screen height and width
-        const { height, width }:
+        var { height, width }:
             {height: number, width: number} = Dimensions.get('screen');
+
+        // width = width - 100;
 
         // calculate single column width and single row width for
         // collapsed panels
@@ -175,6 +179,8 @@ class Grid extends React.Component<PropsType, StateType> {
         for (var i = 0; i < grid.length; i++) {
             for (var j = 0; j < grid[i].panels.length; j++) {
                 const index = panels.length;
+
+                // console.log('Panel props => ', grid[i].panels[j]);
 
                 // create panel base don presentation view layout and
                 // add to array

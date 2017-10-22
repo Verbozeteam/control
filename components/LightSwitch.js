@@ -17,10 +17,6 @@ type PropsType = {
     updateThing: (id: string, update: Object) => null,
 };
 
-// type StateType = {
-//     offset: number
-// };
-
 class LightSwitch extends React.Component<PropsType> {
 
     static defaultProps = {
@@ -33,49 +29,53 @@ class LightSwitch extends React.Component<PropsType> {
     _switch_gradient: [string, string] = ['#DDDDDD', '#AAAAAA'];
     _knob_gradient: [string, string] = ['#2463E2', '#163F93'];
 
-    _offset: number;
+    _offset: Object;
+
+    _light_bulb_img_on = require('../assets/images/light_bulb_on.png');
+    _light_bulb_img_off = require('../assets/images/light_bulb_off.png');
+
 
     constructor(props: PropsType) {
         super(props);
 
-        this._offset = new Animated.Value(5 + props.intensity * 30);
-    }
+        const { intensity } = props.lightSwitchState;
 
-    // state = {
-    //     intensity: 0,
-    //     offset: new Animated.Value(5)
-    // };
+        this._offset = new Animated.Value(5 + intensity * 40);
+    }
 
     toggle() {
         const { id, updateThing } = this.props;
         const { intensity } = this.props.lightSwitchState;
 
-
-
         updateThing(id, {intensity: ~~!intensity});
-        // const { intensity, offset } = this.state;
-        //
-        // this.setState({
-        //     intensity: !intensity
-        // });
-        //
-        // Animated.timing(offset, {
-        //     toValue: 5 + !intensity * 30,
-        //     duration: 150
-        // }).start();
     }
+
+    evaluateKnobOffset() {
+        const { intensity } = this.props.lightSwitchState;
+
+        Animated.timing(this._offset, {
+            toValue: 5 + intensity * 40,
+            duration: 150
+        }).start();
+    }
+
+    // componentWillUpdate(nextProps: PropsType) {
+    //     const { intensity } = this.props.lightSwitchState;
+    //     const next_intensity = nextProps.lightSwitchState.intensity;
+    //
+    //     if (intensity !== next_intensity) {
+    //
+    //     }
+    // }
 
     render() {
         const { viewType, name } = this.props;
         const { intensity } = this.props.lightSwitchState;
 
-        // console.log('LIGHTBULB', intensity);
-
-        const light_bulb_img_on = require('../assets/images/light_bulb_on.png');
-        const light_bulb_img_off = require('../assets/images/light_bulb_off.png');
-
         const light_bulb_img = intensity ?
-            light_bulb_img_on : light_bulb_img_off
+            this._light_bulb_img_on : this._light_bulb_img_off
+
+        this.evaluateKnobOffset();
 
         var switch_button = null;
         if (viewType === 'detail') {
@@ -85,10 +85,11 @@ class LightSwitch extends React.Component<PropsType> {
                         start={{x: 0, y: 0}}
                         end={{x: 1, y: 1}}
                         style={styles.switch}>
-                        <Animated.View style={styles.knob}>
+                        <Animated.View style={[styles.knob, {top: this._offset}]}>
                             <LinearGradient colors={this._knob_gradient}
                                 start={{x: 0, y: 0}}
-                                end={{x: 1, y: 1}}>
+                                end={{x: 1, y: 1}}
+                                style={styles.knob_gradient}>
                             </LinearGradient>
                         </Animated.View>
                     </LinearGradient>
@@ -98,11 +99,12 @@ class LightSwitch extends React.Component<PropsType> {
 
         return (
             <View style={styles.container}>
-                <View style={styles.light_switch}>
+                <View style={styles.light_bulb_container}>
                     <Image style={styles.light_bulb}
-                        source={light_bulb_img}></Image>
-                    {switch_button}
+                        source={light_bulb_img}
+                        resizeMode='contain'></Image>
                 </View>
+                {switch_button}
                 <Text style={styles.name}>{name.en}</Text>
             </View>
         );
@@ -119,57 +121,32 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 17,
         fontFamily: 'HKNova-MediumR',
-        color: '#FFFFFF'
+        color: '#FFFFFF',
     },
-    light_switch: {
-        width: 120,
-        height: 200,
-        alignItems: 'center',
-        justifyContent: 'center'
+    light_bulb_container: {
+        height: 120,
+        width: 70
     },
     light_bulb: {
-        width: 70,
-        height: 120
+        flex: 1,
+        width: undefined,
+        height: undefined
     },
     switch: {
         borderRadius: 5,
         height: 100,
         width: 100,
-        marginTop: 20,
+        marginTop: 20
     },
     knob: {
-        borderRadius: 5,
-        left: 5,
         height: 50,
-        width: 90
+        width: 90,
+        left: 5,
+    },
+    knob_gradient: {
+        flex: 1,
+        borderRadius: 5
     }
-
-    // light_switch: {
-    //     width: 120,
-    //     height: 200,
-    //     alignItems: 'center',
-    //     justifyContent: 'center'
-    // },
-    // light_bulb: {
-    //     width: 70,
-    //     height: 120
-    // },
-    // name: {
-    //     fontSize: 17,
-    //     fontFamily: 'HKNova-MediumR'
-    // },
-    // switch: {
-    //     borderRadius: 5,
-    //     height: 100,
-    //     width: 100,
-    //     backgroundColor: '#0FFFF0'
-    // },
-    // knob: {
-    //     borderRadius: 5,
-    //     left: 5,
-    //     height: 50,
-    //     width: 90,
-    // }
 });
 
 module.exports = LightSwitch;

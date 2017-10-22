@@ -97,7 +97,7 @@ class Dimmer extends React.Component<PropsType, StateType> {
             this.setState({
                 touch_intensity: new_intensity
             });
-            
+
             updateThing(id, {intensity: new_intensity}, true);
         }
     }
@@ -134,7 +134,7 @@ class Dimmer extends React.Component<PropsType, StateType> {
             this._panResponder.panHandlers : {};
 
         if (touch) {
-            intensity = touch_intensity
+            intensity = touch_intensity;
         }
 
         return (
