@@ -137,6 +137,11 @@ class Dimmer extends React.Component<PropsType, StateType> {
             intensity = touch_intensity;
         }
 
+        var name_text = <Text></Text>;
+        if (viewType === 'detail') {
+            name_text = <Text style={styles.name}>{name.en}</Text>;
+        }
+
         return (
             <View style={styles.container}>
                 <View {...dimmer_attributes}
@@ -151,7 +156,7 @@ class Dimmer extends React.Component<PropsType, StateType> {
                         {intensity}
                     </Text>
                 </View>
-                <Text style={styles.name}>{name.en}</Text>
+                {name_text}
             </View>
         );
     }

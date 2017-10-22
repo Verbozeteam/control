@@ -59,15 +59,6 @@ class LightSwitch extends React.Component<PropsType> {
         }).start();
     }
 
-    // componentWillUpdate(nextProps: PropsType) {
-    //     const { intensity } = this.props.lightSwitchState;
-    //     const next_intensity = nextProps.lightSwitchState.intensity;
-    //
-    //     if (intensity !== next_intensity) {
-    //
-    //     }
-    // }
-
     render() {
         const { viewType, name } = this.props;
         const { intensity } = this.props.lightSwitchState;
@@ -97,6 +88,11 @@ class LightSwitch extends React.Component<PropsType> {
             );
         }
 
+        var name_text = <Text></Text>;
+        if (viewType === 'detail') {
+            name_text = <Text style={styles.name}>{name.en}</Text>;
+        }
+
         return (
             <View style={styles.container}>
                 <View style={styles.light_bulb_container}>
@@ -105,7 +101,7 @@ class LightSwitch extends React.Component<PropsType> {
                         resizeMode='contain'></Image>
                 </View>
                 {switch_button}
-                <Text style={styles.name}>{name.en}</Text>
+                {name_text}
             </View>
         );
     }
