@@ -92,8 +92,8 @@ class CentralAC extends React.Component<PropsType, StateType> {
         const { id, updateThing } = this.props;
         const { touch_set_pt, touch_start_set_pt } = this.state;
 
-        var new_set_pt: number = Math.round(touch_start_set_pt +
-            (gestureState.dx / this._ratio));
+        var new_set_pt: number = Math.round((touch_start_set_pt +
+            (gestureState.dx / this._ratio)) * 2) / 2.0;
 
         if (new_set_pt < this._min_temperature) {
             new_set_pt = this._min_temperature;
@@ -130,7 +130,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         const { set_pt, fan } = this.props.aCState;
 
         if (set_pt < this._max_temperature) {
-            updateThing(id, {set_pt: set_pt + 1});
+            updateThing(id, {set_pt: set_pt + 0.5});
         }
     }
 
@@ -140,7 +140,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         const { set_pt } = this.props.aCState;
 
         if (set_pt > this._min_temperature) {
-            updateThing(id, {set_pt: set_pt - 1});
+            updateThing(id, {set_pt: set_pt - 0.5});
         }
     }
 
@@ -184,7 +184,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         } else {
             set_temperature = <View style={styles.set_temperature_container}>
                 <Text style={styles.set_temperature}>
-                    {set_pt}°C
+                    {parseFloat(set_pt).toFixed(1)}°C
                 </Text>
                 <Text style={styles.fan_speed_display}>
                     {viewType !== 'detail' ?
@@ -200,13 +200,13 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
             room_temperature = <View style={styles.room_temperature}>
                 <Text style={styles.room_temperature_text}>
-                    Room Temperature {temp}°C
+                    Room Temperature {parseFloat(temp).toFixed(1)}°C
                 </Text>
             </View>;
 
 
-            const temperature_percentage = (set_pt - this._min_temperature)
-                / (this._max_temperature - this._min_temperature);
+            const temperature_percentage = (set_pt - this._min_temperature) /
+                (this._max_temperature - this._min_temperature);
 
             const color1 = interpolateRGB(this._cold_gradient[0],
                 this._warm_gradient[0], temperature_percentage);
