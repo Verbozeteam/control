@@ -10,7 +10,7 @@ import Immersive from 'react-native-immersive';
 const Grid = require('./components/Grid');
 const Socket = require('./lib/Socket');
 
-const connection_config = require('./config/connection_config');
+const StoredDevices = require('./config/stored_devices');
 
 import type { ConfigType } from './config/flowtypes';
 
@@ -44,7 +44,8 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     componentDidMount() {
         DeviceEventEmitter.addListener(Socket.socket_connected, function() {
             console.log('Socket connected!');
-        });
+            this.fetchConfig();
+        }.bind(this));
 
         DeviceEventEmitter.addListener(Socket.socket_data, function(data) {
             // console.log(data);
@@ -55,20 +56,27 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             console.log('Socket disconnected!');
         });
 
-        // if (__DEV__) {
-        Socket.connect(connection_config.address, connection_config.port);
-        this.fetchConfig();
-        // } else {
-        //     Socket.discoverDevices();
-        //
-        //     DeviceEventEmitter.addListener(Socket.device_discovered,
-        //         function(data) {
-        //             console.log('Found name', data.name, data.ip);
-        //             Socket.connect(data.ip, 7990);
-        //             this.fetchConfig();
-        //         }.bind(this)
-        //     );
-        // }
+        DeviceEventEmitter.addListener(Socket.manager_log, function(data) {
+            console.log(data.data);
+        });
+
+        DeviceEventEmitter.addListener(Socket.device_discovered,
+            function(data) {
+                console.log('Found name ', data.name, data.ip);
+                StoredDevices.add_discovered_device(data);
+                if (data.name == StoredDevices.get_current_device_name())
+                    Socket.connect(data.ip, data.port);
+            }.bind(this)
+        );
+
+        StoredDevices.get_saved_device(function (device) {
+            // device has been found
+            Socket.connect(device.ip, device.port);
+        }, function () {
+            // no device found
+            console.log('No saved device to connect to...');
+            this.discoverDevices();
+        }.bind(this));
     }
 
     componentWillUnmount() {
@@ -81,6 +89,11 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
     restoreImmersive() {
         Immersive.on();
+    }
+
+    discoverDevices() {
+        StoredDevices.clear_discovered_devices();
+        Socket.discoverDevices();
     }
 
     fetchConfig() {
@@ -102,6 +115,10 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     }
 
     handleSocketData(data: Object) {
+        console.log('Received from middleware: ', data);
+        if (Object.keys(data).length === 0)
+            return;
+
         const { thingsState } = this.state;
 
         // if config provided, apply it
