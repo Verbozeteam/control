@@ -18,7 +18,8 @@ type PropsType = {};
 type StateType = {
     loading: boolean,
     config: ConfigType,
-    thingsState: Object
+    thingsState: Object,
+    is_screen_dimmed: boolean
 };
 
 class VerbozeControl extends React.Component<PropsType, StateType> {
@@ -36,6 +37,13 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
     _background_gradient: Array<string> = ['#333333', '#000000'];
     _blocked_things: Array<string> = [];
+
+    _days_of_week: Array<string> = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+        'Thursday', 'Friday', 'Saturday'];
+
+    _months_of_year: Array<string> = ['January', 'February', 'March', 'April',
+        'May', 'June', 'July', 'August', 'September', 'October',
+        'November', 'December']
 
     _onScreenPressed(evt, gestureState) {
         this._last_touch_time = (new Date).getTime();
@@ -92,6 +100,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         );
 
         /** Load a saved device (if any) */
+        StoredDevices.set_saved_device({name: 'Fituri', ip: '10.11.28.155', port: 4567});
         StoredDevices.get_saved_device(function (device: DiscoveredDevice) {
             // device has been found
             Socket.connect(device.ip, device.port);
@@ -185,6 +194,33 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         }
     }
 
+    _formatDateTime(datetime: Object) {
+
+        console.log(this._days_of_week[0]);
+
+        var minutes = String(datetime.getMinutes());
+        if (minutes.length < 2) {
+            minutes = '0' + minutes;
+        }
+
+        var am_pm = ' AM';
+        var hours = datetime.getHours();
+        if (hours > 12) {
+            hours -= 12;
+            am_pm = ' PM';
+        }
+
+        // const date = this._days_of_week[0];
+        const date = this._days_of_week[datetime.getDay()] + ', ' +
+            datetime.getDate() + ' ' + this._months_of_year[datetime.getMonth()]
+            + ' ' + datetime.getFullYear();
+
+        return {
+            time: hours + ':' + minutes + am_pm,
+            date
+        };
+    }
+
     render() {
 
         // console.log('ROOT STATE: ', this.state);
@@ -196,24 +232,54 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             rooms && rooms.layout && rooms.layout.gradient
             || this._background_gradient;
 
+        // var dimmed_overlay = null;
+        // if (loading || is_screen_dimmed) {
+        //     var time_text = null;
+        //     var date_text = null;
+        //     if (loading) { // if loading, make the center text say "loading"
+        //         center_text = <Text style={styles.loading_text}>
+        //             Loading...
+        //         </Text>
+        //     } else { // otherwise, make it display the time
+        //         const { time, date } = this._formatDateTime(new Date());
+        //         time_text = <Text style={styles.time_display}>
+        //             {time}
+        //         </Text>
+        //     }
+        //     dimmed_overlay = <View style={styles.loading_container}>
+        //         {time_text}
+        //         {date_text}
+        //     </View>;
+        // };
+
         var dimmed_overlay = null;
         if (loading || is_screen_dimmed) {
-            var center_text = null;
-            if (loading) { // if loading, make the center text say "loading"
-                center_text = <Text style={styles.loading_text}>
-                    Loading...
-                </Text>
-            } else { // otherwise, make it display the time
-                var cur_time = new Date();
-                var time_string = cur_time.getHours() + ":" + cur_time.getMinutes();
-                center_text = <Text style={styles.time_display}>
-                    {time_string}
+            var heading = null;
+            var subheading = null;
+
+            // if loading, make the heading say "loading"
+            if (loading) {
+                heading = <Text style={styles.loading_text}>
+                    Loading....
                 </Text>
             }
+
+            // othwerise, make it display date and time
+            else {
+                const { time, date } = this._formatDateTime(new Date());
+                heading = <Text style={styles.time_display}>
+                    {time}
+                </Text>
+                subheading = <Text style={styles.date_display}>
+                    {date}
+                </Text>
+            }
+
             dimmed_overlay = <View style={styles.loading_container}>
-                {center_text}
+                {heading}
+                {subheading}
             </View>;
-        };
+        }
 
         var grid = null;
         if (rooms && !dimmed_overlay) {
@@ -280,8 +346,13 @@ const styles = StyleSheet.create({
         color: '#FFFFFF'
     },
     time_display: {
-        fontFamily: 'notoserif',
-        fontSize: 160,
+        fontFamily: 'HKNova-MediumR',
+        fontSize: 120,
+        color: '#AAAAAA'
+    },
+    date_display: {
+        fontFamily: 'HKNova-MediumR',
+        fontSize: 40,
         color: '#AAAAAA'
     }
 });
