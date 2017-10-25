@@ -5,7 +5,6 @@ import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter }
     from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
-import Immersive from 'react-native-immersive';
 
 const Grid = require('./components/Grid');
 const Socket = require('./lib/Socket');
@@ -32,14 +31,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
     _background_gradient: Array<string> = ['#333333', '#000000'];
     _blocked_things: Array<string> = [];
-
-    componentWillMount() {
-        if (Platform.OS === 'android') {
-            Immersive.on();
-            Immersive.setImmersive(true);
-            Immersive.addImmersiveListener(this.restoreImmersive);
-        }
-    }
 
     componentDidMount() {
         DeviceEventEmitter.addListener(Socket.socket_connected, function() {
@@ -72,15 +63,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     }
 
     componentWillUnmount() {
-        if (Platform.OS === 'android') {
-            Immersive.removeImmersiveListener(this.restoreImmersive);
-        }
-
         Socket.killThread();
-    }
-
-    restoreImmersive() {
-        Immersive.on();
     }
 
     fetchConfig() {
