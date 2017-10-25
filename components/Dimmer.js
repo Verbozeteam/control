@@ -133,10 +133,6 @@ class Dimmer extends React.Component<PropsType, StateType> {
         const dimmer_attributes = viewType === 'detail' ?
             this._panResponder.panHandlers : {};
 
-        var dimmer_name = <Text></Text>;
-        if (viewType == 'detail')
-            dimmer_name = <Text style={styles.name}>{name.en}</Text>
-
         if (touch) {
             intensity = touch_intensity;
         }
@@ -155,7 +151,7 @@ class Dimmer extends React.Component<PropsType, StateType> {
                         {intensity}
                     </Text>
                 </View>
-                {dimmer_name}
+                <Text style={styles.name}>{name.en}</Text>
             </View>
         );
     }

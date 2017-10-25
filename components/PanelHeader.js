@@ -43,15 +43,13 @@ const styles = StyleSheet.create({
     container: {
         height: 40,
         flexDirection: 'row',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
         // backgroundColor: '#00FFFF'
     },
     name: {
         flex: 1,
         fontFamily: 'HKNova-MediumR',
         fontSize: 20,
-        color: '#FFFFFF',
+        color: '#FFFFFF'
     },
     name_large: {
         flex: 1,
