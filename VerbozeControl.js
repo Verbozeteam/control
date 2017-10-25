@@ -1,8 +1,8 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter, PanResponder }
-    from 'react-native';
+import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter,
+    PanResponder } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -34,6 +34,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     _screen_dim_interval = undefined;
     _last_touch_time: number = 0;
     _panResponder: Object;
+    _screen_timeout_duration = 30000;
 
     _background_gradient: Array<string> = ['#333333', '#000000'];
     _blocked_things: Array<string> = [];
@@ -56,10 +57,11 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         /** Install screen dimmer */
         this._screen_dim_interval = setInterval(function() {
             var cur_time_ms = (new Date).getTime();
-            if (cur_time_ms - this._last_touch_time > 4000) {
+            if (cur_time_ms - this._last_touch_time >
+                this._screen_timeout_duration) {
                 this.setState({is_screen_dimmed: true});
             }
-        }.bind(this), 2000);
+        }.bind(this), 5000);
 
         this._panResponder = PanResponder.create({
             onStartShouldSetPanResponder: (evt, gestureState) => true,
