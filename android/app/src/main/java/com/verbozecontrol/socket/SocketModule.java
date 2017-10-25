@@ -27,6 +27,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
     private static final String socket_disconnected = "socket_disconnected";
     private static final String socket_data = "socket_data";
     private static final String device_discovered = "device_discovered";
+    private static final String manager_log = "manager_log";
 
     private CommunicationManager comm_mgr = null;
 
@@ -57,6 +58,15 @@ public class SocketModule extends ReactContextBaseJavaModule {
                 public void onDisconnected() {
                     WritableMap params = Arguments.createMap();
                     sendEvent(mReactContext, socket_disconnected, params);
+                }
+            },
+
+            new CommunicationManager.OnLogCallback() {
+                @Override
+                public void onLog(String msg) {
+                    WritableMap params = Arguments.createMap();
+                    params.putString("data", msg);
+                    sendEvent(mReactContext, manager_log, params);
                 }
             }
         );
@@ -117,6 +127,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
         constants.put(socket_disconnected, socket_disconnected);
         constants.put(socket_data, socket_data);
         constants.put(device_discovered, device_discovered);
+        constants.put(manager_log, manager_log);
 
         return constants;
     }

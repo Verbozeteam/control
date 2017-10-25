@@ -69,7 +69,7 @@ class LightSwitch extends React.Component<PropsType> {
         this.evaluateKnobOffset();
 
         var switch_button = null;
-        var name_text = <Text></Text>;
+        var switch_name = <Text></Text>;
         if (viewType === 'detail') {
             name_text = <Text style={styles.name}>{name.en}</Text>;
 
@@ -89,6 +89,7 @@ class LightSwitch extends React.Component<PropsType> {
                     </LinearGradient>
                 </TouchableWithoutFeedback>
             );
+            switch_name = <Text style={styles.name}>{name.en}</Text>
         }
 
         return (
@@ -99,7 +100,7 @@ class LightSwitch extends React.Component<PropsType> {
                     </Image>
                 </View>
                 {switch_button}
-                {name_text}
+                {switch_name}
             </View>
         );
     }

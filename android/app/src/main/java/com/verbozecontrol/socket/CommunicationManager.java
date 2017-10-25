@@ -32,6 +32,10 @@ public class CommunicationManager implements Runnable {
         public void onDeviceFound(String addr, String text, int type, String data) {}
     }
 
+    public static class OnLogCallback {
+        public void onLog(String msg) {}
+    }
+
     private final int BUFFER_SIZE = 256;
     private String[] commandsBuffer;
     private int bufferStart, bufferEnd;
@@ -44,16 +48,19 @@ public class CommunicationManager implements Runnable {
     private OnConnectedCallback m_connected_callback = null;
     private OnDataCallback m_data_callback = null;
     private OnDisconnectedCallback m_disconnected_callback = null;
+    private OnLogCallback m_log_callback = null;
 
     public static CommunicationManager Create (String name,
         OnConnectedCallback ccb,
         OnDataCallback dcb,
-        OnDisconnectedCallback dccb) {
+        OnDisconnectedCallback dccb,
+        OnLogCallback lcb) {
 
         CommunicationManager m = new CommunicationManager();
         m.m_connected_callback = ccb;
         m.m_data_callback = dcb;
         m.m_disconnected_callback = dccb;
+        m.m_log_callback = lcb;
 
         Thread thread = new Thread(m, name);
         thread.start();
@@ -145,6 +152,7 @@ public class CommunicationManager implements Runnable {
         String IP = target_IP;
         int port = target_port;
         long beat_timer = 0;
+        long last_read_timer = 0;
         ArrayList<Byte> buffer = new ArrayList<>();
 
         while (true) {
@@ -155,6 +163,9 @@ public class CommunicationManager implements Runnable {
                 try {
                     if (socket != null)
                         socket.close();
+                        try {
+                            m_disconnected_callback.onDisconnected();
+                        } catch (Exception e) {}
                 } catch (Exception e) {}
                 break;
             }
@@ -187,6 +198,7 @@ public class CommunicationManager implements Runnable {
                     input = socket.getInputStream();
                     connected = true;
                     buffer.clear();
+                    last_read_timer = curTime;
                     try {
                         m_connected_callback.onConnected();
                     } catch (Exception e) {}
@@ -202,12 +214,16 @@ public class CommunicationManager implements Runnable {
             try {
                 int num_available = input.available();
                 if (num_available > 0) {
+                    last_read_timer = curTime;
                     byte[] read_bytes = new byte[num_available];
                     int num_read = input.read(read_bytes);
+                    //m_log_callback.onLog("Read " + Integer.toString(num_read));
+                    if (num_read < 0)
+                        connected = false;
                     for (int i = 0; i < num_read; i++)
                         buffer.add(read_bytes[i]);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 connected = false;
             }
             ProcessBuffer(buffer);
@@ -241,7 +257,7 @@ public class CommunicationManager implements Runnable {
 
                     System.arraycopy(cmd.getBytes(), 0, cmdBytes, 4, cmd.length());
                     output.write(cmdBytes);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     connected = false;
                 }
             }
@@ -259,7 +275,7 @@ public class CommunicationManager implements Runnable {
             // bookkeeping
             if (socket == null)
                 connected = false;
-            else if (socket.isConnected() == false)
+            else if (socket.isConnected() == false || curTime - last_read_timer > 6000)
                 connected = false;
 
             if (!connected) {

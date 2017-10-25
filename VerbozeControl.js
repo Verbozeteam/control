@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter }
+import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter, PanResponder }
     from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
@@ -9,9 +9,9 @@ import LinearGradient from 'react-native-linear-gradient';
 const Grid = require('./components/Grid');
 const Socket = require('./lib/Socket');
 
-const connection_config = require('./config/connection_config');
+const StoredDevices = require('./config/stored_devices');
 
-import type { ConfigType } from './config/flowtypes';
+import type { ConfigType, DiscoveredDevice } from './config/flowtypes';
 
 type PropsType = {};
 
@@ -25,17 +25,49 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
     state = {
         loading: true,
+        is_screen_dimmed: false,
         config: {},
         thingsState: {}
     };
 
+    _screen_dim_interval = undefined;
+    _last_touch_time: number = 0;
+    _panResponder: Object;
+
     _background_gradient: Array<string> = ['#333333', '#000000'];
     _blocked_things: Array<string> = [];
 
+    _onScreenPressed(evt, gestureState) {
+        this._last_touch_time = (new Date).getTime();
+        if (this.state.is_screen_dimmed)
+            this.setState({is_screen_dimmed: false});
+        console.log("wallahi got somesing");
+    }
+
     componentDidMount() {
+        /** Install screen dimmer */
+        this._screen_dim_interval = setInterval(function() {
+            var cur_time_ms = (new Date).getTime();
+            if (cur_time_ms - this._last_touch_time > 4000) {
+                this.setState({is_screen_dimmed: true});
+            }
+        }.bind(this), 2000);
+
+        this._panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: (evt, gestureState) => true,
+            onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
+            onMoveShouldSetPanResponder: (evt, gestureState) => true,
+            onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
+
+            onPanResponderGrant: this._onScreenPressed.bind(this),
+            onPanResponderMove: this._onScreenPressed.bind(this),
+        });
+
+        /** Install socket event handlers */
         DeviceEventEmitter.addListener(Socket.socket_connected, function() {
             console.log('Socket connected!');
-        });
+            this.fetchConfig();
+        }.bind(this));
 
         DeviceEventEmitter.addListener(Socket.socket_data, function(data) {
             // console.log(data);
@@ -46,24 +78,41 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             console.log('Socket disconnected!');
         });
 
-        // if (__DEV__) {
-        Socket.connect(connection_config.address, connection_config.port);
-        this.fetchConfig();
-        // } else {
-        //     Socket.discoverDevices();
-        //
-        //     DeviceEventEmitter.addListener(Socket.device_discovered,
-        //         function(data) {
-        //             console.log('Found name', data.name, data.ip);
-        //             Socket.connect(data.ip, 7990);
-        //             this.fetchConfig();
-        //         }.bind(this)
-        //     );
-        // }
+        DeviceEventEmitter.addListener(Socket.manager_log, function(data) {
+            console.log(data.data);
+        });
+
+        DeviceEventEmitter.addListener(Socket.device_discovered,
+            function(data: DiscoveredDevice) {
+                console.log('Found name ', data.name, data.ip);
+                StoredDevices.add_discovered_device(data);
+                if (data.name == StoredDevices.get_current_device_name())
+                    Socket.connect(data.ip, data.port);
+            }.bind(this)
+        );
+
+        /** Load a saved device (if any) */
+        StoredDevices.get_saved_device(function (device: DiscoveredDevice) {
+            // device has been found
+            Socket.connect(device.ip, device.port);
+            // always discover devices (after we found our device, in case his IP changed)
+            this.discoverDevices();
+        }.bind(this), function (err) {
+            // no device found
+            console.log('No saved device to connect to...');
+            this.discoverDevices(); // always discover devices
+        }.bind(this));
     }
 
     componentWillUnmount() {
+        clearInterval(this._screen_dim_interval);
+
         Socket.killThread();
+    }
+
+    discoverDevices() {
+        StoredDevices.clear_discovered_devices();
+        Socket.discoverDevices();
     }
 
     fetchConfig() {
@@ -85,6 +134,10 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     }
 
     handleSocketData(data: Object) {
+        console.log('Received from middleware: ', data);
+        if (Object.keys(data).length === 0)
+            return;
+
         const { thingsState } = this.state;
 
         // if config provided, apply it
@@ -136,25 +189,34 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
         // console.log('ROOT STATE: ', this.state);
 
-        const { config, loading, thingsState } = this.state;
+        const { config, loading, is_screen_dimmed, thingsState } = this.state;
         const { rooms } = config;
 
         const background_gradient =
             rooms && rooms.layout && rooms.layout.gradient
             || this._background_gradient;
 
-
-        var loading_text = null;
-        if (loading) {
-            loading_text = <View style={styles.loading_container}>
-                <Text style={styles.loading_text}>
+        var dimmed_overlay = null;
+        if (loading || is_screen_dimmed) {
+            var center_text = null;
+            if (loading) { // if loading, make the center text say "loading"
+                center_text = <Text style={styles.loading_text}>
                     Loading...
                 </Text>
+            } else { // otherwise, make it display the time
+                var cur_time = new Date();
+                var time_string = cur_time.getHours() + ":" + cur_time.getMinutes();
+                center_text = <Text style={styles.time_display}>
+                    {time_string}
+                </Text>
+            }
+            dimmed_overlay = <View style={styles.loading_container}>
+                {center_text}
             </View>;
         };
 
         var grid = null;
-        if (rooms) {
+        if (rooms && !dimmed_overlay) {
             var grid = <Grid {...rooms[0]}
                 thingsState={thingsState}
                 updateThing={this.updateThing.bind(this)}
@@ -169,11 +231,16 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         //     <View style={styles.room_box}></View>
         // </View>
 
+        var panAttributes = {};
+        if (this._panResponder)
+            panAttributes = this._panResponder.panHandlers;
+
         return (
-            <View style={styles.container}>
+            <View style={styles.container}
+                  {...panAttributes}>
                 {/* {rooms_column} */}
                 {grid}
-                {loading_text}
+                {dimmed_overlay}
             </View>
         );
     }
@@ -211,6 +278,11 @@ const styles = StyleSheet.create({
         fontFamily: 'HKNova-MediumR',
         fontSize: 20,
         color: '#FFFFFF'
+    },
+    time_display: {
+        fontFamily: 'notoserif',
+        fontSize: 160,
+        color: '#AAAAAA'
     }
 });
 
