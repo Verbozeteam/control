@@ -54,7 +54,7 @@ class HotelControls extends React.Component<PropsType> {
         const { do_not_disturb, room_service, card, power }
             = this.props.hotelControlsState;
 
-        console.log('HOTEL CONTROl => ', this.props);
+        //console.log('HOTEL CONTROl => ', this.props);
 
         const room_service_card = <TouchableWithoutFeedback
             onPress={() => this.toggleRoomService()}>

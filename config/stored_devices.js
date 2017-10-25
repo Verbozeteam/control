@@ -1,6 +1,13 @@
+/* @flow */
 
 import Storage from 'react-native-storage';
 import { AsyncStorage } from 'react-native';
+
+import type { DiscoveredDevice } from './config/flowtypes';
+
+type DiscoveredDeviceMap = {
+    [string]: DiscoveredDevice
+}
 
 class LocalStorage {
     _local_storage = new Storage({
@@ -10,37 +17,36 @@ class LocalStorage {
         enableCache: true,
     });
 
-    _discovered_devices = {};
-    _current_device_name = "";
+    _discovered_devices: Object = {};
+    _current_device_name: string = "";
 
-    get_saved_device(on_found, on_failure) {
+    get_saved_device(on_found: Function, on_failure: Function): DiscoveredDevice {
         this._local_storage.load({
             key: 'savedDevice',
             autoSync: false,
-        }).then(ret => {
+        }).then(function (ret: DiscoveredDevice) {
             if (on_found) {
-                _current_device_name = ret.name;
+                this._current_device_name = ret.name;
                 on_found(ret);
             }
-        }).catch(err => {
+        }.bind(this)).catch(err => {
             if (on_failure)
-                on_failure();
+                on_failure(err);
         });
     }
 
-    set_saved_device(device) {
+    set_saved_device(device: DiscoveredDevice) {
         this._local_storage.save({
             key: 'savedDevice',
             data: device,
-            expires: null,
         });
     }
 
-    get_discovered_devices() {
+    get_discovered_devices(): DiscoveredDeviceMap {
         return this._discovered_devices;
     }
 
-    add_discovered_device(device) {
+    add_discovered_device(device: DiscoveredDevice) {
         this._discovered_devices[device.name] = device;
     }
 
@@ -48,7 +54,7 @@ class LocalStorage {
         this._discovered_devices = {};
     }
 
-    get_current_device_name() {
+    get_current_device_name(): string {
         return this._current_device_name;
     }
 };

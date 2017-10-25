@@ -171,7 +171,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
             set_pt = touch_set_pt;
         }
 
-        console.log(aCState);
+        // console.log(aCState);
 
         var set_temperature = null;
         if (!fan) {
