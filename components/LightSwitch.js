@@ -59,15 +59,6 @@ class LightSwitch extends React.Component<PropsType> {
         }).start();
     }
 
-    // componentWillUpdate(nextProps: PropsType) {
-    //     const { intensity } = this.props.lightSwitchState;
-    //     const next_intensity = nextProps.lightSwitchState.intensity;
-    //
-    //     if (intensity !== next_intensity) {
-    //
-    //     }
-    // }
-
     render() {
         const { viewType, name } = this.props;
         const { intensity } = this.props.lightSwitchState;
