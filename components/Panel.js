@@ -64,7 +64,7 @@ class Panel extends React.Component<PropsType> {
         const { things, layout, viewType, gradient, name, thingsState,
             toggleDetail, updateThing, blockThing, unblockThing } = this.props;
 
-        console.log('Panel => ', thingsState);
+        //console.log('Panel => ', thingsState);
 
         var panel_things = [];
         if (viewType !== 'collapsed') {
