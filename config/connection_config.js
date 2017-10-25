@@ -1,7 +1,7 @@
 /* @flow */
 
 const connection_config = {
-    address: '10.11.28.41',
+    address: '192.168.1.7',
     port: 4567,
 };
 
