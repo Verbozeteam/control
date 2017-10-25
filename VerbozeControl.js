@@ -5,7 +5,6 @@ import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter, PanR
     from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
-import Immersive from 'react-native-immersive';
 
 const Grid = require('./components/Grid');
 const Socket = require('./lib/Socket');
@@ -38,14 +37,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     _background_gradient: Array<string> = ['#333333', '#000000'];
     _blocked_things: Array<string> = [];
 
-    componentWillMount() {
-        if (Platform.OS === 'android') {
-            Immersive.on();
-            Immersive.setImmersive(true);
-            Immersive.addImmersiveListener(this.restoreImmersive);
-        }
-    }
-
     _onScreenPressed(evt, gestureState) {
         this._last_touch_time = (new Date).getTime();
         if (this.state.is_screen_dimmed)
@@ -72,7 +63,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             onPanResponderMove: this._onScreenPressed.bind(this),
         });
 
-        /** Install socket even handlers */
+        /** Install socket event handlers */
         DeviceEventEmitter.addListener(Socket.socket_connected, function() {
             console.log('Socket connected!');
             this.fetchConfig();
@@ -114,17 +105,9 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     }
 
     componentWillUnmount() {
-        if (Platform.OS === 'android') {
-            Immersive.removeImmersiveListener(this.restoreImmersive);
-        }
-
         clearInterval(this._screen_dim_interval);
 
         Socket.killThread();
-    }
-
-    restoreImmersive() {
-        Immersive.on();
     }
 
     discoverDevices() {

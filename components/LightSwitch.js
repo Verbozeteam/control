@@ -71,6 +71,8 @@ class LightSwitch extends React.Component<PropsType> {
         var switch_button = null;
         var switch_name = <Text></Text>;
         if (viewType === 'detail') {
+            name_text = <Text style={styles.name}>{name.en}</Text>;
+
             switch_button = (
                 <TouchableWithoutFeedback onPressIn={() => this.toggle()}>
                     <LinearGradient colors={this._switch_gradient}
@@ -87,7 +89,6 @@ class LightSwitch extends React.Component<PropsType> {
                     </LinearGradient>
                 </TouchableWithoutFeedback>
             );
-
             switch_name = <Text style={styles.name}>{name.en}</Text>
         }
 
@@ -95,8 +96,8 @@ class LightSwitch extends React.Component<PropsType> {
             <View style={styles.container}>
                 <View style={styles.light_bulb_container}>
                     <Image style={styles.light_bulb}
-                        source={light_bulb_img}
-                        resizeMode='contain'></Image>
+                        source={light_bulb_img}>
+                    </Image>
                 </View>
                 {switch_button}
                 {switch_name}
