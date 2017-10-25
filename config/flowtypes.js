@@ -61,3 +61,9 @@ export type RoomType = {
 export type ConfigType = {
     rooms?: Array<RoomType>
 };
+
+export type DiscoveredDevice = {
+    name: string,
+    ip: string,
+    port: number,
+};
