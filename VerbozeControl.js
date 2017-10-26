@@ -1,8 +1,8 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter,
-    PanResponder } from 'react-native';
+import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter
+    } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -17,9 +17,9 @@ type PropsType = {};
 
 type StateType = {
     loading: boolean,
+    is_screen_dimmed: boolean,
     config: ConfigType,
-    thingsState: Object,
-    is_screen_dimmed: boolean
+    thingsState: Object
 };
 
 class VerbozeControl extends React.Component<PropsType, StateType> {
@@ -31,10 +31,10 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         thingsState: {}
     };
 
-    _screen_dim_interval = undefined;
+    _screen_dim_timeout: number;
+    _screen_dim_timeout_duration = 10000;
     _last_touch_time: number = 0;
     _panResponder: Object;
-    _screen_timeout_duration = 30000;
 
     _background_gradient: Array<string> = ['#333333', '#000000'];
     _blocked_things: Array<string> = [];
@@ -46,34 +46,24 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         'May', 'June', 'July', 'August', 'September', 'October',
         'November', 'December']
 
-    _onScreenPressed(evt, gestureState) {
-        this._last_touch_time = (new Date).getTime();
-        if (this.state.is_screen_dimmed)
-            this.setState({is_screen_dimmed: false});
-        console.log("wallahi got somesing");
+    _resetScreenDim() {
+        const { is_screen_dimmed } = this.state;
+        if (is_screen_dimmed) {
+            this.setState({
+                is_screen_dimmed: false
+            });
+        }
+
+        clearTimeout(this._screen_dim_timeout);
+        this._screen_dim_timeout = setTimeout(function() {
+            this.setState({
+                is_screen_dimmed: !this.state.is_screen_dimmed
+            });
+        }.bind(this), this._screen_dim_timeout_duration)
     }
 
     componentDidMount() {
-        /** Install screen dimmer */
-        this._screen_dim_interval = setInterval(function() {
-            var cur_time_ms = (new Date).getTime();
-            if (cur_time_ms - this._last_touch_time >
-                this._screen_timeout_duration) {
-                this.setState({is_screen_dimmed: true});
-            }
-        }.bind(this), 5000);
-
-        this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (evt, gestureState) => true,
-            onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
-            onMoveShouldSetPanResponder: (evt, gestureState) => true,
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
-
-            onPanResponderGrant: this._onScreenPressed.bind(this),
-            onPanResponderMove: this._onScreenPressed.bind(this),
-        });
-
-        /** Install socket event handlers */
+        // install socket event handlers
         DeviceEventEmitter.addListener(Socket.socket_connected, function() {
             console.log('Socket connected!');
             this.fetchConfig();
@@ -101,7 +91,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             }.bind(this)
         );
 
-        /** Load a saved device (if any) */
+        // load a saved device (if any)
         StoredDevices.set_saved_device({name: 'Fituri', ip: '10.11.28.155', port: 4567});
         StoredDevices.get_saved_device(function (device: DiscoveredDevice) {
             // device has been found
@@ -113,10 +103,12 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             console.log('No saved device to connect to...');
             this.discoverDevices(); // always discover devices
         }.bind(this));
+
+        this._resetScreenDim();
     }
 
     componentWillUnmount() {
-        clearInterval(this._screen_dim_interval);
+        clearTimeout(this._screen_dim_timeout);
 
         Socket.killThread();
     }
@@ -234,26 +226,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             rooms && rooms.layout && rooms.layout.gradient
             || this._background_gradient;
 
-        // var dimmed_overlay = null;
-        // if (loading || is_screen_dimmed) {
-        //     var time_text = null;
-        //     var date_text = null;
-        //     if (loading) { // if loading, make the center text say "loading"
-        //         center_text = <Text style={styles.loading_text}>
-        //             Loading...
-        //         </Text>
-        //     } else { // otherwise, make it display the time
-        //         const { time, date } = this._formatDateTime(new Date());
-        //         time_text = <Text style={styles.time_display}>
-        //             {time}
-        //         </Text>
-        //     }
-        //     dimmed_overlay = <View style={styles.loading_container}>
-        //         {time_text}
-        //         {date_text}
-        //     </View>;
-        // };
-
         var dimmed_overlay = null;
         if (loading || is_screen_dimmed) {
             var heading = null;
@@ -292,21 +264,10 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
                 unblockThing={this.unblockThing.bind(this)}/>;
         }
 
-        // const rooms_column = <View style={styles.rooms_column}>
-        //     <View style={styles.room_box}></View>
-        //     <View style={styles.room_box}></View>
-        //     <View style={styles.room_box}></View>
-        //     <View style={styles.room_box}></View>
-        // </View>
-
-        var panAttributes = {};
-        if (this._panResponder)
-            panAttributes = this._panResponder.panHandlers;
-
         return (
             <View style={styles.container}
-                  {...panAttributes}>
-                {/* {rooms_column} */}
+                onTouchStart={this._resetScreenDim.bind(this)}
+                onTouchMove={this._resetScreenDim.bind(this)}>
                 {grid}
                 {dimmed_overlay}
             </View>
