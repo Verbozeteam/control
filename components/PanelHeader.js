@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
+const I18n = require('../i18n/i18n');
+
 import type { ViewType } from '../config/flowtypes';
 
 type PropsType = {
@@ -20,20 +22,33 @@ class PanelHeader extends React.Component<PropsType> {
     render() {
         const { name, close, viewType } = this.props;
 
+        var header_text = <Text key={'panel-header-text'}
+            style={viewType === 'collapsed' ?
+            styles.name_large : styles.name}>
+                {I18n.t(name)}
+            </Text>;
+
         var close_button = null;
         if (close) {
-            close_button = <View style={styles.button_container}>
-                <Button onPress={() => close()}
+            close_button = <View key={'panel-header-close-button'}
+                style={styles.button_container}>
+                <Button onPress={close}
                     color={'#333333'}
-                    title={'Close'}></Button>
+                    title={I18n.t('Close')}></Button>
             </View>;
+        }
+
+        var header_items = [];
+        header_items.push(header_text);
+        header_items.push(close_button);
+
+        if (I18n.r2l()) {
+            header_items.reverse();
         }
 
         return (
             <View style={styles.container}>
-                <Text style={viewType === 'collapsed' ?
-                    styles.name_large : styles.name}>{name}</Text>
-                {close_button}
+                {header_items}
             </View>
         );
     }

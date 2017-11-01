@@ -6,8 +6,8 @@ import { View, Dimensions, LayoutAnimation, Platform, UIManager, StyleSheet }
 
 const Panel = require('./Panel');
 
-import type { PanelLayoutType, CollapsedLayoutType, RoomType, GridColumnType }
-    from '../config/flowtypes';
+import type { PanelLayoutType, LayoutType, CollapsedLayoutType, RoomType,
+    GridColumnType } from '../config/flowtypes';
 
 type PropsType = {
     ...RoomType,
@@ -15,16 +15,20 @@ type PropsType = {
     updateThing: (id: string, update: Object, remote_only?: boolean) => null,
     blockThing: (id: string) => null,
     unblockThing: (id: string) => null,
+    changePage: (index: number) => null,
+    pageSwipeUp: () => null,
+    pageSwipeUp: () => null,
 };
 
 type StateType = {
-    detail_panel_index: number
+    detail_panel_index: number,
+    // gesture_start_y: number
 };
 
 class Grid extends React.Component<PropsType, StateType> {
 
     state = {
-        detail_panel_index: -1
+        detail_panel_index: -1,
     };
 
     static defaultProps = {
@@ -49,6 +53,9 @@ class Grid extends React.Component<PropsType, StateType> {
     _num_panels: number = 0;
     _detail_timer: number = -1;
 
+    // _gesture_start_y: number = 0;
+    // _gesture_trigger_distance: number = 150;
+
     constructor(props: PropsType) {
         super(props);
 
@@ -58,18 +65,22 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     componentWillMount() {
+        // this._panResponder = PanResponder.create({
+        //     onStartShouldSetPanResponder: (evt, gestureState) => true,
+        //     onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+        //     onMoveShouldSetPanResponder: (evt, gestureState) => true,
+        //     onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+        //
+        //     onPanResponderGrant: this._onPanResponderGrant.bind(this),
+        //     onPanResponderMove: this._onPanResponderMove.bind(this)
+        // });
+
         this.calculatePresentationLayout();
         this.calculateDetailAndCollapsedLayout();
     }
 
     calculatePresentationLayout() {
         const { layout, grid } = this.props;
-
-        // get screen height and width
-        var { height, width }:
-            {height: number, width: number} = Dimensions.get('screen');
-
-        // width = width - 100;
 
         // stop if grid has no columns
         if (grid.length === 0 ) {
@@ -78,11 +89,11 @@ class Grid extends React.Component<PropsType, StateType> {
 
         // calculate sum of column ratios to calculate single column width
         var { ratio } = grid.reduce((a, b) => ({ratio: a.ratio + b.ratio}));
-        const ratio_width = (width - layout.margin * 2) / ratio;
+        const ratio_width = (layout.width - layout.margin * 2) / ratio;
 
         // calculate panel layouts (height, width, top and left offsets)
-        var top = layout.margin;
-        var left = layout.margin;
+        var top = layout.top + layout.margin;
+        var left = layout.left + layout.margin;
         for (var i = 0; i < grid.length; i++) {
             // calculate column width based on ratio width
             const column_width = grid[i].ratio * ratio_width
@@ -99,7 +110,7 @@ class Grid extends React.Component<PropsType, StateType> {
             // calculate sum of row ratios to calculate single row width
             var { ratio } = grid[i].panels.reduce(
                 (a, b) => ({ratio: a.ratio + b.ratio}));
-            const ratio_height = (height - layout.margin * 2) / ratio;
+            const ratio_height = (layout.height - layout.margin * 2) / ratio;
 
             for (var j = 0; j < grid[i].panels.length; j++) {
                 // calculate row height based on ratio height
@@ -120,7 +131,7 @@ class Grid extends React.Component<PropsType, StateType> {
             }
 
             // reset top offset and increment left offset
-            top = layout.margin;
+            top = layout.top + layout.margin;
             left += column_width + layout.margin * 2;
         }
     }
@@ -128,31 +139,26 @@ class Grid extends React.Component<PropsType, StateType> {
     calculateDetailAndCollapsedLayout() {
         const { layout, detail } = this.props;
 
-        // get screen height and width
-        var { height, width }:
-            {height: number, width: number} = Dimensions.get('screen');
-
-        // width = width - 100;
-
         // calculate single column width and single row width for
         // collapsed panels
-        const ratio_width = (width - layout.margin * 2) / (detail.ratio + 1);
-        const ratio_height = (height - layout.margin * 2) /
+        const ratio_width = (layout.width - layout.margin * 2) /
+            (detail.ratio + 1);
+        const ratio_height = (layout.height - layout.margin * 2) /
             (this._num_panels - 1);
 
         // calculate detail layout for use when panel enters detail view
         this._detail_layout = {
-            height: height - layout.margin * 4,
+            height: layout.height - layout.margin * 4,
             width: ratio_width * detail.ratio - layout.margin * 2,
-            top: layout.margin,
-            left: ratio_width + layout.margin
+            top: layout.top + layout.margin,
+            left: layout.left + ratio_width + layout.margin
         };
 
         // calculate collapsed layout for use when panels become collapsed
         this._collapsed_layout = {
             height: ratio_height - layout.margin * 2,
             width: ratio_width - layout.margin * 2,
-            left: layout.margin
+            left: layout.left + layout.margin
         };
     }
 
@@ -219,7 +225,7 @@ class Grid extends React.Component<PropsType, StateType> {
                     panel_layout = {
                         ...this._collapsed_layout,
                         top: (this._collapsed_layout.height + layout.margin * 2)
-                            * counter++ + layout.margin
+                            * counter++ + layout.margin + layout.top
                     };
                 }
 
