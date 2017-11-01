@@ -5,6 +5,8 @@ import { View, Text, PanResponder, StyleSheet } from 'react-native';
 
 import type { GenericThingType, ViewType } from '../config/flowtypes';
 
+const I18n = require('../i18n/i18n');
+
 import LinearGradient from 'react-native-linear-gradient';
 
 type PropsType = {
@@ -135,7 +137,7 @@ class Dimmer extends React.Component<PropsType, StateType> {
 
         var dimmer_name = <Text></Text>;
         if (viewType == 'detail')
-            dimmer_name = <Text style={styles.name}>{name.en}</Text>
+            dimmer_name = <Text style={styles.name}>{I18n.t(name.en)}</Text>
 
         if (touch) {
             intensity = touch_intensity;

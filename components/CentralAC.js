@@ -6,6 +6,8 @@ import { View, Text, Image, PanResponder, TouchableWithoutFeedback, StyleSheet }
 
 import type { GenericThingType, ViewType } from '../config/flowtypes';
 
+const I18n = require('../i18n/i18n');
+
 import LinearGradient from 'react-native-linear-gradient';
 const interpolateRGB = require('interpolate-rgb');
 const rgbHex = require('rgb-hex');
@@ -58,7 +60,11 @@ class CentralAC extends React.Component<PropsType, StateType> {
     _temperature_detail_width: number = 400;
     _ratio: number;
 
-    _fan_speeds: Array<[number, string]> = [[0, 'Off'], [1, 'Low'], [2, 'High']];
+    _fan_speeds: Array<[number, string]> = [
+        [0, I18n.t('Off')],
+        [1, I18n.t('Low')],
+        [2, I18n.t('High')]
+    ];
 
     _panResponder: Object;
 
@@ -200,7 +206,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
             room_temperature = <View style={styles.room_temperature}>
                 <Text style={styles.room_temperature_text}>
-                    Room Temperature {parseFloat(temp).toFixed(1)}°C
+                    {I18n.t('Room Temperature')} {parseFloat(temp).toFixed(1)}°C
                 </Text>
             </View>;
 
