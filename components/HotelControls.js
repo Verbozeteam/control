@@ -37,16 +37,24 @@ class HotelControls extends React.Component<PropsType> {
 
     toggleRoomService() {
         const { updateThing, id } = this.props;
-        const { room_service } = this.props.hotelControlsState;
+        const { room_service, do_not_disturb } = this.props.hotelControlsState;
 
-        updateThing(id, {room_service: ~~!room_service});
+        if (!room_service) {
+            updateThing(id, {room_service: 1, do_not_disturb: 0});
+        } else {
+            updateThing(id, {room_service: 0});
+        }
     }
 
     toggleDoNotDisturb() {
         const { updateThing, id } = this.props;
-        const { do_not_disturb } = this.props.hotelControlsState;
+        const { do_not_disturb, room_service } = this.props.hotelControlsState;
 
-        updateThing(id, {do_not_disturb: ~~!do_not_disturb});
+        if (!do_not_disturb) {
+            updateThing(id, {do_not_disturb: 1, room_service: 0});
+        } else {
+            updateThing(id, {do_not_disturb: 0});
+        }
     }
 
     render() {
