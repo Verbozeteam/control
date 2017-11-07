@@ -23,7 +23,7 @@ class PagesList extends React.Component<PropsType> {
     _margin: number = 10;
 
     render() {
-        const { layout, pages, changePage } = this.props;
+        const { layout, pages, changePage, selected } = this.props;
 
         const page_icon_layout = {
             height: layout.width - this._margin,
@@ -41,10 +41,9 @@ class PagesList extends React.Component<PropsType> {
                     this._margin
             }
 
-            console.log('PagesList =>', pages[i]);
-
             page_icons.push(<PageIcon key={'page-icon-' + i}
                 name={pages[i].name.en}
+                selected ={i === selected}
                 changePage={() => changePage(index)}
                 longPress={pages[i].longPress}
                 layout={layout} />);

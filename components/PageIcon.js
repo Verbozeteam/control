@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 const I18n = require('../i18n/i18n');
 
@@ -10,6 +10,7 @@ import type { LayoutType, NameType } from '../config/flowtypes';
 type PropsType = {
     layout: LayoutType,
     name: string,
+    selected: boolean,
     changePage: () => null,
     longPress: () => null
 };
@@ -17,7 +18,8 @@ type PropsType = {
 class PageIcon extends React.Component<PropsType> {
 
     static defaultProps = {
-        longPress: () => null
+        longPress: () => null,
+        selected: false
     };
 
     _onLongPress() {
@@ -27,18 +29,20 @@ class PageIcon extends React.Component<PropsType> {
     }
 
     render() {
-        const { layout, name, changePage, longPress } = this.props;
+        const { layout, name, changePage, longPress, selected } = this.props;
+
+        const selected_style = (selected) ? styles.selected : null;
 
         return (
-            <TouchableWithoutFeedback onPressIn={changePage}
+            <TouchableOpacity onPressIn={changePage}
                 delayLongPress={5000}
-                onLongPress={this._onLongPress.bind(this)}>
-                <View style={[layout, styles.container]}>
-                    <Text style={styles.header}>
-                        {I18n.t(name)}
-                    </Text>
-                </View>
-            </TouchableWithoutFeedback>
+                onLongPress={this._onLongPress.bind(this)}
+                style={[layout, styles.container, selected_style]}>
+
+                <Text style={styles.header}>
+                    {I18n.t(name)}
+                </Text>
+            </TouchableOpacity>
         );
     }
 }
@@ -50,6 +54,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: '#777777',
         borderRadius: 5,
+    },
+    selected: {
+        backgroundColor: '#AAAAAA'
     },
     header: {
         fontFamily: 'HKNova-MediumR',
