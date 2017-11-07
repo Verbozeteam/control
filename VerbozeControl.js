@@ -97,6 +97,9 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         DeviceEventEmitter.addListener(Socket.device_discovered,
             (data: DiscoveredDeviceType) => {
 
+            // TODO: This is all patch work.
+            data.port = 7990;
+
             console.log('Found name', data.name, data.ip, data.port);
             StoredDevices.add_discovered_device(data);
             if (data.name == StoredDevices.get_current_device_name()) {
