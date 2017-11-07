@@ -108,7 +108,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         });
 
         // load a saved device (if any)
-        StoredDevices.set_saved_device({name: 'Fituri', ip: '10.11.28.155', port: 4567});
         StoredDevices.get_saved_device((device: DiscoveredDeviceType) => {
             // device has been found
             Socket.connect(device.ip, device.port);
@@ -293,8 +292,8 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
     render() {
         console.log('VerbozeControl render!');
 
-        const { config, loading, is_screen_dimmed, things_state, dev_debug }
-            = this.state;
+        const { config, loading, is_screen_dimmed, things_state, dev_debug,
+            discovered_devices} = this.state;
         var { page_index } = this.state;
 
         const { height, width}:
@@ -336,7 +335,7 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         // create dimmed overlay if applicable (loading, or clock)
         var dimmed_overlay = null;
         if (loading) {
-            dimmed_overlay = <Loading />;
+            dimmed_overlay = <Loading discoveredDevices={discovered_devices}/>
         }
 
         else if (is_screen_dimmed) {
