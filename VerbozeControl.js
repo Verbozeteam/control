@@ -96,15 +96,20 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
 
         DeviceEventEmitter.addListener(Socket.device_discovered,
             (data: DiscoveredDeviceType) => {
-            console.log('Found name', data.name, data.ip);
+
+            console.log('Found name', data.name, data.ip, data.port);
             StoredDevices.add_discovered_device(data);
             if (data.name == StoredDevices.get_current_device_name()) {
                 Socket.connect(data.ip, data.port);
             }
 
+            var { discovered_devices } = this.state;
+            discovered_devices.push(data);
             this.setState({
-                discovered_devices: this.state.discovered_devices.push(data)
+                discovered_devices: discovered_devices
             });
+
+            this._resetScreenDim()
         });
 
         // load a saved device (if any)
@@ -115,6 +120,13 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             // no device found
             this.discoverDevices();
         });
+
+        // const some_device = {ip: '10.11.28.155', name: 'Fituri', port: 4567};
+        // const { discovered_devices } = this.state;
+        // discovered_devices.push(some_device);
+        // this.setState({
+        //     discovered_devices: discovered_devices
+        // });
 
         this._resetScreenDim();
     }
