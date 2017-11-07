@@ -9,8 +9,10 @@ const Socket = require('../lib/Socket');
 
 import type { DiscoveredDeviceType } from '../config/flowtypes';
 
+const I18n = require('../i18n/i18n');
+
 type PropsType = {
-    devices: Array<{name: string, ip: string, port: number}>,
+    discoveredDevices: Array<DiscoveredDeviceType>,
 };
 
 type StateType = {};
@@ -18,17 +20,7 @@ type StateType = {};
 class DeviceDiscovery extends React.Component<PropsType, StateType> {
 
     static defaultProps = {
-        devices: [
-            {name: 'Room1', ip: '192.168.1.1', port: 5234},
-            {name: 'Room2', ip: '192.168.1.2', port: 5674},
-            {name: 'Room1', ip: '192.168.1.1', port: 3424},
-            {name: 'Room2', ip: '192.168.1.2', port: 64345},
-            {name: 'Hasan', ip: '10.11.28.41', port: 4567},
-            {name: 'Room2', ip: '192.168.1.2', port: 34534},
-            {name: 'Room1', ip: '192.168.1.1', port: 2345},
-            {name: 'Room2', ip: '192.168.1.2', port: 7654},
-            {name: 'Fituri', ip: '10.11.28.155', port: 4567}
-        ]
+        discoveredDevices: []
     }
 
     _keyExtractor(device: DiscoveredDeviceType, index: number): string {
@@ -42,21 +34,21 @@ class DeviceDiscovery extends React.Component<PropsType, StateType> {
             selected={device === current_device.ip + ':' + current_device.port} />
     }
 
-    _discoveredDevices() {
+    _discoverDevices() {
         console.log('Discover devices called');
         StoredDevices.clear_discovered_devices();
         Socket.discoverDevices();
     }
 
     render() {
-        const { devices } = this.props;
+        const { discoveredDevices } = this.props;
 
         return (
             <View style={styles.container}>
-                <Button onPress={this._discoveredDevices}
+                <Button onPress={this._discoverDevices}
                     title={'Discover Devices'}></Button>
                 <FlatList
-                    data={devices}
+                    data={discoveredDevices}
                     keyExtractor={this._keyExtractor}
                     renderItem={this._renderItem} />
             </View>

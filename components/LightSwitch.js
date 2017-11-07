@@ -6,6 +6,8 @@ import { View, Text, Image, Animated, TouchableWithoutFeedback, StyleSheet }
 
 import type { GenericThingType, ViewType } from '../config/flowtypes';
 
+const I18n = require('../i18n/i18n');
+
 import LinearGradient from 'react-native-linear-gradient';
 
 type PropsType = {
@@ -60,7 +62,7 @@ class LightSwitch extends React.Component<PropsType> {
     }
 
     render() {
-        const { viewType, name } = this.props;
+        const { id, viewType, name } = this.props;
         const { intensity } = this.props.lightSwitchState;
 
         const light_bulb_img = intensity ?
@@ -68,37 +70,48 @@ class LightSwitch extends React.Component<PropsType> {
 
         this.evaluateKnobOffset();
 
+        var light_bulb = (
+            <View style={(viewType === 'detail') ?
+                styles.light_bulb_container_detail : styles.light_bulb_container}>
+                <Image style={styles.light_bulb}
+                    source={light_bulb_img}>
+                </Image>
+            </View>
+        );
+
         var switch_button = null;
         var switch_name = <Text></Text>;
         if (viewType === 'detail') {
-            name_text = <Text style={styles.name}>{name.en}</Text>;
 
-            switch_button = (
+            light_bulb = (
                 <TouchableWithoutFeedback onPressIn={() => this.toggle()}>
-                    <LinearGradient colors={this._switch_gradient}
-                        start={{x: 0, y: 0}}
-                        end={{x: 1, y: 1}}
-                        style={styles.switch}>
-                        <Animated.View style={[styles.knob, {top: this._offset}]}>
-                            <LinearGradient colors={this._knob_gradient}
-                                start={{x: 0, y: 0}}
-                                end={{x: 1, y: 1}}
-                                style={styles.knob_gradient}>
-                            </LinearGradient>
-                        </Animated.View>
-                    </LinearGradient>
+                    {light_bulb}
                 </TouchableWithoutFeedback>
             );
-            switch_name = <Text style={styles.name}>{name.en}</Text>
+            // name_text = <Text style={styles.name}>{name.en}</Text>;
+
+            // switch_button = (
+            //     <TouchableWithoutFeedback onPressIn={() => this.toggle()}>
+            //         <LinearGradient colors={this._switch_gradient}
+            //             start={{x: 0, y: 0}}
+            //             end={{x: 1, y: 1}}
+            //             style={styles.switch}>
+            //             <Animated.View style={[styles.knob, {top: this._offset}]}>
+            //                 <LinearGradient colors={this._knob_gradient}
+            //                     start={{x: 0, y: 0}}
+            //                     end={{x: 1, y: 1}}
+            //                     style={styles.knob_gradient}>
+            //                 </LinearGradient>
+            //             </Animated.View>
+            //         </LinearGradient>
+            //     </TouchableWithoutFeedback>
+            // );
+            switch_name = <Text style={styles.name}>{I18n.t(name.en)}</Text>
         }
 
         return (
             <View style={styles.container}>
-                <View style={styles.light_bulb_container}>
-                    <Image style={styles.light_bulb}
-                        source={light_bulb_img}>
-                    </Image>
-                </View>
+                {light_bulb}
                 {switch_button}
                 {switch_name}
             </View>
@@ -122,10 +135,14 @@ const styles = StyleSheet.create({
         height: 120,
         width: 70
     },
+    light_bulb_container_detail: {
+        height: 170,
+        width: 100
+    },
     light_bulb: {
         flex: 1,
         width: undefined,
-        height: undefined
+        height: undefined,
     },
     switch: {
         borderRadius: 5,

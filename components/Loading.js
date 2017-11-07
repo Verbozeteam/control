@@ -6,12 +6,15 @@ import { View, Text, StyleSheet } from 'react-native';
 type PropsType = {};
 type StateType = {};
 
+const I18n = require('../i18n/i18n');
+
+
 class Loading extends React.Component<PropsType, StateType> {
     render() {
         return (
             <View style={styles.container}>
                 <Text style={styles.header}>
-                    Loading...
+                    {I18n.t('Loading...')}
                 </Text>
             </View>
         );

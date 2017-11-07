@@ -1,6 +1,6 @@
 export const panel_translations = {
-    'Close': {
-        en: 'Close',
+    'Minimize': {
+        en: 'Minimize',
         ar: 'إغلاق'
     }
-}
+};

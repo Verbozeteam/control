@@ -37,9 +37,45 @@ export const clock_translations = {
         en: 'January',
         ar: 'يناير'
     },
+    'February': {
+        en: 'February',
+        ar: 'فبراير'
+    },
+    'March': {
+        en: 'March',
+        ar: 'مارس'
+    },
+    'April': {
+        en: 'April',
+        ar: 'أبريل'
+    },
+    'May': {
+        en: 'May',
+        ar: 'مايو'
+    },
+    'June': {
+        en: 'June',
+        ar: 'يونيو'
+    },
+    'July': {
+        en: 'July',
+        ar: 'يوليو'
+    },
+    'August': {
+        en: 'August',
+        ar: 'أغسطس'
+    },
     'October': {
         en: 'October',
         ar: 'اكتوبر'
+    },
+    'November': {
+        en: 'November',
+        ar: 'نوفمبر'
+    },
+    'December': {
+        en: 'December',
+        ar: 'ديسمبر'
     },
     'Today': {
         en: 'Today',

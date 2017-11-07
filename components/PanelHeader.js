@@ -34,7 +34,7 @@ class PanelHeader extends React.Component<PropsType> {
                 style={styles.button_container}>
                 <Button onPress={close}
                     color={'#333333'}
-                    title={I18n.t('Close')}></Button>
+                    title={I18n.t('Minimize')}></Button>
             </View>;
         }
 
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        // backgroundColor: '#00FFFF'
+        backgroundColor: 'rgba(0, 0, 0, 0)'
     },
     name: {
         flex: 1,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF'
     },
     button_container: {
-        width: 70
+        width: 90
     }
 });
 

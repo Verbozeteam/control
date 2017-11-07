@@ -28,7 +28,8 @@ type StateType = {
     is_screen_dimmed: boolean,
     config: ConfigType,
     things_state: Object,
-    page_index: number
+    page_index: number,
+    discovered_devices: Array<DiscoveredDeviceType>
 };
 
 class VerbozeControl extends React.Component<PropsType, StateType> {
@@ -39,7 +40,8 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         config: {},
         things_state: {},
         page_index: 0,
-        dev_debug: false
+        dev_debug: false,
+        discovered_devices: []
     };
 
     _screen_dim_timeout: number;
@@ -99,6 +101,10 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             if (data.name == StoredDevices.get_current_device_name()) {
                 Socket.connect(data.ip, data.port);
             }
+
+            this.setState({
+                discovered_devices: this.state.discovered_devices.push(data)
+            });
         });
 
         // load a saved device (if any)
@@ -361,7 +367,8 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             if (page_index == pages.length - 1) {
                 ui = <Settings {...pages[page_index]}
                     refresh={this.refresh.bind(this)}
-                    showDiscoverDevices={dev_debug}/>
+                    showDiscoverDevices={dev_debug}
+                    discoveredDevices={this.state.discovered_devices} />
             } else {
                 var ui = <Grid {...pages[page_index]}
                     layout={grid_layout}

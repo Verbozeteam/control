@@ -183,10 +183,10 @@ class CentralAC extends React.Component<PropsType, StateType> {
         if (!fan) {
             set_temperature = <View style={styles.set_temperature_container}>
                 <Text style={styles.set_temperature}>
-                    Off
+                    {I18n.t('Off')}
                 </Text>
                 <Text style={styles.fan_speed_display}></Text>
-            </View>
+            </View>;
         } else {
             set_temperature = <View style={styles.set_temperature_container}>
                 <Text style={styles.set_temperature}>
@@ -196,7 +196,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                     {viewType !== 'detail' ?
                         this._fan_speeds[fan][1] : null}
                 </Text>
-            </View>
+            </View>;
         }
 
         var temperature_setter = null;
@@ -242,7 +242,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                             start={{x: 0, y: 0}}
                             end={{x: 1, y: 1}}
                             style={[{left: this._ratio * (set_pt - this._min_temperature)},
-                                styles.temperature_knob]}>
+                                styles.temperature_knob, {borderColor: knob_gradient[1]}]}>
                         </LinearGradient>
                     </View>
                     <TouchableWithoutFeedback onPressIn={() =>
@@ -302,7 +302,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0)'
-    }, set_temperature_container: {
+    },
+    set_temperature_container: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center'
@@ -344,7 +345,8 @@ const styles = StyleSheet.create({
         height: '100%',
         borderRadius: 5,
         width: 60,
-        backgroundColor: '#FFFFFF'
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
     },
     button: {
         height: 70,
@@ -353,11 +355,12 @@ const styles = StyleSheet.create({
         marginRight: 20,
         marginLeft: 20,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        paddingBottom: 10
     },
     fan_speed_button: {
         height: 70,
-        width: 100,
+        width: 120,
         borderRadius: 5,
         marginRight: 20,
         marginLeft: 20,

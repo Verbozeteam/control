@@ -1,7 +1,7 @@
 export const central_ac_translations = {
     'Off': {
         en: 'Off',
-        ar: 'طافئ'
+        ar: 'مُطفئ'
     },
     'High': {
         en: 'High',
@@ -15,4 +15,4 @@ export const central_ac_translations = {
         en: 'Room Temperature',
         ar: 'حرارة الغرفة'
     }
-}
+};

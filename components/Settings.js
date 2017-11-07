@@ -6,13 +6,14 @@ import { View, Text, StyleSheet, Picker } from 'react-native';
 const I18n = require('../i18n/i18n');
 const UserPreferences = require('../config/user_preferences');
 
-import type { LayoutType } from '../config/flowtypes';
+import type { LayoutType, DiscoveredDeviceType } from '../config/flowtypes';
 
 const PanelHeader = require('./PanelHeader');
 const DeviceDiscovery = require('./DeviceDiscovery');
 
 type PropsType = {
     showDiscoverDevices: boolean,
+    discoveredDevices: Array<DiscoveredDeviceType>,
     layout: {...LayoutType, margin: number},
     settings: Object,
     refresh: () => null
@@ -35,13 +36,15 @@ class Settings extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { layout, settings, showDiscoverDevices } = this.props;
+        const { layout, settings, showDiscoverDevices,
+            discoveredDevices} = this.props;
 
         console.log('Settings render! ++++++++++++++++++++++++++++++++++');
 
         var device_discovery = null;
         if (showDiscoverDevices) {
-            device_discovery = <DeviceDiscovery />
+            device_discovery = <DeviceDiscovery
+                discoveredDevices={discoveredDevices} />;
         }
 
         var settings_list = [];
@@ -69,7 +72,8 @@ class Settings extends React.Component<PropsType, StateType> {
                 style={styles.setting_container}>
                 {header}
                 <Picker selectedValue={selected_value}
-                    onValueChange={action}>
+                    onValueChange={action}
+                    style={styles.picker}>
                     {options}
                 </Picker>
             </View>;
@@ -102,6 +106,9 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontFamily: 'HKNova-MediumR',
         color: '#FFFFFF'
+    },
+    picker: {
+        color: '#FFFFFF',
     }
 });
 

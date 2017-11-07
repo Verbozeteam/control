@@ -47,7 +47,7 @@ class Dimmer extends React.Component<PropsType, StateType> {
     _min_value: number = 0;
     _max_value: number = 100;
 
-    _dimmer_detail_height: number = 200;
+    _dimmer_detail_height: number = 300;
     _dimmer_present_height: number = 100;
     _dimmer_height: number;
     _ratio: number;
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF'
     },
     dimmer: {
-        width: 70,
+        width: 90,
         borderRadius: 5,
         backgroundColor: '#444444',
         alignItems: 'center',

@@ -6,5 +6,9 @@ export const settings_translations = {
     'Language': {
         en: 'Language',
         ar: 'اللغة'
+    },
+    'Loading...': {
+        en: 'Loading...',
+        ar: 'تحميل...'
     }
-}
+};
