@@ -1,0 +1,3 @@
+[submodule "react-components"]
+	path = react-components
+	url = git@github.com:Verbozeteam/react-components.git
