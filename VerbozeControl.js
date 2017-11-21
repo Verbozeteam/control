@@ -425,6 +425,10 @@ function mapDispatchToProps(dispatch) {
 class VerbozeControl extends React.Component {
     _unsubscribe: () => null = () => {return null;};
 
+    _screen_dim_timeout: number;
+    _screen_dim_timeout_duration = 30000;
+    _last_touch_time: number = 0;
+
     componentWillMount() {
         // load user preferences
         UserPreferences.load((() => {
@@ -443,14 +447,36 @@ class VerbozeControl extends React.Component {
     initialize() {
         const { store } = this.context;
         this._unsubscribe = store.subscribe(() => {});
-        this.props.onDimScreen(true);
+    }
+
+    _resetScreenDim() {
+        SystemSetting.setBrightnessForce(1);
+        clearTimeout(this._screen_dim_timeout);
+        this._screen_dim_timeout = setTimeout(() => {
+            this.props.onDimScreen(true);
+            SystemSetting.setBrightnessForce(0);
+        }, this._screen_dim_timeout_duration);
+    }
+
+    _wakeupScreen() {
+        if (this.props.screen.isDimmed)
+            this.props.onDimScreen(false);
     }
 
     render() {
-        if (this.props.screen.isDimmed)
-            return <Clock />
-        else
-            return <View style={styles.container} />
+        var inner_ui = null;
+        if (this.props.screen.isDimmed) {
+            inner_ui = <Clock />;
+        } else {
+            this._resetScreenDim();
+            inner_ui = <View />;
+        }
+
+        return <View style={styles.container}
+            onTouchStart={this._wakeupScreen.bind(this)}
+            onTouchMove={this._wakeupScreen.bind(this)}>
+            {inner_ui}
+        </View>
     }
 }
 VerbozeControl.contextTypes = {
