@@ -4,7 +4,7 @@ import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 const I18n = require('../i18n/i18n');
-const UserPreferences = require('../config/user_preferences');
+const UserPreferences = require('../lib/UserPreferences');
 const { DaysOfWeek, MonthsOfYear } = require('../config/misc');
 
 type PropsType = {};

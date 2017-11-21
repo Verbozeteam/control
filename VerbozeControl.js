@@ -1,6 +1,6 @@
 /* @flow */
 
-import * as React from 'react';
+/*import * as React from 'react';
 import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter,
     Dimensions } from 'react-native';
 
@@ -384,4 +384,107 @@ const styles = StyleSheet.create({
     },
 });
 
-module.exports = VerbozeControl;
+module.exports = VerbozeControl;*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import * as React from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+
+import SystemSetting from 'react-native-system-setting';
+const UserPreferences = require('./lib/UserPreferences');
+const Clock = require('./components/Clock');
+
+const screenActions = require ('./redux-objects/actions/screen');
+
+function mapStateToProps(state) {
+    return {
+        screen: state.screen,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        onDimScreen: b => {dispatch(screenActions.dim_screen(b));}
+    };
+}
+
+class VerbozeControl extends React.Component {
+    _unsubscribe: () => null = () => {return null;};
+
+    componentWillMount() {
+        // load user preferences
+        UserPreferences.load((() => {
+            this.initialize();
+        }).bind(this));
+
+        SystemSetting.getVolume().then((volume) => {
+            if (volume < 1) {
+                SystemSetting.setVolume(1);
+            }
+        });
+
+        SystemSetting.setBrightnessForce(1);
+    }
+
+    initialize() {
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(() => {});
+        this.props.onDimScreen(true);
+    }
+
+    render() {
+        if (this.props.screen.isDimmed)
+            return <Clock />
+        else
+            return <View style={styles.container} />
+    }
+}
+VerbozeControl.contextTypes = {
+    store: React.PropTypes.object
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#1a1a1a'
+    },
+});
+
+VerbozeControl = connect(mapStateToProps, mapDispatchToProps) (VerbozeControl);
+
+/**
+ * Create the Redux store and wrap the application in a redux context
+ */
+
+import { createStore, combineReducers, bindActionCreators } from 'redux';
+import { Provider, connect } from 'react-redux';
+
+const screenReducers = require('./redux-objects/reducers/screen');
+let STORE = createStore(combineReducers({
+    screen: screenReducers,
+}));
+
+class VerbozeControlWrap extends React.Component {
+    render() {
+        return <Provider store={STORE}><VerbozeControl /></Provider>
+    }
+}
+
+module.exports = VerbozeControlWrap;
+
+
+
