@@ -5,6 +5,7 @@ import { View, Dimensions, LayoutAnimation, Platform, UIManager, StyleSheet }
     from 'react-native';
 
 const Panel = require('./Panel');
+const LightsPanelContents = require('./LightsPanelContents');
 
 import type { PanelLayoutType, LayoutType, CollapsedLayoutType, RoomType,
     GridColumnType } from '../config/flowtypes';
@@ -13,8 +14,6 @@ type PropsType = {
     ...RoomType,
     thingsState: Object,
     updateThing: (id: string, update: Object, remote_only?: boolean) => null,
-    blockThing: (id: string) => null,
-    unblockThing: (id: string) => null,
     changePage: (index: number) => null,
     pageSwipeUp: () => null,
     pageSwipeUp: () => null,
@@ -43,8 +42,6 @@ class Grid extends React.Component<PropsType, StateType> {
         },
         thingsState: {},
         updateThing: () => null,
-        blockThing: () => null,
-        unblockThing: () => null
     };
 
     _presentation_layout: Array<PanelLayoutType> = [];
@@ -52,9 +49,6 @@ class Grid extends React.Component<PropsType, StateType> {
     _collapsed_layout: CollapsedLayoutType;
     _num_panels: number = 0;
     _detail_timer: number = -1;
-
-    // _gesture_start_y: number = 0;
-    // _gesture_trigger_distance: number = 150;
 
     constructor(props: PropsType) {
         super(props);
@@ -65,16 +59,6 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     componentWillMount() {
-        // this._panResponder = PanResponder.create({
-        //     onStartShouldSetPanResponder: (evt, gestureState) => true,
-        //     onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
-        //     onMoveShouldSetPanResponder: (evt, gestureState) => true,
-        //     onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
-        //
-        //     onPanResponderGrant: this._onPanResponderGrant.bind(this),
-        //     onPanResponderMove: this._onPanResponderMove.bind(this)
-        // });
-
         this.calculatePresentationLayout();
         this.calculateDetailAndCollapsedLayout();
     }
@@ -193,6 +177,7 @@ class Grid extends React.Component<PropsType, StateType> {
                 const panel = <Panel key={'panel-' + index}
                     {...grid[i].panels[j]}
                     layout={this._presentation_layout[index]}
+                    content_key={'panel-' + index + '-contents'}
                     viewType={'present'}
                     thingsState={thingsState}
                     toggleDetail={() => this.toggleDetail(index)} />;
@@ -205,8 +190,7 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     renderDetailWithCollapsedView() {
-        const { layout, grid, updateThing, blockThing, unblockThing,
-            thingsState } = this.props;
+        const { layout, grid, updateThing, thingsState } = this.props;
         const { detail_panel_index } = this.state;
 
         var panels = [];
@@ -233,12 +217,11 @@ class Grid extends React.Component<PropsType, StateType> {
                 const panel = <Panel key={'panel-' + index}
                     {...grid[i].panels[j]}
                     layout={panel_layout}
+                    content_key={'panel-' + index + '-contents'}
                     viewType={view_type}
                     thingsState={thingsState}
                     toggleDetail={() => this.toggleDetail(index)}
-                    updateThing={updateThing}
-                    blockThing={blockThing}
-                    unblockThing={unblockThing}/>;
+                    updateThing={updateThing}/>;
 
                 panels.push(panel);
             }

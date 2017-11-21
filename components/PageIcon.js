@@ -8,7 +8,6 @@ const I18n = require('../i18n/i18n');
 import type { LayoutType, NameType } from '../config/flowtypes';
 
 type PropsType = {
-    layout: LayoutType,
     name: string,
     selected: boolean,
     changePage: () => null,
@@ -24,12 +23,12 @@ class PageIcon extends React.Component<PropsType> {
 
     _onLongPress() {
         console.log('_onLongPress');
-        console.log(this);
-        this.props.longPress();
+        if (this.props.longPress)
+            this.props.longPress();
     }
 
     render() {
-        const { layout, name, changePage, longPress, selected } = this.props;
+        const { name, changePage, longPress, selected } = this.props;
 
         const selected_style = (selected) ? styles.selected : null;
 
@@ -37,7 +36,7 @@ class PageIcon extends React.Component<PropsType> {
             <TouchableOpacity onPressIn={changePage}
                 delayLongPress={5000}
                 onLongPress={this._onLongPress.bind(this)}
-                style={[layout, styles.container, selected_style]}>
+                style={[styles.container, selected_style]}>
 
                 <Text style={styles.header}>
                     {I18n.t(name)}
@@ -49,14 +48,13 @@ class PageIcon extends React.Component<PropsType> {
 
 const styles = StyleSheet.create({
     container: {
-        position: 'absolute',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#777777',
-        borderRadius: 5,
+        backgroundColor: '#222222',
+        flex: 1,
     },
     selected: {
-        backgroundColor: '#AAAAAA'
+        backgroundColor: '#333333'
     },
     header: {
         fontFamily: 'HKNova-MediumR',

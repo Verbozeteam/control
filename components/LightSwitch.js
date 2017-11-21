@@ -6,9 +6,9 @@ import { View, Text, Image, Animated, TouchableWithoutFeedback, StyleSheet }
 
 import type { GenericThingType, ViewType } from '../config/flowtypes';
 
-const I18n = require('../i18n/i18n');
+const LightSwitchObject = require('../react-components/LightSwitch.js');
 
-import LinearGradient from 'react-native-linear-gradient';
+const I18n = require('../i18n/i18n');
 
 type PropsType = {
     ...GenericThingType,
@@ -33,8 +33,8 @@ class LightSwitch extends React.Component<PropsType> {
 
     _offset: Object;
 
-    _light_bulb_img_on = require('../assets/images/light_bulb_on.png');
-    _light_bulb_img_off = require('../assets/images/light_bulb_off.png');
+    _light_bulb_img_on = require('../assets/images/lighton.png');
+    _light_bulb_img_off = require('../assets/images/lightoff.png');
 
 
     constructor(props: PropsType) {
@@ -88,23 +88,8 @@ class LightSwitch extends React.Component<PropsType> {
                     {light_bulb}
                 </TouchableWithoutFeedback>
             );
-            // name_text = <Text style={styles.name}>{name.en}</Text>;
-
             // switch_button = (
-            //     <TouchableWithoutFeedback onPressIn={() => this.toggle()}>
-            //         <LinearGradient colors={this._switch_gradient}
-            //             start={{x: 0, y: 0}}
-            //             end={{x: 1, y: 1}}
-            //             style={styles.switch}>
-            //             <Animated.View style={[styles.knob, {top: this._offset}]}>
-            //                 <LinearGradient colors={this._knob_gradient}
-            //                     start={{x: 0, y: 0}}
-            //                     end={{x: 1, y: 1}}
-            //                     style={styles.knob_gradient}>
-            //                 </LinearGradient>
-            //             </Animated.View>
-            //         </LinearGradient>
-            //     </TouchableWithoutFeedback>
+            //     <LightSwitchObject />
             // );
             switch_name = <Text style={styles.name}>{I18n.t(name.en)}</Text>
         }
@@ -133,11 +118,11 @@ const styles = StyleSheet.create({
     },
     light_bulb_container: {
         height: 120,
-        width: 70
+        width: 90
     },
     light_bulb_container_detail: {
         height: 170,
-        width: 100
+        width: 130
     },
     light_bulb: {
         flex: 1,

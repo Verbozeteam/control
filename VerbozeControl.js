@@ -4,67 +4,79 @@ import * as React from 'react';
 import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter,
     Dimensions } from 'react-native';
 
+const UUID = require("uuid");
+
 const I18n = require('./i18n/i18n');
 
 const Grid = require('./components/Grid');
 const PagesList = require('./components/PagesList');
 const Settings = require('./components/Settings');
 const Clock = require('./components/Clock');
-const Loading = require('./components/Loading');
 
 const { DaysOfWeek, MonthsOfYear } = require('./config/misc');
 const Socket = require('./lib/Socket');
 import SystemSetting from 'react-native-system-setting';
-const StoredDevices = require('./config/stored_devices');
 const UserPreferences = require('./config/user_preferences');
 
-import type { ConfigType, PageType, RoomType, DiscoveredDeviceType, LayoutType }
+import type { ConfigType, PageType, RoomType, DiscoveredDeviceType }
     from './config/flowtypes';
 
 type PropsType = {};
 
 type StateType = {
-    loading: boolean,
     is_screen_dimmed: boolean,
+
     config: ConfigType,
     things_state: Object,
-    page_index: number,
-    discovered_devices: Array<DiscoveredDeviceType>
+    current_room_index: number,
+
+    current_page: number,
+
+    discovered_devices: Array<DiscoveredDeviceType>,
+    current_device: DiscoveredDeviceType,
 };
 
 class VerbozeControl extends React.Component<PropsType, StateType> {
-
     state = {
-        loading: true,
         is_screen_dimmed: false,
+
         config: {},
         things_state: {},
-        page_index: 0,
-        dev_debug: false,
-        discovered_devices: []
+        current_room_index: 0,
+
+        current_page: 0,
+
+        discovered_devices: [],
+        current_device: {},
     };
+
+    _pages: Array<Object> = [{
+        name: {
+            en: "Room",
+            ar: "",
+        },
+        renderer: this.renderRoomPage.bind(this),
+    }, {
+        name: {
+            en: "Settings",
+            ar: "",
+        },
+        renderer: this.renderSettingsPage.bind(this),
+        longPress: (() => {this._settings_mode = true; this.forceUpdate();}).bind(this)
+    }];
+    _settings_mode = false;
 
     _screen_dim_timeout: number;
     _screen_dim_timeout_duration = 30000;
     _last_touch_time: number = 0;
 
-    _user_preferences_loaded: boolean = false;
-    _config_loaded: boolean = false;
-
-    _blocked_things: Array<string> = [];
+    _communication_token: string = "";
 
     componentWillMount() {
         // load user preferences
-        UserPreferences.load(() => {
-            this._user_preferences_loaded = true;
-            I18n.setLanguage(UserPreferences.get('language'));
-            this._recheckLoading();
-        });
-
-        // call discoverDevices every 10 seconds
-        setInterval(() => {
-            this.discoverDevices()
-        }, 20000);
+        UserPreferences.load((() => {
+            this.initialize();
+        }).bind(this));
 
         SystemSetting.getVolume().then((volume) => {
             if (volume < 1) {
@@ -74,7 +86,13 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         SystemSetting.setBrightnessForce(1);
     }
 
-    componentDidMount() {
+    initialize() {
+        console.log("Initializing the app...");
+
+        I18n.setLanguage(UserPreferences.get('language'));
+
+        this._communication_token = UUID.v4();
+
         // install socket event handlers
         DeviceEventEmitter.addListener(Socket.socket_connected, () => {
             console.log('Socket connected!');
@@ -82,54 +100,31 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         });
 
         DeviceEventEmitter.addListener(Socket.socket_data, (data) => {
-            // console.log(data);
             this.handleSocketData(JSON.parse(data.data));
         });
 
         DeviceEventEmitter.addListener(Socket.socket_disconnected, () => {
             console.log('Socket disconnected!');
+            this.setState({
+                config: {}
+            })
         });
 
         DeviceEventEmitter.addListener(Socket.manager_log, (data) => {
             console.log(data.data);
         });
 
-        DeviceEventEmitter.addListener(Socket.device_discovered,
-            (data: DiscoveredDeviceType) => {
+        DeviceEventEmitter.addListener(Socket.device_discovered, this.onDeviceDiscovered.bind(this));
 
-            // TODO: This is all patch work.
-            data.port = 7990;
-
-            console.log('Found name', data.name, data.ip, data.port);
-            StoredDevices.add_discovered_device(data);
-            if (data.name == StoredDevices.get_current_device_name()) {
-                Socket.connect(data.ip, data.port);
-            }
-
-            var { discovered_devices } = this.state;
-            discovered_devices.push(data);
-            this.setState({
-                discovered_devices: discovered_devices
-            });
-
-            this._resetScreenDim()
-        });
+        // call discoverDevices every 10 seconds
+        setInterval(() => {
+            this.discoverDevices()
+        }, 10000);
 
         // load a saved device (if any)
-        StoredDevices.get_saved_device((device: DiscoveredDeviceType) => {
-            // device has been found
-            Socket.connect(device.ip, device.port);
-        }, (error) => {
-            // no device found
-            this.discoverDevices();
-        });
-
-        // const some_device = {ip: '10.11.28.155', name: 'Fituri', port: 4567};
-        // const { discovered_devices } = this.state;
-        // discovered_devices.push(some_device);
-        // this.setState({
-        //     discovered_devices: discovered_devices
-        // });
+        var cur_device = UserPreferences.get('device');
+        if (cur_device)
+            this.setCurrentDevice(cur_device);
 
         this._resetScreenDim();
     }
@@ -140,54 +135,60 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         Socket.killThread();
     }
 
-    _resetScreenDim() {
-        const { is_screen_dimmed } = this.state;
-        if (is_screen_dimmed) {
-            this.setState({
-                is_screen_dimmed: false
-            });
-            SystemSetting.setBrightnessForce(1);
+    onDeviceDiscovered(device: DiscoveredDeviceType) {
+        var { current_device, discovered_devices } = this.state;
+        // TODO: This is all patch work.
+        device.port = 7990;
+
+        console.log('Found device: ', device.name, device.ip, ":", device.port);
+
+        if (current_device && device.name == current_device.name && device.ip != current_device.ip) {
+            Socket.connect(device.ip, device.port);
         }
 
-        clearTimeout(this._screen_dim_timeout);
-        this._screen_dim_timeout = setTimeout(() => {
-            const datetime = new Date();
-            this.setState({
-                is_screen_dimmed: true
-            });
-            SystemSetting.setBrightnessForce(0);
-        }, this._screen_dim_timeout_duration);
-    }
+        // new device or different device => update state
+        var device_in_discovered_list_index = -1;
+        for (var i = 0; i < discovered_devices.length; i++)
+            if (device.name == discovered_devices[i].name)
+                device_in_discovered_list_index = i;
 
-    /* recheckLoading
-     * Returns sets loading in state to false if everything is loaded */
-    _recheckLoading() {
-        if (this._user_preferences_loaded &&
-            this._config_loaded) {
+        if (device_in_discovered_list_index == -1 || JSON.stringify(discovered_devices[device_in_discovered_list_index]) != JSON.stringify(device)) {
+            if (device_in_discovered_list_index == -1)
+                discovered_devices.push(device);
+            else
+                discovered_devices[device_in_discovered_list_index] = device;
             this.setState({
-                loading: false
+                discovered_devices: discovered_devices
             });
         }
     }
 
     refresh() {
         console.log('refresh called');
-        console.log(this);
         this.forceUpdate();
     }
 
     discoverDevices() {
-        console.log('discoverDevices');
-        StoredDevices.clear_discovered_devices();
+        console.log('Device discovery initiated...');
         Socket.discoverDevices();
+    }
+
+    setCurrentDevice(device: DiscoveredDeviceType) {
+        const { current_device } = this.state;
+
+        if (JSON.stringify(current_device) != JSON.stringify(device)) {
+            this.setState({
+                current_device: device
+            });
+            Socket.connect(device.ip, device.port);
+            UserPreferences.save({
+                device: device
+            });
+        }
     }
 
     fetchConfig() {
         console.log('Fetching config...');
-        this.setState({
-            loading: true
-        });
-
         Socket.write(JSON.stringify({
             code: 0
         }));
@@ -197,8 +198,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         this.setState({
             config: config
         });
-
-        console.log(config);
 
         // TODO: this needs to change
         if (config.rooms) {
@@ -220,9 +219,6 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
                 }
             }
         }
-
-        this._config_loaded = true;
-        this._recheckLoading();
     }
 
     handleSocketData(data: Object) {
@@ -230,36 +226,39 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
             return;
         }
 
-        console.log('handleSocketData =>', data);
-
-        const { things_state } = this.state;
-
         // if config provided, apply it
         if ('config' in data) {
             this.applyConfig(data.config);
             delete data['config'];
         }
 
-        // go through thing ids and update if thing is not blocked
+        var { things_state } = this.state;
+
+        // go through thing ids and update if update not initiated by us
+        var state_changed = false;
         for (var key in data) {
-            if (this._blocked_things.indexOf(key) === -1) {
+            if (!data[key].token || data[key].token != this._communication_token) {
                 things_state[key] = data[key];
+                state_changed = true;
             }
         }
 
-        this.setState({
-            things_state
-        });
+        if (state_changed) {
+            this.setState({
+                things_state
+            });
+        }
     }
 
     updateThing(id: string, update: Object, remote_only?: boolean) {
         remote_only = remote_only || false;
 
+        update.token = this._communication_token;
+
         Socket.write(JSON.stringify({
             thing: id,
             ...update
         }));
-        console.log('Socket write: ', id, update, remote_only);
 
         if (!remote_only) {
             const { things_state } = this.state;
@@ -270,168 +269,119 @@ class VerbozeControl extends React.Component<PropsType, StateType> {
         }
     }
 
-    blockThing(id: string) {
-        this._blocked_things.push(id);
-    }
-
-    unblockThing(id: string) {
-        var index = this._blocked_things.indexOf(id);
-
-        while (index !== -1) {
-            this._blocked_things.splice(index, 1);
-            index = this._blocked_things.indexOf(id);
-        }
-    }
-
     changePage(index: number) {
-        console.log('Change page to ', index);
-
-        this.setState({
-            page_index: index,
-            dev_debug: false
-        })
+        if (index != this.state.current_page) {
+            this.setState({
+                current_page: index,
+            });
+        }
+        this._settings_mode = false; // rest/disable settings mode
     }
 
-    showDiscoverDevices() {
-        console.log('showDiscoverDevices');
-        var index = 0;
-        if (this.state.config) {
-            index = this.state.config.rooms.length;
-        }
-        this.setState({
-            page_index: index,
-            dev_debug: true
-        });
-    }
-
-    render() {
-        console.log('VerbozeControl render!');
-
-        const { config, loading, is_screen_dimmed, things_state, dev_debug,
-            discovered_devices} = this.state;
-        var { page_index } = this.state;
-
-        const { height, width}:
-            {height: number, width: number} = Dimensions.get('screen');
-
-        var pages: Array<RoomType| PageType> = [];
-        // if (config && config.rooms) {
-        //     pages = config.rooms;
-        // }
-
-        // stupid flow
-        if (config && config.rooms) {
-            for (var i = 0; i < config.rooms.length; i++) {
-                pages.push(config.rooms[i]);
-            }
-        }
-        pages.push({
-            name: {
-                en: 'Settings',
-                ar: 'الإعدادات'
-            },
-            settings: [
+    renderSettingsPage(width, height) {
+        var discovered_devices = Object.values(this.state.discovered_devices);
+        return <Settings
+            settings= {[
                 {
                     name: 'Language',
                     action: 'changeLanguage',
                     options: [['English', 'en'], ['عربي', 'ar']]
                 }
-            ],
-            layout: {
+            ]}
+            layout={{
                 height: height - 20,
-                width: width - 120,
+                width: width - 110,
                 top: 5,
-                left: 105,
+                left: 95,
                 margin: 5
-            },
-            longPress: this.showDiscoverDevices.bind(this)
-        });
+            }}
+
+            refresh={this.refresh.bind(this)}
+            showDiscoverDevices={this._settings_mode}
+            discoveredDevices={discovered_devices}
+            discoverDevices={this.discoverDevices.bind(this)}
+            setDevice={this.setCurrentDevice.bind(this)}
+            currentDevice={this.state.current_device} />
+    }
+
+    renderRoomPage(width, height) {
+        const { config, things_state, current_room_index } = this.state;
+
+        var grid_layout = {
+            top: 0,
+            left: 90,
+            width: width - 90,
+            height: height,
+        };
+
+        Object.assign(grid_layout, config.rooms[current_room_index].layout);
+
+        return <Grid {...config.rooms[current_room_index]}
+            layout={grid_layout}
+            thingsState={things_state}
+            updateThing={this.updateThing.bind(this)}
+            changePage={this.changePage.bind(this)} />;
+    }
+
+    render() {
+        const { config, is_screen_dimmed, things_state, current_room_index } = this.state;
+        var { current_page } = this.state;
+
+        const { height, width }: {height: number, width: number} = Dimensions.get('screen');
+
+        console.log("toplevel render!!!!!!!!!!!!!!!!!!!")
 
         // create dimmed overlay if applicable (loading, or clock)
-        var dimmed_overlay = null;
-        if (loading) {
-            dimmed_overlay = <Loading discoveredDevices={discovered_devices}/>
-        }
-
-        else if (is_screen_dimmed) {
-            dimmed_overlay = <Clock />;
-        }
-
-        // create Grid UI
-        var ui = null;
+        var displayed_ui = null;
         var pages_list = null;
-        if (pages && !dimmed_overlay) {
+        if (is_screen_dimmed) {
+            displayed_ui = <Clock />;
+        } else {
+            if (current_page == 0 && (!config || !config.rooms || current_room_index >= config.rooms.length))
+                current_page = this._pages.length - 1;
 
-            console.log(pages);
-            const grid_layout = {
-                height,
-                width: width - 100,
-                top: 0,
-                left: 100
-            };
-
-            if (page_index >= pages.length) {
-                page_index = pages.length - 1;
-                this.changePage(pages.length - 1);
-            }
-
-            pages[page_index].layout = Object.assign(grid_layout,
-                pages[page_index].layout);
-
-            if (page_index == pages.length - 1) {
-                ui = <Settings {...pages[page_index]}
-                    refresh={this.refresh.bind(this)}
-                    showDiscoverDevices={dev_debug}
-                    discoveredDevices={this.state.discovered_devices} />
-            } else {
-                var ui = <Grid {...pages[page_index]}
-                    layout={grid_layout}
-                    thingsState={things_state}
-                    updateThing={this.updateThing.bind(this)}
-                    blockThing={this.blockThing.bind(this)}
-                    unblockThing={this.unblockThing.bind(this)}
-                    changePage={this.changePage.bind(this)} />;
-            }
-
-            pages_list = <PagesList selected={page_index}
-                layout={{height, width: 100, top: 0, left: 0}}
-                pages={pages}
+            pages_list = <PagesList selected={current_page}
+                layout={{height: height, width: 90, top: 0, left: 0}}
+                pages={this._pages}
                 changePage={this.changePage.bind(this)} />;
+            displayed_ui = this._pages[current_page].renderer(width, height);
         }
 
         return (
             <View style={styles.container}
                 onTouchStart={this._resetScreenDim.bind(this)}
                 onTouchMove={this._resetScreenDim.bind(this)}>
-                {ui}
                 {pages_list}
-                {dimmed_overlay}
+                {displayed_ui}
             </View>
         );
+    }
+
+    _resetScreenDim() {
+        const { is_screen_dimmed } = this.state;
+        if (is_screen_dimmed) {
+            this.setState({
+                is_screen_dimmed: false
+            });
+            SystemSetting.setBrightnessForce(1);
+        }
+
+        clearTimeout(this._screen_dim_timeout);
+        this._screen_dim_timeout = setTimeout(() => {
+            const datetime = new Date();
+            this.setState({
+                is_screen_dimmed: true
+            });
+            SystemSetting.setBrightnessForce(0);
+        }, this._screen_dim_timeout_duration);
     }
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000'
+        backgroundColor: '#1a1a1a'
     },
-    rooms_column: {
-        flex: 1,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        height: '100%',
-        width: 100,
-        backgroundColor: 'red',
-        padding: 5
-    },
-    room_box: {
-        height: 80,
-        width: 80,
-        backgroundColor: 'green',
-        margin: 5
-    }
 });
 
 module.exports = VerbozeControl;

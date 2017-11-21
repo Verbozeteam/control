@@ -35,7 +35,7 @@ export type EmptyThingType = {
 };
 
 export type GenericThingType = {
-    id: number,
+    id: string,
     category: 'split_acs'
         | 'central_acs'
         | 'curtains'

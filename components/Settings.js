@@ -14,6 +14,9 @@ const DeviceDiscovery = require('./DeviceDiscovery');
 type PropsType = {
     showDiscoverDevices: boolean,
     discoveredDevices: Array<DiscoveredDeviceType>,
+    currentDevice: DiscoveredDeviceType,
+    discoverDevices: () => null,
+    setDevice: (device: DiscoveredDeviceType) => null,
     layout: {...LayoutType, margin: number},
     settings: Object,
     refresh: () => null
@@ -22,11 +25,6 @@ type PropsType = {
 type StateType = {};
 
 class Settings extends React.Component<PropsType, StateType> {
-
-    static defaultProps = {
-        showDiscoverDevices: false
-    };
-
     changeLanguage(itemValue, itemIndex) {
         const { refresh } = this.props;
 
@@ -37,14 +35,15 @@ class Settings extends React.Component<PropsType, StateType> {
 
     render() {
         const { layout, settings, showDiscoverDevices,
-            discoveredDevices} = this.props;
-
-        console.log('Settings render! ++++++++++++++++++++++++++++++++++');
+            discoveredDevices, discoverDevices, setDevice, currentDevice } = this.props;
 
         var device_discovery = null;
         if (showDiscoverDevices) {
             device_discovery = <DeviceDiscovery
-                discoveredDevices={discoveredDevices} />;
+                discoveredDevices={discoveredDevices}
+                discoverDevices={discoverDevices}
+                setDevice={setDevice}
+                currentDevice={currentDevice} />;
         }
 
         var settings_list = [];
