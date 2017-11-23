@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 const connectionActions = require ('../redux-objects/actions/connection');
 
+const I18n = require('../i18n/i18n');
 const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
 const HotelControlsPanelContents = require('./HotelControlsPanelContents');
@@ -208,7 +209,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                 // create panel base don presentation view layout and
                 // add to array
                 const panel = <Panel key={'panel-' + index}
-                    name={grid[i].panels[j].name}
+                    name={I18n.t(grid[i].panels[j].name)}
                     layout={[this._presentation_layout[index], styles.panel]}
                     viewType={'present'}
                     toggleDetail={() => this.setCurrentPanel(index)}>
@@ -255,7 +256,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                 const panel = <Panel key={'panel-' + index}
                     layout={[panel_layout, styles.panel]}
                     viewType={view_type}
-                    name={grid[i].panels[j].name}
+                    name={I18n.t(grid[i].panels[j].name)}
                     toggleDetail={() => this.setCurrentPanel(index)}>
                     {contents}
                 </Panel>;
