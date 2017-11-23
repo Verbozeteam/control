@@ -41,7 +41,7 @@ class LightDimmer extends React.Component<PropsType, StateType> {
 
         if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
             const my_redux_state = reduxState.connection.thingStates[id];
-            if (my_redux_state && my_redux_state.intensity && my_redux_state.intensity != intensity) {
+            if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity) {
                 this.setState({intensity: my_redux_state.intensity});
             }
         }
