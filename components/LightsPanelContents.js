@@ -11,7 +11,8 @@ const LightSwitch = require('./LightSwitch');
 
 const I18n = require('../i18n/i18n');
 
-import type { GenericThingType, ViewType } from '../config/flowtypes';
+import type { ViewType } from '../config/flowtypes';
+import type { GenericThingType } from '../config/ConnectionTypes';
 
 type PropsType = {
     things: Array<GenericThingType>,
@@ -58,8 +59,6 @@ class LightsPanel extends React.Component<PropsType>  {
 
     render() {
         const { things, layout } = this.props;
-
-        console.log("light panel contents render");
 
         var dimmers = [];
         var switches = [];

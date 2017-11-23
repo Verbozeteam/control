@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-const GenericSlider = require('../react-components/presentational/GenericSlider');
+const GenericSlider = require('../react-components/GenericSlider');
 
 const connectionActions = require('../redux-objects/actions/connection');
 const SocketCommunication = require('../lib/SocketCommunication');
@@ -58,8 +58,6 @@ class LightDimmer extends React.Component<PropsType, StateType> {
     render() {
         const { layout } = this.props;
         const { intensity } = this.state;
-
-        console.log("light dimmer render");
 
         return (
             <GenericSlider

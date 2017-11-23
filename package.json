@@ -19,6 +19,7 @@
 		"react-native": "0.48.4",
 		"react-native-linear-gradient": "^2.3.0",
 		"react-native-storage": "^0.2.2",
+		"react-native-svg": "^6.0.0",
 		"react-native-system-setting": "^1.0.7",
 		"react-redux": "^5.0.6",
 		"redux": "^3.7.2",

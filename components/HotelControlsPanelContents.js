@@ -4,30 +4,23 @@ import * as React from 'react';
 import { View, Text, Image,TouchableWithoutFeedback, StyleSheet }
     from 'react-native';
 
-import type { GenericThingType, ViewType } from '../config/flowtypes';
+import type { ViewType } from '../config/flowtypes';
+import type { GenericThingType } from '../config/ConnectionTypes';
 
 type PropsType = {
-    ...GenericThingType,
-    viewType?: ViewType,
-    hotelControlsState?: {
-        do_not_disturb: number,
-        room_service: number,
-        card: number,
-        power: number
-    },
-    updateThing: (id: string, update: Object) => null,
+    things: Array<GenericThingType>,
+    viewType: ViewType,
 };
 
-class HotelControls extends React.Component<PropsType> {
+type StateType = {
+    service_state: number,
+    dnd_state: number,
+};
 
-    static defaultProps = {
-        viewType: 'present',
-        hotelControlsState: {
-            do_not_disturb: 0,
-            room_service: 0,
-            card: 0,
-            power: 0
-        }
+class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
+    state = {
+        service_state: 0,
+        dnd_state: 0,
     };
 
     _room_service_on_img = require('../assets/images/room_service_on.png');
@@ -58,17 +51,13 @@ class HotelControls extends React.Component<PropsType> {
     }
 
     render() {
-        const { viewType } = this.props;
-        const { do_not_disturb, room_service, card, power }
-            = this.props.hotelControlsState;
-
-        //console.log('HOTEL CONTROl => ', this.props);
+        const { service_state, dnd_state } = this.state;
 
         const room_service_card = <TouchableWithoutFeedback
             onPress={() => this.toggleRoomService()}>
                 <Image style={styles.card}
                     resizeMode='contain'
-                    source={(room_service) ?
+                    source={(service_state) ?
                         this._room_service_on_img : this._room_service_off_img}>
                 </Image>
             </TouchableWithoutFeedback>
@@ -79,7 +68,7 @@ class HotelControls extends React.Component<PropsType> {
             onPress={() => this.toggleDoNotDisturb()}>
                 <Image style={styles.card}
                     resizeMode='contain'
-                    source={(do_not_disturb) ?
+                    source={(dnd_state) ?
                         this._do_not_disturb_on_img : this._do_not_disturb_off_img}>
                 </Image>
             </TouchableWithoutFeedback>;
@@ -106,4 +95,4 @@ const styles = StyleSheet.create({
     }
 });
 
-module.exports = HotelControls;
+module.exports = HotelControlsPanelContents;

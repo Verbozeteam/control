@@ -9,6 +9,8 @@ const connectionActions = require ('../redux-objects/actions/connection');
 
 const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
+const HotelControlsPanelContents = require('./HotelControlsPanelContents');
+const ACCONTROLLLL = require('../react-components/ACControl');
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
 import type { RoomType, GenericThingType, ConfigType } from '../config/ConnectionTypes';
@@ -183,6 +185,10 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                 case 'dimmers':
                 case 'light_switches':
                     return  <LightsPanelContents {...content_props}/>
+                case 'hotel_controls':
+                    return <HotelControlsPanelContents />;
+                case 'central_acs':
+                    return <ACCONTROLLLL />;
             }
         }
         return null;
