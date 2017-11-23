@@ -146,8 +146,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
     }
 
     render() {
-        console.log("root render");
-
         var inner_ui = null;
         if (this.state.screenDimmed) {
             inner_ui = <Clock />;

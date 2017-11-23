@@ -10,7 +10,8 @@ const connectionActions = require ('../redux-objects/actions/connection');
 const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
 
-import type { PanelLayoutType, LayoutType, CollapsedLayoutType, RoomType, GenericThingType, ViewType, ConfigType } from '../config/flowtypes';
+import type { LayoutType, ViewType } from '../config/flowtypes';
+import type { RoomType, GenericThingType, ConfigType } from '../config/ConnectionTypes';
 
 type PropsType = {
     layout: LayoutType,
@@ -26,9 +27,9 @@ type StateType = {
 class RoomGrid extends React.Component<PropsType, StateType> {
     _unsubscribe: () => null = () => {return null;};
 
-    _presentation_layout: Array<PanelLayoutType> = [];
-    _detail_layout: PanelLayoutType;
-    _collapsed_layout: CollapsedLayoutType;
+    _presentation_layout = [];
+    _detail_layout = {};
+    _collapsed_layout = {};
     _num_panels: number = 0;
 
     static defaultProps = {
@@ -47,7 +48,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const { id } = this.props;
 
         if (reduxState && reduxState.connection && reduxState.connection.config) {
-            if (config != reduxState.connection.config) {
+            if (JSON.stringify(config) != JSON.stringify(reduxState.connection.config)) {
                 this.setState({config: reduxState.connection.config});
             }
         }
@@ -263,8 +264,6 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     render() {
         const { roomIndex } = this.props;
         const { config, currentPanel } = this.state;
-
-        console.log("grid render");
 
         if (!config || Object.keys(config).length == 0 || !config.rooms || config.rooms.length <= roomIndex)
             return <View />

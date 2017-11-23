@@ -24,7 +24,6 @@ type PageType = {
 };
 
 class PagingView extends React.Component<any, StateType> {
-    _unsubscribe: () => null = () => {return null;};
 
     state = {
         currentPage: 0,
@@ -41,15 +40,6 @@ class PagingView extends React.Component<any, StateType> {
         renderer: this.renderSettingsView.bind(this)
     }];
 
-    componentWillMount() {
-        const { store } = this.context;
-        this._unsubscribe = store.subscribe(() => {});
-    }
-
-    componentWillUnmount() {
-        this._unsubscribe();
-    }
-
     renderRoomView() {
         return <RoomGrid layout={{
             left: 0,
@@ -64,13 +54,11 @@ class PagingView extends React.Component<any, StateType> {
     }
 
     render() {
-        console.log("paging render")
-
         var page_icons = this._pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
                 selected={i == this.state.currentPage}
-                changePage={() => this.setState({currentPage: i})}
+                changePage={() => {if (this.state.currentPage != i) this.setState({currentPage: i})}}
                 longPress={page.longPress}
             />
         );
