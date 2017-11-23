@@ -9,6 +9,7 @@ const I18n = require('../i18n/i18n');
 const SocketCommunication = require('../lib/SocketCommunication');
 
 const connectionActions = require ('../redux-objects/actions/connection');
+const UserPreferences = require('../lib/UserPreferences');
 
 import type { DiscoveredDeviceType } from '../config/ConnectionTypes';
 
@@ -21,7 +22,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        setCurrentDevice: d => {dispatch(connectionActions.set_current_device(d));},
+        setCurrentDevice: (d: DiscoveredDeviceType) => {dispatch(connectionActions.set_current_device(d));},
         clearDiscoveredDevices: () => {dispatch(connectionActions.clear_discovered_devices());},
     };
 }
@@ -42,12 +43,19 @@ class DeviceDiscoveryView extends React.Component<any> {
         return device.ip + ':' + device.port;
     }
 
+    onDeviceClicked(dev: DiscoveredDeviceType) {
+        this.props.setCurrentDevice(dev);
+        UserPreferences.save({
+            device: dev,
+        });
+    }
+
     _renderItem(item) {
         const device = item.item.ip + ':' + item.item.port;
         return <DeviceListItem
             device={item.item}
             selected={this.props.currentDevice && device === (this.props.currentDevice.ip + ':' + this.props.currentDevice.port)}
-            setDevice={this.props.setCurrentDevice} />
+            setDevice={this.onDeviceClicked.bind(this)} />
     }
 
     render() {
