@@ -162,7 +162,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
     }
 }
 VerbozeControl.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 const styles = StyleSheet.create({
@@ -195,6 +195,3 @@ class VerbozeControlWrap extends React.Component<any> {
 }
 
 module.exports = VerbozeControlWrap;
-
-
-

@@ -76,7 +76,7 @@ class PagingView extends React.Component<any, StateType> {
     }
 }
 PagingView.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 const styles = StyleSheet.create({

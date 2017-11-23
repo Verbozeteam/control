@@ -290,7 +290,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     }
 }
 RoomGrid.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 const styles = StyleSheet.create({

@@ -80,7 +80,7 @@ class Settings extends React.Component<any> {
 }
 
 Settings.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 const styles = StyleSheet.create({

@@ -88,7 +88,7 @@ class DeviceDiscoveryView extends React.Component<any> {
 }
 
 DeviceDiscoveryView.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 type DeviceListItemPropsType = {

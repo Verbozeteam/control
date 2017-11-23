@@ -119,7 +119,7 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
     }
 }
 HotelControlsPanelContents.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 const styles = StyleSheet.create({

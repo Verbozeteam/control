@@ -40,7 +40,7 @@ class ConnectionStatus extends React.Component<any> {
 }
 
 ConnectionStatus.contextTypes = {
-    store: React.PropTypes.object
+    store: Object
 };
 
 const styles = StyleSheet.create({
