@@ -22,7 +22,6 @@ class PageIcon extends React.Component<PropsType> {
     };
 
     _onLongPress() {
-        console.log('_onLongPress');
         if (this.props.longPress)
             this.props.longPress();
     }

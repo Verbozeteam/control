@@ -1,54 +1,57 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Dimensions, LayoutAnimation, Platform, UIManager, StyleSheet }
+import { View, Text, LayoutAnimation, Platform, UIManager, StyleSheet }
     from 'react-native';
+
+import { connect } from 'react-redux';
+const connectionActions = require ('../redux-objects/actions/connection');
 
 const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
 
-import type { PanelLayoutType, LayoutType, CollapsedLayoutType, RoomType,
-    GridColumnType } from '../config/flowtypes';
+import type { PanelLayoutType, LayoutType, CollapsedLayoutType, RoomType, GenericThingType, ViewType, ConfigType } from '../config/flowtypes';
 
 type PropsType = {
-    ...RoomType,
-    thingsState: Object,
-    updateThing: (id: string, update: Object, remote_only?: boolean) => null,
-    changePage: (index: number) => null,
-    pageSwipeUp: () => null,
-    pageSwipeUp: () => null,
+    layout: LayoutType,
+    roomIndex?: number,
+    ...any
 };
 
 type StateType = {
-    detail_panel_index: number,
-    // gesture_start_y: number
+    config: ConfigType,
+    currentPanel: number,
 };
 
-class Grid extends React.Component<PropsType, StateType> {
-
-    state = {
-        detail_panel_index: -1,
-    };
-
-    static defaultProps = {
-        name: 'No room name',
-        grid: [],
-        detail: {
-            ratio: 4,
-            side: 'left'
-        },
-        layout: {
-            margin: 5
-        },
-        thingsState: {},
-        updateThing: () => null,
-    };
+class RoomGrid extends React.Component<PropsType, StateType> {
+    _unsubscribe: () => null = () => {return null;};
 
     _presentation_layout: Array<PanelLayoutType> = [];
     _detail_layout: PanelLayoutType;
     _collapsed_layout: CollapsedLayoutType;
     _num_panels: number = 0;
-    _detail_timer: number = -1;
+
+    static defaultProps = {
+        roomIndex: 0,
+    };
+
+    state = {
+        config: {},
+        currentPanel: -1,
+    };
+
+    onReduxStateChanged() {
+        const { store } = this.context;
+        const reduxState = store.getState();
+        const { config } = this.state;
+        const { id } = this.props;
+
+        if (reduxState && reduxState.connection && reduxState.connection.config) {
+            if (config != reduxState.connection.config) {
+                this.setState({config: reduxState.connection.config});
+            }
+        }
+    }
 
     constructor(props: PropsType) {
         super(props);
@@ -59,12 +62,21 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     componentWillMount() {
-        this.calculatePresentationLayout();
-        this.calculateDetailAndCollapsedLayout();
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
+        this.onReduxStateChanged();
     }
 
-    calculatePresentationLayout() {
-        const { layout, grid } = this.props;
+    componentWillUnmount() {
+        this._unsubscribe();
+    }
+
+    calculatePresentationLayout(roomConfig: RoomType) {
+        const grid = roomConfig.grid;
+        const layout = {...this.props.layout, ...roomConfig.layout};
+
+        this._presentation_layout = [];
+        this._num_panels = 0;
 
         // stop if grid has no columns
         if (grid.length === 0 ) {
@@ -92,8 +104,7 @@ class Grid extends React.Component<PropsType, StateType> {
             }
 
             // calculate sum of row ratios to calculate single row width
-            var { ratio } = grid[i].panels.reduce(
-                (a, b) => ({ratio: a.ratio + b.ratio}));
+            var { ratio } = grid[i].panels.reduce((a, b) => ({ratio: a.ratio + b.ratio}));
             const ratio_height = (layout.height - layout.margin * 2) / ratio;
 
             for (var j = 0; j < grid[i].panels.length; j++) {
@@ -120,8 +131,10 @@ class Grid extends React.Component<PropsType, StateType> {
         }
     }
 
-    calculateDetailAndCollapsedLayout() {
-        const { layout, detail } = this.props;
+    calculateDetailAndCollapsedLayout(roomConfig: RoomType) {
+        const grid = roomConfig.grid;
+        const layout = {...this.props.layout, ...roomConfig.layout};
+        const detail = roomConfig.detail;
 
         // calculate single column width and single row width for
         // collapsed panels
@@ -146,41 +159,54 @@ class Grid extends React.Component<PropsType, StateType> {
         };
     }
 
-    toggleDetail(index: number) {
-        const { detail_panel_index } = this.state;
-
+    setCurrentPanel(i: number) {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-        if (detail_panel_index === index) {
-            this.setState({
-                detail_panel_index: -1
-            });
-        } else {
-            this.setState({
-                detail_panel_index: index
-            });
-        }
+        if (i == this.state.currentPanel)
+            i = -1;
+
+        this.setState({
+            currentPanel: i
+        });
     }
 
-    renderPresentationView() {
-        const { grid, thingsState } = this.props;
+    renderPanelContents(viewType: ViewType, layout: LayoutType, things: Array<GenericThingType>) {
+        if (things.length > 0 && viewType !== 'collapsed') {
+            var content_props = {
+                viewType: viewType,
+                things: things,
+                layout: layout,
+            }
+
+            switch (things[0].category) {
+                case 'dimmers':
+                case 'light_switches':
+                    return  <LightsPanelContents {...content_props}/>
+            }
+        }
+        return null;
+    }
+
+
+    renderPresentationView(roomConfig: RoomType) {
+        const grid = roomConfig.grid;
+
+        this.calculatePresentationLayout(roomConfig);
 
         var panels = [];
         for (var i = 0; i < grid.length; i++) {
             for (var j = 0; j < grid[i].panels.length; j++) {
                 const index = panels.length;
 
-                // console.log('Panel props => ', grid[i].panels[j]);
-
                 // create panel base don presentation view layout and
                 // add to array
                 const panel = <Panel key={'panel-' + index}
-                    {...grid[i].panels[j]}
-                    layout={this._presentation_layout[index]}
-                    content_key={'panel-' + index + '-contents'}
+                    name={grid[i].panels[j].name}
+                    layout={[this._presentation_layout[index], styles.panel]}
                     viewType={'present'}
-                    thingsState={thingsState}
-                    toggleDetail={() => this.toggleDetail(index)} />;
+                    toggleDetail={() => this.setCurrentPanel(index)}>
+                    {this.renderPanelContents('present', this._presentation_layout[index], grid[i].panels[j].things)}
+                </Panel>
 
                 panels.push(panel);
             }
@@ -189,9 +215,12 @@ class Grid extends React.Component<PropsType, StateType> {
         return panels;
     }
 
-    renderDetailWithCollapsedView() {
-        const { layout, grid, updateThing, thingsState } = this.props;
-        const { detail_panel_index } = this.state;
+    renderDetailWithCollapsedView(roomConfig: RoomType) {
+        const grid = roomConfig.grid;
+        const layout = {...this.props.layout, ...roomConfig.layout};
+        const { currentPanel } = this.state;
+
+        this.calculateDetailAndCollapsedLayout(roomConfig);
 
         var panels = [];
         var counter = 0;
@@ -202,9 +231,11 @@ class Grid extends React.Component<PropsType, StateType> {
                 // decide panel layout based on whether detail or collapsed
                 var panel_layout = null;
                 var view_type = 'collapsed';
-                if (index === detail_panel_index) {
+                var contents = null;
+                if (index === currentPanel) {
                     panel_layout = this._detail_layout;
                     view_type = 'detail';
+                    contents = this.renderPanelContents('detail', panel_layout, grid[i].panels[j].things);
                 } else {
                     panel_layout = {
                         ...this._collapsed_layout,
@@ -215,13 +246,12 @@ class Grid extends React.Component<PropsType, StateType> {
 
                 // create panel and add to array
                 const panel = <Panel key={'panel-' + index}
-                    {...grid[i].panels[j]}
-                    layout={panel_layout}
-                    content_key={'panel-' + index + '-contents'}
+                    layout={[panel_layout, styles.panel]}
                     viewType={view_type}
-                    thingsState={thingsState}
-                    toggleDetail={() => this.toggleDetail(index)}
-                    updateThing={updateThing}/>;
+                    name={grid[i].panels[j].name}
+                    toggleDetail={() => this.setCurrentPanel(index)}>
+                    {contents}
+                </Panel>;
 
                 panels.push(panel);
             }
@@ -231,28 +261,42 @@ class Grid extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { layout } = this.props;
-        const { detail_panel_index } = this.state;
+        const { roomIndex } = this.props;
+        const { config, currentPanel } = this.state;
 
-        var panels = null;
-        if (detail_panel_index === -1) {
-            panels = this.renderPresentationView();
-        } else {
-            panels = this.renderDetailWithCollapsedView();
-        }
+        console.log("grid render");
+
+        if (!config || Object.keys(config).length == 0 || !config.rooms || config.rooms.length <= roomIndex)
+            return <View />
+
+        const roomConfig = config.rooms[roomIndex];
+        var content = null;
+
+        if (currentPanel == -1)
+            content = this.renderPresentationView(roomConfig);
+        else
+            content = this.renderDetailWithCollapsedView(roomConfig);
 
         return (
-            <View style={[styles.container, {margin: layout.margin}]}>
-                {panels}
+            <View style={[styles.container, roomConfig.layout || {}]}>
+                {content}
             </View>
         );
     }
 }
+RoomGrid.contextTypes = {
+    store: React.PropTypes.object
+};
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        flexDirection: 'row',
+    },
+    panel: {
+        position: 'absolute',
+        flex: 1,
     }
 });
 
-module.exports = Grid;
+module.exports = RoomGrid;

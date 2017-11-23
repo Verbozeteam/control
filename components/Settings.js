@@ -2,101 +2,90 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet, Picker } from 'react-native';
+import { connect } from 'react-redux';
+
+const connectionActions = require ('../redux-objects/actions/connection');
+const settingsActions = require ('../redux-objects/actions/settings');
 
 const I18n = require('../i18n/i18n');
-const UserPreferences = require('../config/user_preferences');
+const UserPreferences = require('../lib/UserPreferences');
 
-import type { LayoutType, DiscoveredDeviceType } from '../config/flowtypes';
+const Panel = require('./Panel');
+const DeviceDiscoveryView = require('./DeviceDiscoveryView');
 
-const PanelHeader = require('./PanelHeader');
-const DeviceDiscovery = require('./DeviceDiscovery');
+import type { LanguageType } from '../config/flowtypes';
+import { LanguageName } from '../config/flowtypes';
 
-type PropsType = {
-    showDiscoverDevices: boolean,
-    discoveredDevices: Array<DiscoveredDeviceType>,
-    currentDevice: DiscoveredDeviceType,
-    discoverDevices: () => null,
-    setDevice: (device: DiscoveredDeviceType) => null,
-    layout: {...LayoutType, margin: number},
-    settings: Object,
-    refresh: () => null
-};
+function mapStateToProps(state) {
+    return {
+        language: state.settings.language,
+        devMode: state.settings.devMode,
+    };
+}
 
-type StateType = {};
+function mapDispatchToProps(dispatch) {
+    return {
+        setLanguage: l => {dispatch(settingsActions.set_language(l));},
+    };
+}
 
-class Settings extends React.Component<PropsType, StateType> {
-    changeLanguage(itemValue, itemIndex) {
-        const { refresh } = this.props;
+class Settings extends React.Component<any> {
+    _unsubscribe: () => null = () => {return null;};
 
+    componentWillMount() {
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(() => {});
+    }
+
+    componentWillUnmount() {
+        this._unsubscribe();
+    }
+
+    changeLanguage(itemValue: string, itemIndex: number) {
         UserPreferences.save({'language': itemValue});
         I18n.setLanguage(itemValue);
-        refresh();
+        this.props.setLanguage(itemValue);
     }
 
     render() {
-        const { layout, settings, showDiscoverDevices,
-            discoveredDevices, discoverDevices, setDevice, currentDevice } = this.props;
+        var language_items = Object.keys(LanguageName).map((slang, i) =>
+            <Picker.Item key={'language-option-' + i}
+                label={LanguageName[slang]}
+                value={slang} />
+        );
 
         var device_discovery = null;
-        if (showDiscoverDevices) {
-            device_discovery = <DeviceDiscovery
-                discoveredDevices={discoveredDevices}
-                discoverDevices={discoverDevices}
-                setDevice={setDevice}
-                currentDevice={currentDevice} />;
-        }
-
-        var settings_list = [];
-        for (var i = 0; i < settings.length; i++) {
-
-            const header = <Text style={styles.setting_header}>
-                {I18n.t(settings[i].name)}
-            </Text>;
-
-            var options = [];
-            for (var j = 0; j < settings[i].options.length; j++) {
-                options.push(<Picker.Item key={settings[i].name + '-option-' + j}
-                    label={settings[i].options[j][0]}
-                    value={settings[i].options[j][1]} />);
-            }
-
-            var action = () => null;
-            var selected_value: string = '';
-            if (settings[i].action === 'changeLanguage') {
-                action = this.changeLanguage.bind(this);
-                selected_value = I18n.setLanguage();
-            }
-
-            const setting = <View key={'setting-' + i}
-                style={styles.setting_container}>
-                {header}
-                <Picker selectedValue={selected_value}
-                    onValueChange={action}
-                    style={styles.picker}>
-                    {options}
-                </Picker>
-            </View>;
-
-            settings_list.push(setting);
+        if (this.props.devMode) {
+            device_discovery = <DeviceDiscoveryView />
         }
 
         return (
-            <View style={[layout, styles.container]}>
-                <PanelHeader name={'Settings'} />
-                {settings_list}
+            <Panel layout={styles.container}
+                name={{en: "Settings"}}
+                viewType={'static'}>
+
+                <Text style={styles.setting_header}>
+                    {I18n.t("Language")}
+                </Text>
+                <Picker selectedValue={this.props.language}
+                    onValueChange={this.changeLanguage.bind(this)}
+                    style={styles.picker}>
+                    {language_items}
+                </Picker>
+
                 {device_discovery}
-            </View>
+            </Panel>
         );
     }
 }
 
+Settings.contextTypes = {
+    store: React.PropTypes.object
+};
+
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        padding: 10,
-        borderRadius: 5,
-        position: 'absolute',
-        backgroundColor: '#2D383E'
+        margin: 10,
     },
     setting_container: {
         flex: 1,
@@ -111,4 +100,4 @@ const styles = StyleSheet.create({
     }
 });
 
-module.exports = Settings;
+module.exports = connect(mapStateToProps, mapDispatchToProps) (Settings);

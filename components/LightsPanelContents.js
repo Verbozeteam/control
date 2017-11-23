@@ -6,7 +6,7 @@ import { View, Text, StyleSheet }
 
 const Panel = require('./Panel');
 
-const LightDimmer = require('../react-components/LightDimmer.js');
+const LightDimmer = require('./LightDimmer.js');
 const LightSwitch = require('./LightSwitch');
 
 const I18n = require('../i18n/i18n');
@@ -15,18 +15,12 @@ import type { GenericThingType, ViewType } from '../config/flowtypes';
 
 type PropsType = {
     things: Array<GenericThingType>,
-    thingsState: Object,
     layout: Object,
     viewType: ViewType,
-    updateThing: (id: string, update: Object, remote_only?: boolean) => null,
 };
 
 class LightsPanel extends React.Component<PropsType>  {
-    on_update_thing(id: string, update: Object) {
-        this.props.updateThing(id, update);
-    }
-
-    renderDimmer(dimmer: GenericThingType, state: Object) {
+    renderDimmer(dimmer: GenericThingType) {
         const { viewType, layout } = this.props;
 
         var dimmer_name = <View></View>;
@@ -45,11 +39,8 @@ class LightsPanel extends React.Component<PropsType>  {
             style={dimmer_styles.container}>
             <LightDimmer
                 key={dimmer.id}
-                orientation={'horizontal'}
-                intensity={state.intensity}
                 id={dimmer.id}
-                layout={{width: slider_width, height: slider_height, top: 0, left: 0}}
-                update={this.on_update_thing.bind(this)}/>
+                layout={{width: slider_width, height: slider_height, top: 0, left: 0}}/>
             {dimmer_name}
         </View>;
     }
@@ -66,15 +57,17 @@ class LightsPanel extends React.Component<PropsType>  {
     }
 
     render() {
-        const { things, thingsState, layout } = this.props;
+        const { things, layout } = this.props;
+
+        console.log("light panel contents render");
 
         var dimmers = [];
         var switches = [];
         for (var i = 0; i < things.length; i++) {
             if (things[i].category === 'dimmers')
-                dimmers.push(this.renderDimmer(things[i], thingsState[things[i].id]));
-            else
-                switches.push(this.renderLightSwitch(things[i], thingsState[things[i].id]));
+                dimmers.push(this.renderDimmer(things[i]));
+            //else
+            //    switches.push(this.renderLightSwitch(things[i], thingsState[things[i].id]));
         }
 
         if (layout.height > 300) {

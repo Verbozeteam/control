@@ -7,10 +7,7 @@ const I18n = require('../i18n/i18n');
 const UserPreferences = require('../lib/UserPreferences');
 const { DaysOfWeek, MonthsOfYear } = require('../config/misc');
 
-type PropsType = {};
-type StateType = {};
-
-class Clock extends React.Component<PropsType, StateType> {
+class Clock extends React.Component<any> {
 
     _update_time_timeout: number;
 
