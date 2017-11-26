@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Image,TouchableWithoutFeedback, StyleSheet }
+import { View, Text, Image, TouchableWithoutFeedback, StyleSheet }
     from 'react-native';
 import PropTypes from 'prop-types';
 const connectionActions = require('../redux-objects/actions/connection');

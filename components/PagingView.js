@@ -32,11 +32,11 @@ class PagingView extends React.Component<any, StateType> {
 
     _pages : Array<PageType> = [{
         name: "Room",
-        iconName: "",
+        iconName: require('../assets/images/room.png'),
         renderer: this.renderRoomView.bind(this)
     }, {
         name: "Settings",
-        iconName: "",
+        iconName: require('../assets/images/cog.png'),
         longPress: (() => this.context.store.dispatch(settingsActions.toggle_dev_mode())).bind(this),
         renderer: this.renderSettingsView.bind(this)
     }];
@@ -45,7 +45,7 @@ class PagingView extends React.Component<any, StateType> {
         return <RoomGrid layout={{
             left: 0,
             top: 0,
-            width: Dimensions.get('screen').width - 100,
+            width: Dimensions.get('screen').width - 80,
             height: Dimensions.get('screen').height,
         }}/>;
     }
@@ -58,6 +58,7 @@ class PagingView extends React.Component<any, StateType> {
         var page_icons = this._pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
+                iconName={page.iconName}
                 selected={i == this.state.currentPage}
                 changePage={() => {if (this.state.currentPage != i) this.setState({currentPage: i})}}
                 longPress={page.longPress}
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     sidebar_container: {
-        width: 100,
+        width: 80,
         backgroundColor: '#222222',
     },
     content_container: {

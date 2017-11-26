@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
+const I18n = require('./i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./lib/SocketCommunication');
 const UserPreferences = require('./lib/UserPreferences');
@@ -12,11 +13,14 @@ const PagingView = require('./components/PagingView');
 const ConnectionStatus = require('./components/ConnectionStatus');
 
 const connectionActions = require ('./redux-objects/actions/connection');
+const settingsActions = require ('./redux-objects/actions/settings');
 
 import type { SocketDataType, DiscoveredDeviceType } from '../config/ConnectionTypes';
 
 function mapStateToProps(state) {
-    return {};
+    return {
+        language: state.settings.language,
+    };
 }
 
 function mapDispatchToProps(dispatch) {
@@ -26,12 +30,13 @@ function mapDispatchToProps(dispatch) {
         setCurrentDevice: d => {dispatch(connectionActions.set_current_device(d));},
         setConfig: c => {dispatch(connectionActions.set_config(c));},
         setThingsStates: thing_to_state => {dispatch(connectionActions.set_things_states(thing_to_state));},
+        setLanguage: l => {dispatch(settingsActions.set_language(l));},
     };
 }
 
 type StateType = {
     screenDimmed: boolean,
-}
+};
 
 class VerbozeControl extends React.Component<{}, StateType> {
     _unsubscribe: () => null = () => {return null;};
@@ -63,6 +68,13 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         /** Load user preferences */
         UserPreferences.load((() => {
+            /** Load saved language */
+            var lang = UserPreferences.get('language');
+            if (lang) {
+                this.props.setLanguage(lang);
+                I18n.setLanguage(lang);
+            }
+
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
             if (cur_device)
@@ -116,6 +128,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         // if config provided, apply it
         if ('config' in data) {
             this.props.setConfig(data.config);
+            this.extractI18NFromConfig(data.config);
             delete data['config'];
         }
 
@@ -126,6 +139,28 @@ class VerbozeControl extends React.Component<{}, StateType> {
     handleDeviceDiscovered(device: DiscoveredDeviceType) {
         console.log('Found device: ', device.name, device.ip, ":", device.port);
         this.props.addDiscoveredDevice(device);
+    }
+
+    extractI18NFromConfig(config: ConfigType) {
+        if (config.rooms) {
+            for (var i = 0; i < config.rooms.length; i++) {
+                const room = config.rooms[i];
+                I18n.addTranslations(room.name);
+                if ('grid' in room) {
+                    for (var j = 0; j < room.grid.length; j++) {
+                        const grid = room.grid[j];
+                        for (var k = 0; k < grid.panels.length; k++) {
+                            const panel = grid.panels[k];
+                            I18n.addTranslations(panel.name);
+                            for (var l = 0; l < panel.things.length; l++) {
+                                const thing = panel.things[l];
+                                I18n.addTranslations(thing.name);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     _resetScreenDim() {

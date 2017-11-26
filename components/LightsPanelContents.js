@@ -46,15 +46,24 @@ class LightsPanel extends React.Component<PropsType>  {
         </View>;
     }
 
-    renderLightSwitch(light_switch: GenericThingType, state: Object) {
+    renderLightSwitch(light_switch: GenericThingType) {
         const { viewType, layout } = this.props;
 
-        return <LightSwitch
-                    key={light_switch.id}
-                    {...light_switch}
-                    viewType={viewType}
-                    lightSwitchState={state}
-                    updateThing={this.props.updateThing}/>
+        var switch_name = null;
+
+        if (viewType == 'detail') {
+            switch_name = <Text style={switch_styles.name}>{I18n.t(light_switch.name.en)}</Text>;
+        }
+
+        return <View key={light_switch.id+'-container'}
+            style={switch_styles.container}>
+            {switch_name}
+            <LightSwitch
+                key={light_switch.id}
+                id={light_switch.id}
+                layout={viewType == 'detail' ? switch_styles.control : switch_styles.control_sm}
+                viewType={viewType} />
+        </View>;
     }
 
     render() {
@@ -65,8 +74,8 @@ class LightsPanel extends React.Component<PropsType>  {
         for (var i = 0; i < things.length; i++) {
             if (things[i].category === 'dimmers')
                 dimmers.push(this.renderDimmer(things[i]));
-            //else
-            //    switches.push(this.renderLightSwitch(things[i], thingsState[things[i].id]));
+            else
+               switches.push(this.renderLightSwitch(things[i]));
         }
 
         if (layout.height > 300) {
@@ -127,6 +136,25 @@ const dimmer_styles = StyleSheet.create({
         fontFamily: 'HKNova-MediumR',
         color: '#FFFFFF',
     },
+});
+
+const switch_styles = StyleSheet.create({
+    container: {
+        flexDirection: 'column',
+        flex: 1,
+    },
+    control: {
+        margin: 50,
+    },
+    control_sm: {
+        margin: 20,
+    },
+    name: {
+        fontSize: 20,
+        fontFamily: 'HKNova-MediumR',
+        color: '#FFFFFF',
+        textAlign: 'center',
+    }
 });
 
 module.exports = LightsPanel;
