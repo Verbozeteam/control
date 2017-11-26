@@ -129,8 +129,8 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 <GenericToggle values={this._fan_speeds}
                     icon={this._fan_icon}
                     layout={{
-                        height: 70,
-                        width: 250
+                        height: 80,
+                        width: 350
                     }}
                     actions={this._fan_actions}
                     selected={fan} />
@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         fontSize: 22,
         color: '#aaaaaa',
+        fontFamily: 'HKNova-MediumR'
     },
     set_point_container: {
         position: 'absolute',
@@ -181,6 +182,7 @@ const styles = StyleSheet.create({
     set_point_text: {
         fontSize: 70,
         color: '#ffffff',
+        fontFamily: 'HKNova-MediumR'
     },
     set_point_offset: {
         marginTop: -80,
