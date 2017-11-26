@@ -38,7 +38,7 @@ class PageIcon extends React.Component<PropsType> {
 
         const selected_style = (selected) ? styles.selected : null;
         var title = this._icon ?
-                <Image style={{}}
+                <Image style={styles.icon}
                     resizeMode='contain'
                     source={this._icon}>
                 </Image>
@@ -72,6 +72,10 @@ const styles = StyleSheet.create({
         fontFamily: 'HKNova-MediumR',
         fontSize: 17,
         color: '#FFFFFF'
+    },
+    icon: {
+        flex: 1,
+        width: '100%',
     }
 });
 

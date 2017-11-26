@@ -45,7 +45,7 @@ class PagingView extends React.Component<any, StateType> {
         return <RoomGrid layout={{
             left: 0,
             top: 0,
-            width: Dimensions.get('screen').width - 100,
+            width: Dimensions.get('screen').width - 80,
             height: Dimensions.get('screen').height,
         }}/>;
     }
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     sidebar_container: {
-        width: 100,
+        width: 80,
         backgroundColor: '#222222',
     },
     content_container: {

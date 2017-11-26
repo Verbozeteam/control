@@ -4,146 +4,108 @@ import * as React from 'react';
 import { View, Text, Image, Animated, TouchableWithoutFeedback, StyleSheet }
     from 'react-native';
 
-import type { GenericThingType, ViewType } from '../config/flowtypes';
+import type { LayoutType, ViewType } from '../config/flowtypes';
 
-const LightSwitchObject = require('../react-components/LightSwitch.js');
+const connectionActions = require('../redux-objects/actions/connection');
+const SocketCommunication = require('../lib/SocketCommunication');
 
 const I18n = require('../i18n/i18n');
 
-type PropsType = {
-    ...GenericThingType,
-    viewType?: ViewType,
-    lightSwitchState?: {
-        intensity: 0 | 1
-    },
-    updateThing: (id: string, update: Object) => null,
+type StateType = {
+    intensity: number,
 };
 
-class LightSwitch extends React.Component<PropsType> {
+type PropsType = {
+    id: string,
+    layout: LayoutType,
+    viewType: ViewType,
+};
 
-    static defaultProps = {
-        viewType: 'present',
-        lightSwitchState: {
-            intensity: 0
-        }
+class LightSwitch extends React.Component<PropsType, StateType> {
+    _unsubscribe: () => null = () => {return null;};
+
+    state = {
+        intensity: 0,
     };
 
-    _switch_gradient: [string, string] = ['#DDDDDD', '#AAAAAA'];
-    _knob_gradient: [string, string] = ['#2463E2', '#163F93'];
+    _light_bulb_img_on = require('../assets/images/light_bulb_on.png');
+    _light_bulb_img_off = require('../assets/images/light_bulb_off.png');
 
-    _offset: Object;
-
-    _light_bulb_img_on = require('../assets/images/lighton.png');
-    _light_bulb_img_off = require('../assets/images/lightoff.png');
-
-
-    constructor(props: PropsType) {
-        super(props);
-
-        const { intensity } = props.lightSwitchState;
-
-        this._offset = new Animated.Value(5 + intensity * 40);
+    componentWillMount() {
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
+        this.onReduxStateChanged();
     }
 
-    toggle() {
-        const { id, updateThing } = this.props;
-        const { intensity } = this.props.lightSwitchState;
-
-        updateThing(id, {intensity: ~~!intensity});
+    componentWillUnmount() {
+        this._unsubscribe();
     }
 
-    evaluateKnobOffset() {
-        const { intensity } = this.props.lightSwitchState;
+    onReduxStateChanged() {
+        const { store } = this.context;
+        const reduxState = store.getState();
+        const { intensity } = this.state;
+        const { id } = this.props;
 
-        Animated.timing(this._offset, {
-            toValue: 5 + intensity * 40,
-            duration: 150
-        }).start();
+        if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+            const my_redux_state = reduxState.connection.thingStates[id];
+            if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity) {
+                this.setState({intensity: my_redux_state.intensity});
+            }
+        }
+    }
+
+    changeIntensity(intensity: number) {
+        SocketCommunication.sendMessage({
+            thing: this.props.id,
+            intensity
+        });
+        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {intensity}));
     }
 
     render() {
-        const { id, viewType, name } = this.props;
-        const { intensity } = this.props.lightSwitchState;
+        const { id, layout, viewType } = this.props;
+        const { intensity } = this.state;
+        const light_bulb_img = intensity ? this._light_bulb_img_on : this._light_bulb_img_off;
 
-        const light_bulb_img = intensity ?
-            this._light_bulb_img_on : this._light_bulb_img_off
-
-        this.evaluateKnobOffset();
-
-        var light_bulb = (
-            <View style={(viewType === 'detail') ?
-                styles.light_bulb_container_detail : styles.light_bulb_container}>
-                <Image style={styles.light_bulb}
-                    source={light_bulb_img}>
-                </Image>
-            </View>
-        );
-
-        var switch_button = null;
-        var switch_name = <Text></Text>;
         if (viewType === 'detail') {
-
-            light_bulb = (
-                <TouchableWithoutFeedback onPressIn={() => this.toggle()}>
-                    {light_bulb}
+            return (
+                <TouchableWithoutFeedback
+                    onPressIn={(() => this.changeIntensity(1-this.state.intensity)).bind(this)}>
+                    <Image style={[layout, styles.light_bulb]}
+                        resizeMode='contain'
+                        source={light_bulb_img}>
+                    </Image>
                 </TouchableWithoutFeedback>
             );
-            // switch_button = (
-            //     <LightSwitchObject />
-            // );
-            switch_name = <Text style={styles.name}>{I18n.t(name.en)}</Text>
+        } else {
+            return (
+                <Image style={[layout, styles.light_bulb]}
+                    resizeMode='contain'
+                    source={light_bulb_img}>
+                </Image>
+            );
         }
-
-        return (
-            <View style={styles.container}>
-                {light_bulb}
-                {switch_button}
-                {switch_name}
-            </View>
-        );
     }
 }
+LightSwitch.contextTypes = {
+    store: React.PropTypes.object
+};
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0)',
-        alignItems: 'center',
+        flexDirection: 'row',
+        overflow: 'visible',
         justifyContent: 'center',
-    },
-    name: {
-        fontSize: 17,
-        fontFamily: 'HKNova-MediumR',
-        color: '#FFFFFF',
-    },
-    light_bulb_container: {
-        height: 120,
-        width: 90
-    },
-    light_bulb_container_detail: {
-        height: 170,
-        width: 130
+        alignItems: 'center',
+        backgroundColor: '#00ff00'
     },
     light_bulb: {
         flex: 1,
         width: undefined,
         height: undefined,
     },
-    switch: {
-        borderRadius: 5,
-        height: 100,
-        width: 100,
-        marginTop: 20
-    },
-    knob: {
-        height: 50,
-        width: 90,
-        left: 5,
-    },
-    knob_gradient: {
-        flex: 1,
-        borderRadius: 5
-    }
 });
 
 module.exports = LightSwitch;
