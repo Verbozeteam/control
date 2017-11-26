@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { View, Text, LayoutAnimation, Platform, UIManager, StyleSheet }
     from 'react-native';
-
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 const connectionActions = require ('../redux-objects/actions/connection');
 
@@ -289,8 +289,9 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         );
     }
 }
+
 RoomGrid.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({

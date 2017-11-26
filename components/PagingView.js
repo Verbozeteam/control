@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { View, Text, Dimensions, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 const settingsActions = require ('../redux-objects/actions/settings');
@@ -76,7 +77,7 @@ class PagingView extends React.Component<any, StateType> {
     }
 }
 PagingView.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({

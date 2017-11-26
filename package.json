@@ -15,6 +15,7 @@
 	"dependencies": {
 		"hex-rgb": "^1.0.0",
 		"interpolate-rgb": "0.0.2",
+		"prop-types": "^15.6.0",
 		"react": "^16.1.1",
 		"react-native": "^0.50.3",
 		"react-native-linear-gradient": "^2.3.0",

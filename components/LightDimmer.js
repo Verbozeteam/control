@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
+import PropTypes from 'prop-types';
 
 const GenericSlider = require('../react-components/GenericSlider');
 
@@ -77,7 +78,7 @@ class LightDimmer extends React.Component<PropsType, StateType> {
 }
 
 LightDimmer.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 module.exports = LightDimmer;

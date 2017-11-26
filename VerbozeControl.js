@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
@@ -53,11 +54,19 @@ class VerbozeControl extends React.Component<{}, StateType> {
         SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
 
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(() => { // on every state change, check if we need to connect to socket
+            const reduxState = store.getState();
+            if (reduxState && reduxState.connection.currentDevice)
+                SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
+        });
+
         /** Load user preferences */
         UserPreferences.load((() => {
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
             if (cur_device)
+                console.log('found current device', cur_device);
                 this.props.setCurrentDevice(cur_device);
 
             SocketCommunication.discoverDevices();
@@ -75,13 +84,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         /** Max brightness */
         SystemSetting.setBrightnessForce(1);
-
-        const { store } = this.context;
-        this._unsubscribe = store.subscribe(() => { // on every state change, check if we need to connect to socket
-            const reduxState = store.getState();
-            if (reduxState && reduxState.connection.currentDevice)
-                SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
-        });
     }
 
     componentWillUnmount() {
@@ -161,8 +163,9 @@ class VerbozeControl extends React.Component<{}, StateType> {
         </View>
     }
 }
+
 VerbozeControl.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { View, Text, FlatList, Button, TouchableOpacity, StyleSheet }
     from 'react-native';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 const I18n = require('../i18n/i18n');
@@ -88,7 +89,7 @@ class DeviceDiscoveryView extends React.Component<any> {
 }
 
 DeviceDiscoveryView.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 type DeviceListItemPropsType = {

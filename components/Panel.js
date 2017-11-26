@@ -15,7 +15,7 @@ type PropsType = {
     toggleDetail?: () => any,
 };
 
-class Panel extends React.Component<PropsType> {
+class Panel extends React.Component<PropTypes> {
 
     static defaultProps = {
         name: {en: ""},

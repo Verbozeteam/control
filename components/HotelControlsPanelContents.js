@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { View, Text, Image,TouchableWithoutFeedback, StyleSheet }
     from 'react-native';
-
+import PropTypes from 'prop-types';
 const connectionActions = require('../redux-objects/actions/connection');
 const SocketCommunication = require('../lib/SocketCommunication');
 
@@ -119,7 +119,7 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
     }
 }
 HotelControlsPanelContents.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({

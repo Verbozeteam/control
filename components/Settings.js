@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet, Picker } from 'react-native';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 const connectionActions = require ('../redux-objects/actions/connection');
@@ -80,7 +81,7 @@ class Settings extends React.Component<any> {
 }
 
 Settings.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({

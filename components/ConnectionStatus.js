@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
+import PropTypes from 'prop-types';
 
 const UserPreferences = require('../lib/UserPreferences');
 
@@ -40,7 +41,7 @@ class ConnectionStatus extends React.Component<any> {
 }
 
 ConnectionStatus.contextTypes = {
-    store: Object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({
