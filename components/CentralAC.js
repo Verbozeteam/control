@@ -81,23 +81,19 @@ class CentralAC extends React.Component<PropsType, StateType> {
     }
 
     round(value: number) {
-        return (Math.round(value * 2) / 2).toFixed(1);
+        return (Math.round(value * 2) / 2);
     }
 
-    formatText(text: string) {
-        const { fan } = this.state;
-
-        if (fan)
-            return text + '°C';
-        return 'Off';
-    }
-
-    changeTemperature(new_set_pt: number) {
-        SocketCommunication.sendMessage({
-            thing: this.props.id,
-            set_pt: new_set_pt,
-        });
-        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {set_pt: new_set_pt}));
+    changeTemperature(send_socket: boolean) {
+        return ((new_set_pt: number) => {
+            if (send_socket) {
+                SocketCommunication.sendMessage({
+                    thing: this.props.id,
+                    set_pt: new_set_pt,
+                });
+            }
+            this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {set_pt: new_set_pt}));
+        }).bind(this);
     }
 
     changeFan(speed: number) {
@@ -116,17 +112,17 @@ class CentralAC extends React.Component<PropsType, StateType> {
         var slider = null;
         var toggles = null;
 
-        if (viewType == 'detail') {
-            room_temp_text = "Room Temperature is "+temp+"°C";
+        if (viewType === 'detail') {
+            room_temp_text = "Room Temperature is "+temp.toFixed(1)+"°C";
 
             slider = (
                 <GenericCircularSlider value={set_pt}
                     minimum={16} maximum={30}
                     round={this.round.bind(this)}
-                    fontColor={'#ffffff'}
-                    formatText={this.formatText.bind(this)}
-                    onRelease={this.changeTemperature.bind(this)}
-                    diameter={layout.height/1.5}/>
+                    onMove={this.changeTemperature(false).bind(this)}
+                    onRelease={this.changeTemperature(true).bind(this)}
+                    diameter={layout.height/1.5}
+                    disabled={fan === 0}/>
             );
 
             toggles = (
@@ -154,6 +150,10 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 <Text style={styles.room_temperature}>
                     {room_temp_text}
                 </Text>
+
+                <View style={styles.set_point_container}>
+                    <Text style={[styles.set_point_text, viewType === 'detail' ? styles.set_point_offset : {}]}>{fan ? set_pt.toFixed(1)+'°C' : 'Off'}</Text>
+                </View>
             </View>
         );
     }
@@ -164,13 +164,26 @@ CentralAC.contextTypes = {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     room_temperature: {
         marginTop: 20,
         fontSize: 22,
         color: '#aaaaaa',
+    },
+    set_point_container: {
+        position: 'absolute',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    set_point_text: {
+        fontSize: 70,
+        color: '#ffffff',
+    },
+    set_point_offset: {
+        marginTop: -80,
     }
 });
 
