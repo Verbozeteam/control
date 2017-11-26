@@ -195,7 +195,8 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                         layout={layout}/>
                 case 'hotel_controls':
                     return <HotelControlsPanelContents
-                        id={things[0].id}/>;
+                        id={things[0].id}
+                        viewType={viewType}/>;
                 case 'central_acs':
                     return <CentralAC
                         id={things[0].id}
