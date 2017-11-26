@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { View, Text, Image, Animated, TouchableWithoutFeedback, StyleSheet }
     from 'react-native';
+import PropTypes from 'prop-types';
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
 
@@ -89,7 +90,7 @@ class LightSwitch extends React.Component<PropsType, StateType> {
     }
 }
 LightSwitch.contextTypes = {
-    store: React.PropTypes.object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({
