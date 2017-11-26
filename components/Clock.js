@@ -85,7 +85,10 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#000000'
+        backgroundColor: '#000000',
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
     },
     time: {
         fontFamily: 'HKNova-MediumR',

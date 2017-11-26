@@ -11,7 +11,7 @@ const I18n = require('../i18n/i18n');
 const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
 const HotelControlsPanelContents = require('./HotelControlsPanelContents');
-const ACCONTROLLLL = require('../react-components/ACControl');
+const CentralAC = require('./CentralAC');
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
 import type { RoomType, GenericThingType, ConfigType } from '../config/ConnectionTypes';
@@ -54,6 +54,10 @@ class RoomGrid extends React.Component<PropsType, StateType> {
             if (JSON.stringify(config) != JSON.stringify(reduxState.connection.config)) {
                 this.setState({config: reduxState.connection.config});
             }
+        }
+
+        if (reduxState && reduxState.screen && reduxState.screen.isDimmed && this.state.currentPanel != -1) {
+            this.setState({currentPanel: -1});
         }
     }
 
@@ -185,11 +189,18 @@ class RoomGrid extends React.Component<PropsType, StateType> {
             switch (things[0].category) {
                 case 'dimmers':
                 case 'light_switches':
-                    return  <LightsPanelContents {...content_props}/>
+                    return  <LightsPanelContents
+                        viewType={viewType}
+                        things={things}
+                        layout={layout}/>
                 case 'hotel_controls':
-                    return <HotelControlsPanelContents id={things[0].id}/>;
+                    return <HotelControlsPanelContents
+                        id={things[0].id}/>;
                 case 'central_acs':
-                    return <ACCONTROLLLL />;
+                    return <CentralAC
+                        id={things[0].id}
+                        layout={layout}
+                        viewType={viewType}/>;
             }
         }
         return null;

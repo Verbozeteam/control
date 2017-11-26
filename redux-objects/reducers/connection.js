@@ -4,12 +4,12 @@ import { SET_CONNECTION_STATUS, ADD_DISCOVERED_DEVICE, CLEAR_DISCOVERED_DEVICES,
 
 let defaultState = {
     isConnected: false,
-    currentDevice: null,
-    discoveredDevices: [{
+    currentDevice: {
         ip: "192.168.10.1",
         port: 7990,
         name: "QSTP Device",
-    }],
+    },
+    discoveredDevices: [],
 
     config: null,
     thingStates: {},

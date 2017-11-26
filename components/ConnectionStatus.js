@@ -27,8 +27,6 @@ class ConnectionStatus extends React.Component<any> {
     }
 
     render() {
-        console.log("connection render");
-
         if (this.props.connectionStatus == true) // connected, don't render anything
             return <View></View>
 
