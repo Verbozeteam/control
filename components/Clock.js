@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
         color: '#AAAAAA'
     },
     warning: {
+        marginTop: 30,
         fontFamily: 'HKNova-MediumR',
         fontSize: 40,
         color: '#FF0000'
