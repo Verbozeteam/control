@@ -52,7 +52,7 @@ module.exports = function (state=defaultState, action) {
             break;
         case SET_THINGS_STATES:
             newState.thingStates = {
-                ...newState.thingsState,
+                ...newState.thingStates,
                 ...action.thingsToStates
             };
             break;

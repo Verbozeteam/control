@@ -146,7 +146,6 @@ const switch_styles = StyleSheet.create({
     container_container: {
         flexDirection: 'column',
         flex: 1,
-        margin: 20,
     },
     name: {
         fontSize: 20,
