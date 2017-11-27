@@ -71,6 +71,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 ((my_redux_state.set_pt != undefined && my_redux_state.set_pt != set_pt) ||
                  (my_redux_state.temp != undefined && my_redux_state.temp != temp) ||
                  (my_redux_state.fan != undefined && my_redux_state.fan != fan))) {
+                console.log(my_redux_state);
                 this.setState({
                     set_pt: my_redux_state.set_pt,
                     temp: my_redux_state.temp,
@@ -113,7 +114,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         var toggles = null;
 
         if (viewType === 'detail') {
-            room_temp_text = "Room Temperature is "+temp.toFixed(1)+"°C";
+            room_temp_text = "Room Temperature is " + temp.toFixed(1) + "°C";
 
             slider = (
                 <GenericCircularSlider value={set_pt}
@@ -158,6 +159,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         );
     }
 }
+
 CentralAC.contextTypes = {
     store: PropTypes.object
 };

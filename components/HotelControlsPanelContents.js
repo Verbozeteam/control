@@ -30,8 +30,9 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
     };
 
     _room_service_on_img = require('../assets/images/room_service_on.png');
+    _room_service_off_img = require('../assets/images/room_service_off.png');
     _do_not_disturb_on_img = require('../assets/images/do_not_disturb_on.png');
-    _card_off_img = require('../assets/images/card_off.png');
+    _do_not_disturb_off_img = require('../assets/images/do_not_disturb_off.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -96,12 +97,14 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
         const { viewType } = this.props;
 
         const card_defs = [{
-            image: this._room_service_on_img,
+            on_image: this._room_service_on_img,
+            off_image: this._room_service_off_img,
             text: I18n.t("Room Service"),
             toggler: this.toggleRoomService.bind(this),
             state: service_state,
         }, {
-            image: this._do_not_disturb_on_img,
+            on_image: this._do_not_disturb_on_img,
+            off_image: this._do_not_disturb_off_img,
             text: I18n.t("Do Not Disturb"),
             toggler: this.toggleDoNotDisturb.bind(this),
             state: dnd_state,
@@ -117,7 +120,7 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                     onPress={card_defs[i].toggler}>
                         <Image style={styles.card}
                             resizeMode='contain'
-                            source={(card_defs[i].state) ? card_defs[i].image : this._card_off_img}>
+                            source={(card_defs[i].state) ? card_defs[i].on_image : card_defs[i].off_image}>
                         </Image>
                     </TouchableWithoutFeedback>
                     <View style={[styles.text_container, viewType !== 'detail' ? styles.text_container_sm : {}]}>
