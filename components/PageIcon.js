@@ -62,11 +62,11 @@ const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#1d1d1d',
+        backgroundColor: '#101010',
         flex: 1,
     },
     selected: {
-        backgroundColor: '#101010'
+        backgroundColor: '#1a1a1a'
     },
     header: {
         fontFamily: 'HKNova-MediumR',

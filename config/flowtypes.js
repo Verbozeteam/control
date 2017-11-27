@@ -19,7 +19,7 @@ export type PageType = {
     settings?: Object,
     layout: {
         ...LayoutType,
-        maring: number // margin between panels
+        margin: number // margin between panels
     }
 };
 

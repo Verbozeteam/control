@@ -83,6 +83,11 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
 
+        right_to_left = false;
+        if (I18n._language_direction == 'right_to_left') {
+          right_to_left = true;
+        }
+
         this._presentation_layout = [];
         this._num_panels = 0;
 
@@ -97,7 +102,12 @@ class RoomGrid extends React.Component<PropsType, StateType> {
 
         // calculate panel layouts (height, width, top and left offsets)
         var top = layout.top + layout.margin;
-        var left = layout.left + layout.margin;
+        var left = 0;
+        if (right_to_left)  {
+          left = layout.width - layout.left - layout.margin;
+        } else {
+          left = layout.left + layout.margin;
+        }
         for (var i = 0; i < grid.length; i++) {
             // calculate column width based on ratio width
             const column_width = grid[i].ratio * ratio_width
@@ -107,13 +117,21 @@ class RoomGrid extends React.Component<PropsType, StateType> {
             if (grid[i].panels.length === 0) {
                 // reset top offset and increment left offset
                 top = layout.margin;
-                left += column_width + layout.margin * 2;
+                if (right_to_left) {
+                  left -= column_width + layout.margin * 2;
+                } else {
+                  left += column_width + layout.margin * 2;
+                }
                 continue;
             }
 
             // calculate sum of row ratios to calculate single row width
             var { ratio } = grid[i].panels.reduce((a, b) => ({ratio: a.ratio + b.ratio}));
             const ratio_height = (layout.height - layout.margin * 2) / ratio;
+
+            if (right_to_left) {
+              left -= column_width + layout.margin * 2;
+            }
 
             for (var j = 0; j < grid[i].panels.length; j++) {
                 // calculate row height based on ratio height
@@ -135,7 +153,9 @@ class RoomGrid extends React.Component<PropsType, StateType> {
 
             // reset top offset and increment left offset
             top = layout.top + layout.margin;
-            left += column_width + layout.margin * 2;
+            if (!right_to_left) {
+              left += column_width + layout.margin * 2;
+            }
         }
     }
 
@@ -143,6 +163,11 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
         const detail = roomConfig.detail;
+
+        right_to_left = false;
+        if (I18n._language_direction == 'right_to_left') {
+          right_to_left = true;
+        }
 
         // calculate single column width and single row width for
         // collapsed panels
@@ -156,15 +181,21 @@ class RoomGrid extends React.Component<PropsType, StateType> {
             height: layout.height - layout.margin * 4,
             width: ratio_width * detail.ratio - layout.margin * 2,
             top: layout.top + layout.margin,
-            left: layout.left + ratio_width + layout.margin
         };
 
         // calculate collapsed layout for use when panels become collapsed
         this._collapsed_layout = {
             height: ratio_height - layout.margin * 2,
             width: ratio_width - layout.margin * 2,
-            left: layout.left + layout.margin
         };
+
+        if (right_to_left) {
+          this._detail_layout.left = layout.left + layout.margin;
+          this._collapsed_layout.left = layout.left + (layout.width - ratio_width) - layout.margin;
+        } else {
+          this._detail_layout.left = layout.left + ratio_width + layout.margin;
+          this._collapsed_layout.left = layout.left + layout.margin;
+        }
     }
 
     setCurrentPanel(i: number) {

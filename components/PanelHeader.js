@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 
 const I18n = require('../i18n/i18n');
 
@@ -31,10 +31,10 @@ class PanelHeader extends React.Component<PropsType> {
         var close_button = null;
         if (close) {
             close_button = <View key={'panel-header-close-button'}
-                style={styles.button_container}>
-                <Button onPress={close}
-                    color={'#333333'}
-                    title={'X'}></Button>
+                hitSlop={{top: 50, bottom: 50, left: 50, right: 50}}
+                onTouchStart={() => close()}>
+                <Image style={styles.close_button}
+                  source={require('../assets/images/close.png')} />
             </View>;
         }
 
@@ -74,9 +74,9 @@ const styles = StyleSheet.create({
         fontSize: 32,
         color: '#FFFFFF'
     },
-    button_container: {
-        width: 40,
-        margin: 0,
+    close_button: {
+      height: 35,
+      width: 35,
     }
 });
 
