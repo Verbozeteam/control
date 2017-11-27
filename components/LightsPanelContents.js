@@ -127,11 +127,12 @@ const dimmer_styles = StyleSheet.create({
         flex: 1,
     },
     name_container: {
-        marginLeft: 20,
+        marginLeft: 0,
         justifyContent: 'center',
         flex: 1,
     },
     name: {
+        marginLeft: 20,
         fontSize: 20,
         fontFamily: 'HKNova-MediumR',
         color: '#FFFFFF',
