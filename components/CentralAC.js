@@ -71,7 +71,6 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 ((my_redux_state.set_pt != undefined && my_redux_state.set_pt != set_pt) ||
                  (my_redux_state.temp != undefined && my_redux_state.temp != temp) ||
                  (my_redux_state.fan != undefined && my_redux_state.fan != fan))) {
-                console.log(my_redux_state);
                 this.setState({
                     set_pt: my_redux_state.set_pt,
                     temp: my_redux_state.temp,

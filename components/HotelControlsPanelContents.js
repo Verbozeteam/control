@@ -123,7 +123,8 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                             source={(card_defs[i].state) ? card_defs[i].on_image : card_defs[i].off_image}>
                         </Image>
                     </TouchableWithoutFeedback>
-                    <View style={[styles.text_container, viewType !== 'detail' ? styles.text_container_sm : {}]}>
+                    <View pointerEvents={'none'}
+                      style={[styles.text_container, viewType !== 'detail' ? styles.text_container_sm : {}]}>
                         <Text style={styles.text}>{viewType === 'detail' ? card_defs[i].text : ""}</Text>
                     </View>
                 </View>
