@@ -7,7 +7,11 @@ const I18n = require('../i18n/i18n');
 const UserPreferences = require('../lib/UserPreferences');
 const { DaysOfWeek, MonthsOfYear } = require('../config/misc');
 
-class Clock extends React.Component<any> {
+type PropsType = {
+    displayWarning: string,
+};
+
+class Clock extends React.Component<PropsType> {
 
     _update_time_timeout: number;
 
@@ -65,6 +69,7 @@ class Clock extends React.Component<any> {
     }
 
     render() {
+        const { displayWarning } = this.props;
         const { date, time } = this._formateDateTime(new Date());
 
         return (
@@ -74,6 +79,9 @@ class Clock extends React.Component<any> {
                 </Text>
                 <Text style={styles.date}>
                     {date}
+                </Text>
+                <Text style={styles.warning}>
+                    {displayWarning}
                 </Text>
             </View>
         );
@@ -99,7 +107,12 @@ const styles = StyleSheet.create({
         fontFamily: 'HKNova-MediumR',
         fontSize: 40,
         color: '#AAAAAA'
-    }
+    },
+    warning: {
+        fontFamily: 'HKNova-MediumR',
+        fontSize: 40,
+        color: '#FF0000'
+    },
 });
 
 module.exports = Clock;

@@ -38,6 +38,8 @@ function mapDispatchToProps(dispatch) {
 
 type StateType = {
     screenDimmed: boolean,
+    hotelThingId: string,
+    cardIn: boolean,
 };
 
 class VerbozeControl extends React.Component<{}, StateType> {
@@ -45,6 +47,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     state = {
         screenDimmed: false,
+        hotelThingId: "",
+        cardIn: true,
     };
 
     _screen_dim_timeout: number;
@@ -116,6 +120,12 @@ class VerbozeControl extends React.Component<{}, StateType> {
         const reduxState = this.context.store.getState();
         if (reduxState && reduxState.connection.currentDevice)
             SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
+        if (reduxState && reduxState.connection.thingStates) {
+            var hotel_thing = reduxState.connection.thingStates[this.state.hotelThingId];
+            if (hotel_thing && hotel_thing.card != this.state.cardIn) {
+                this.setState({cardIn: hotel_thing.card});
+            }
+        }
     }
 
     handleSocketConnected() {
@@ -141,7 +151,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         // if config provided, apply it
         if ('config' in data) {
             this.props.setConfig(data.config);
-            this.extractI18NFromConfig(data.config);
+            this.extractI18NFromConfigAndFindHotelThing(data.config);
             delete data['config'];
         }
 
@@ -154,7 +164,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this.props.addDiscoveredDevice(device);
     }
 
-    extractI18NFromConfig(config: ConfigType) {
+    extractI18NFromConfigAndFindHotelThing(config: ConfigType) {
         if (config.rooms) {
             for (var i = 0; i < config.rooms.length; i++) {
                 const room = config.rooms[i];
@@ -167,6 +177,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
                             I18n.addTranslations(panel.name);
                             for (var l = 0; l < panel.things.length; l++) {
                                 const thing = panel.things[l];
+                                if (thing.category === 'hotel_controls')
+                                    this.setState({hotelThingId: thing.id});
                                 I18n.addTranslations(thing.name);
                             }
                         }
@@ -199,14 +211,16 @@ class VerbozeControl extends React.Component<{}, StateType> {
     }
 
     render() {
+        const { screenDimmed, cardIn } = this.state;
+
         var inner_ui = null;
-        if (this.state.screenDimmed) {
-            inner_ui = <Clock />;
+        if (screenDimmed || !cardIn) {
+            inner_ui = <Clock displayWarning={cardIn ? "" : "Please insert the room card to use."}/>;
         }
 
         return <View style={styles.container}
-            onTouchStart={this._wakeupScreen.bind(this)}
-            onTouchMove={this._wakeupScreen.bind(this)}>
+            onTouchStart={cardIn ? this._wakeupScreen.bind(this) : null}
+            onTouchMove={cardIn ? this._wakeupScreen.bind(this) : null}>
             <PagingView />
             {inner_ui}
             <ConnectionStatus />
