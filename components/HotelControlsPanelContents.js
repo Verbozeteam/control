@@ -58,7 +58,6 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                         service_state: my_redux_state.room_service,
                         dnd_state: my_redux_state.do_not_disturb
                     });
-
                 }
             }
         }
