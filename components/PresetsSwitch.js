@@ -7,6 +7,8 @@ import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native'
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
 
+const GenericToggle = require('../react-components/GenericToggle');
+
 const connectionActions = require('../redux-objects/actions/connection');
 const SocketCommunication = require('../lib/SocketCommunication');
 
@@ -27,10 +29,6 @@ class PresetsSwitch extends React.Component<PropsType, StateType> {
     state = {
         currentPresetIndex: 0,
     };
-
-    _light_bulb_img_0 = require('../assets/images/lightoff.png');
-    _light_bulb_img_1 = require('../assets/images/lighton.png');
-    _light_bulb_img_2 = require('../assets/images/lighton_old.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -60,25 +58,23 @@ class PresetsSwitch extends React.Component<PropsType, StateType> {
                 }
             }
 
-            if (distances[lowest_dist_index] < distances[currentPresetIndex])
+            if (lowest_dist_index == 0 && distances[0] > 0.01)
+                lowest_dist_index++;
+            else if (lowest_dist_index == distances.length - 1 && distances[distances.length-1] > 0.01)
+                lowest_dist_index--;
+
+            if (lowest_dist_index != currentPresetIndex)
                 this.setState({currentPresetIndex: lowest_dist_index});
         }
     }
 
     computeDistanceToPreset(preset: Object, state: Object) {
-        var preset_thing_ids = Object.keys(preset).filter((thing_id) => preset[thing_id].intensity != undefined);
-
-        var total_distance = 0;
-        for (var i = 0; i < preset_thing_ids.length; i++) {
-            if (preset_thing_ids[i] in state && state[preset_thing_ids[i]].intensity != undefined) {
-                var diff = Math.abs(preset[preset_thing_ids[i]].intensity - state[preset_thing_ids[i]].intensity);
-                if (diff == 1)
-                    total_distance += 1;
-                else if (diff > 1)
-                    total_distance += diff / 100;
-            }
-        }
-        return total_distance;
+        for (var k in preset)
+            if (state[k] == undefined)
+                delete preset[k];
+        var preset_intensity = Object.keys(preset).map((tid) => !preset[tid].intensity ? 0 : (state[tid].category == 'dimmers' ? preset[tid].intensity / 100 : preset[tid].intensity)).reduce((a, b) => a + b);
+        var state_intensity = Object.keys(state).filter((k) => k in preset).map((tid) => !state[tid].intensity ? 0 : (state[tid].category == 'dimmers' ? state[tid].intensity / 100 : state[tid].intensity)).reduce((a, b) => a + b);
+        return Math.abs(preset_intensity - state_intensity);
     }
 
     changePreset(new_preset: number) {
@@ -96,20 +92,27 @@ class PresetsSwitch extends React.Component<PropsType, StateType> {
     render() {
         const { presets, viewType } = this.props;
         const { currentPresetIndex } = this.state;
-        const light_bulb_img = currentPresetIndex == 2 ? this._light_bulb_img_2 : currentPresetIndex == 1 ? this._light_bulb_img_1 : this._light_bulb_img_0;
 
-        var on_press = () => {};
-        if (viewType === 'detail')
-            on_press = (() => this.changePreset((this.state.currentPresetIndex + 1) % presets.length)).bind(this);
+        var on_press = (() => this.changePreset((this.state.currentPresetIndex + 1) % presets.length)).bind(this);
+        var values = presets.map((p, i) => i == 0 ? "Off" : i.toString()).reverse();
+        var actions = presets.map((p, i) => ((() => this.changePreset(presets.length-1-i)).bind(this)));
 
         return (
-            <TouchableWithoutFeedback
-                onPressIn={on_press}>
-                <Image style={styles.light_bulb}
-                    resizeMode='contain'
-                    source={light_bulb_img}>
-                </Image>
-            </TouchableWithoutFeedback>
+            <View style={styles.container}>
+                <View style={styles.slider_container}>
+                    <View style={styles.slider_container_container}>
+                        <GenericToggle values={values}
+                            orientation={"vertical"}
+                            layout={{
+                                height: 200,
+                                width: 80,
+                            }}
+                            sameSameValue={true}
+                            actions={actions}
+                            selected={presets.length-1-currentPresetIndex} />
+                    </View>
+                </View>
+            </View>
         );
     }
 }
@@ -120,16 +123,22 @@ PresetsSwitch.contextTypes = {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: 'row',
-        overflow: 'visible',
-        justifyContent: 'center',
-        alignItems: 'center',
+        height: undefined,
+        width: undefined,
     },
     light_bulb: {
         flex: 1,
         width: undefined,
         height: undefined,
     },
+    slider_container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    slider_container_container: {
+        position: 'absolute',
+    }
 });
 
 module.exports = PresetsSwitch;

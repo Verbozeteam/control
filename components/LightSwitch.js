@@ -89,13 +89,6 @@ LightSwitch.contextTypes = {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        flexDirection: 'row',
-        overflow: 'visible',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     light_bulb: {
         flex: 1,
         width: undefined,
