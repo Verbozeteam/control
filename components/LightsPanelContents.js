@@ -72,7 +72,7 @@ class LightsPanel extends React.Component<PropsType>  {
                     layout={{}}
                     viewType={viewType} />
                 <Text key={light_switch.id+'-name'}
-                    style={switch_styles.name}>
+                    style={[switch_styles.name, viewType === 'detail' ? {height: 100} : {}]}>
                     {switch_name}
                 </Text>
             </View>
@@ -92,14 +92,15 @@ class LightsPanel extends React.Component<PropsType>  {
                     presets={presets}
                     viewType={viewType} />
                 <Text key={key+'-name'}
-                    style={switch_styles.name}>
+                    style={[switch_styles.name, viewType === 'detail' ? {height: 100} : {}]}>
+                    {"Presets"}
                 </Text>
             </View>
         </View>;
     }
 
     render() {
-        const { things, layout, presets } = this.props;
+        const { things, layout, presets, viewType } = this.props;
 
         var dimmers = [];
         var switches = [];
@@ -110,7 +111,7 @@ class LightsPanel extends React.Component<PropsType>  {
                switches.push(this.renderLightSwitch(things[i]));
         }
 
-        if (presets && typeof(presets) == "object" && presets.length > 0 ) {
+        if (viewType ==='detail' && presets && typeof(presets) == "object" && presets.length > 0 ) {
             switches.push(this.renderPresetsSwitch(presets));
         }
 

@@ -6,6 +6,7 @@ import { View, Text, LayoutAnimation, Platform, UIManager, StyleSheet }
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 const connectionActions = require ('../redux-objects/actions/connection');
+const screenActions = require ('../redux-objects/actions/screen');
 
 const I18n = require('../i18n/i18n');
 const Panel = require('./Panel');
@@ -34,6 +35,8 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     _detail_layout = {};
     _collapsed_layout = {};
     _num_panels: number = 0;
+
+    _screen_blocker_timer = undefined;
 
     state = {
         config: {},
@@ -195,6 +198,11 @@ class RoomGrid extends React.Component<PropsType, StateType> {
 
     setCurrentPanel(i: number) {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+        if (this._screen_blocker_timer)
+            clearTimeout(this._screen_blocker_timer);
+        this.context.store.dispatch(screenActions.set_paging_lock(true));
+        this._screen_blocker_timer = setTimeout(() => this.context.store.dispatch(screenActions.set_paging_lock(false)), 500);
 
         if (i == this.state.currentPanel)
             i = -1;

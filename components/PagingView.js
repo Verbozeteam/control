@@ -57,13 +57,22 @@ class PagingView extends React.Component<any, StateType> {
         return <Settings />;
     }
 
+    changePage(index: number) {
+        return (() => {
+            var reduxState = this.context.store.getState();
+            // dont change the page if the index didn't change or if we are in pagingLock
+            if (this.state.currentPage != index && (!reduxState || !reduxState.screen || !reduxState.screen.pagingLock))
+                this.setState({currentPage: index})
+        }).bind(this);
+    }
+
     render() {
         var page_icons = this._pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
                 iconName={(page.selectedIconName && this.state.currentPage == i) ? page.selectedIconName : page.iconName}
                 selected={i == this.state.currentPage}
-                changePage={() => {if (this.state.currentPage != i) this.setState({currentPage: i})}}
+                changePage={this.changePage(i).bind(this)}
                 longPress={page.longPress}
             />
         );

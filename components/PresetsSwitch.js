@@ -48,8 +48,6 @@ class PresetsSwitch extends React.Component<PropsType, StateType> {
         const { currentPresetIndex } = this.state;
         const { presets } = this.props;
 
-        // @TODO: APPROXIMATE CLOSEST STATE
-
         if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
             var distances = [];
             var lowest_dist = 100000;
