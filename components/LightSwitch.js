@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
         overflow: 'visible',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#00ff00'
     },
     light_bulb: {
         flex: 1,

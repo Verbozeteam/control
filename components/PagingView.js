@@ -21,7 +21,7 @@ type PageType = {
     name: string,
     iconName: string,
     longPress?: () => any,
-    renderer: () => any,
+    renderer: (number) => any,
 };
 
 class PagingView extends React.Component<any, StateType> {
@@ -33,7 +33,7 @@ class PagingView extends React.Component<any, StateType> {
     _pages : Array<PageType> = [{
         name: "Room",
         iconName: require('../assets/images/room.png'),
-        renderer: this.renderRoomView.bind(this)
+        renderer: (index: number) => this.renderRoomView(index || 0)
     }, {
         name: "Settings",
         iconName: require('../assets/images/cog.png'),
@@ -41,16 +41,16 @@ class PagingView extends React.Component<any, StateType> {
         renderer: this.renderSettingsView.bind(this)
     }];
 
-    renderRoomView() {
+    renderRoomView(index: number) {
         return <RoomGrid layout={{
             left: 0,
             top: 0,
             width: Dimensions.get('screen').width - 80,
             height: Dimensions.get('screen').height,
-        }}/>;
+        }} roomIndex={index}/>;
     }
 
-    renderSettingsView() {
+    renderSettingsView(index: number) {
         return <Settings />;
     }
 
@@ -71,7 +71,7 @@ class PagingView extends React.Component<any, StateType> {
                     {page_icons}
                 </View>
                 <View style={styles.content_container}>
-                    {this._pages[this.state.currentPage].renderer()}
+                    {this._pages[this.state.currentPage].renderer(this.state.currentPage)}
                 </View>
             </View>
         );

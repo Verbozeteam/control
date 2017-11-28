@@ -1,6 +1,6 @@
 
 import { SET_CONNECTION_STATUS, ADD_DISCOVERED_DEVICE, CLEAR_DISCOVERED_DEVICES, SET_CURRENT_DEVICE,
-         SET_CONFIG, SET_THING_STATE, SET_THINGS_STATES, SET_THING_PARTIAL_STATE } from '../actions/connection';
+         SET_CONFIG, SET_THING_STATE, SET_THINGS_STATES, SET_THING_PARTIAL_STATE, SET_THINGS_PARTIAL_STATES } from '../actions/connection';
 
 let defaultState = {
     isConnected: false,
@@ -61,6 +61,13 @@ module.exports = function (state=defaultState, action) {
                 ...newState.thingStates[action.thingId],
                 ...action.state
             };
+            break;
+        case SET_THINGS_PARTIAL_STATES:
+            for (var k in action.thingsToPartialStates)
+                newState.thingStates[k] = {
+                    ...newState.thingStates[k],
+                    ...action.thingsToPartialStates[k],
+                };
             break;
     }
     return newState;

@@ -14,11 +14,11 @@ const HotelControlsPanelContents = require('./HotelControlsPanelContents');
 const CentralAC = require('./CentralAC');
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
-import type { RoomType, GenericThingType, ConfigType } from '../config/ConnectionTypes';
+import type { RoomType, GenericThingType, PanelType, ConfigType } from '../config/ConnectionTypes';
 
 type PropsType = {
     layout: LayoutType,
-    roomIndex?: number,
+    roomIndex: number,
     ...any
 };
 
@@ -35,10 +35,6 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     _collapsed_layout = {};
     _num_panels: number = 0;
 
-    static defaultProps = {
-        roomIndex: 0,
-    };
-
     state = {
         config: {},
         currentPanel: -1,
@@ -48,7 +44,6 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const { store } = this.context;
         const reduxState = store.getState();
         const { config } = this.state;
-        const { id } = this.props;
 
         if (reduxState && reduxState.connection && reduxState.connection.config) {
             if (JSON.stringify(config) != JSON.stringify(reduxState.connection.config)) {
@@ -209,13 +204,10 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         });
     }
 
-    renderPanelContents(viewType: ViewType, layout: LayoutType, things: Array<GenericThingType>) {
+    renderPanelContents(viewType: ViewType, layout: LayoutType, panel: PanelType) {
+        var things: Array<GenericThingType> = panel.things;
         if (things.length > 0 && viewType !== 'collapsed') {
-            var content_props = {
-                viewType: viewType,
-                things: things,
-                layout: layout,
-            }
+            var presets = null;
 
             switch (things[0].category) {
                 case 'dimmers':
@@ -223,7 +215,8 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                     return  <LightsPanelContents
                         viewType={viewType}
                         things={things}
-                        layout={layout}/>
+                        layout={layout}
+                        presets={panel.presets}/>
                 case 'hotel_controls':
                     return <HotelControlsPanelContents
                         id={things[0].id}
@@ -256,7 +249,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                     layout={[this._presentation_layout[index], styles.panel]}
                     viewType={'present'}
                     toggleDetail={() => this.setCurrentPanel(index)}>
-                    {this.renderPanelContents('present', this._presentation_layout[index], grid[i].panels[j].things)}
+                    {this.renderPanelContents('present', this._presentation_layout[index], grid[i].panels[j])}
                 </Panel>
 
                 panels.push(panel);
@@ -280,13 +273,13 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                 const index = panels.length;
 
                 // decide panel layout based on whether detail or collapsed
-                var panel_layout = null;
+                var panel_layout: LayoutType = null;
                 var view_type = 'collapsed';
                 var contents = null;
                 if (index === currentPanel) {
                     panel_layout = this._detail_layout;
                     view_type = 'detail';
-                    contents = this.renderPanelContents('detail', panel_layout, grid[i].panels[j].things);
+                    contents = this.renderPanelContents('detail', panel_layout, grid[i].panels[j]);
                 } else {
                     panel_layout = {
                         ...this._collapsed_layout,

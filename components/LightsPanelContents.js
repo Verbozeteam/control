@@ -6,8 +6,9 @@ import { View, Text, StyleSheet }
 
 const Panel = require('./Panel');
 
-const LightDimmer = require('./LightDimmer.js');
+const LightDimmer = require('./LightDimmer');
 const LightSwitch = require('./LightSwitch');
+const PresetsSwitch = require('./PresetsSwitch');
 
 const I18n = require('../i18n/i18n');
 
@@ -18,6 +19,7 @@ type PropsType = {
     things: Array<GenericThingType>,
     layout: Object,
     viewType: ViewType,
+    presets?: Array<Object>,
 };
 
 class LightsPanel extends React.Component<PropsType>  {
@@ -77,8 +79,27 @@ class LightsPanel extends React.Component<PropsType>  {
         </View>;
     }
 
+    renderPresetsSwitch(presets: Array<Object>) {
+        const { viewType, layout } = this.props;
+        var key = 'presets-'+Object.keys(presets[0]).sort()[0];
+
+        return <View key={key}
+            style={switch_styles.container}>
+            <View key={key+'-container-container'}
+                style={switch_styles.container_container}>
+                <PresetsSwitch
+                    key={key+'-switch'}
+                    presets={presets}
+                    viewType={viewType} />
+                <Text key={key+'-name'}
+                    style={switch_styles.name}>
+                </Text>
+            </View>
+        </View>;
+    }
+
     render() {
-        const { things, layout } = this.props;
+        const { things, layout, presets } = this.props;
 
         var dimmers = [];
         var switches = [];
@@ -87,6 +108,10 @@ class LightsPanel extends React.Component<PropsType>  {
                 dimmers.push(this.renderDimmer(things[i]));
             else
                switches.push(this.renderLightSwitch(things[i]));
+        }
+
+        if (presets && typeof(presets) == "object" && presets.length > 0 ) {
+            switches.push(this.renderPresetsSwitch(presets));
         }
 
         return (
