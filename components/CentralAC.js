@@ -20,6 +20,9 @@ type StateType = {
     set_pt: number,
     temp: number,
     fan: number,
+
+    minusButtonPressed: boolean,
+    plusButtonPressed: boolean,
 };
 
 type PropsType = {
@@ -35,12 +38,15 @@ class CentralAC extends React.Component<PropsType, StateType> {
         set_pt: 0,
         temp: 0,
         fan: 0,
+
+        minusButtonPressed: false,
+        plusButtonPressed: false,
     };
 
     _fan_speeds = [
-        'Off',
-        'Low',
-        'High'
+        I18n.t('Off'),
+        I18n.t('Low'),
+        I18n.t('High')
     ];
 
     _selectedGradient = ['#36DBFD', '#178BFB'];
@@ -111,7 +117,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
     render() {
         const { id, layout, viewType } = this.props;
-        const { set_pt, temp, fan } = this.state;
+        const { set_pt, temp, fan, minusButtonPressed, plusButtonPressed } = this.state;
 
         var room_temp_text = "";
         var slider = null;
@@ -119,7 +125,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         var hiding_style = null;
 
         if (viewType === 'detail') {
-            room_temp_text = "Room Temperature is " + temp.toFixed(1) + "°C";
+            room_temp_text = I18n.t("Room Temperature is") + " " + temp.toFixed(1) + "°C";
 
             slider = (
                 <GenericCircularSlider value={set_pt}
@@ -162,8 +168,9 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 </Text>
 
                 <View style={styles.minus_container}
-                    onTouchStart={() => {this.changeTemperature(true)(Math.max(16, this.state.set_pt-0.5));}}>
-                    <LinearGradient colors={this._selectedGradient}
+                    onTouchStart={() => {this.setState({minusButtonPressed: true}); this.changeTemperature(true)(Math.max(16, this.state.set_pt-0.5));}}
+                    onTouchEnd={() => {this.setState({minusButtonPressed: false})}}>
+                    <LinearGradient colors={minusButtonPressed ? this._highlightGradient : this._selectedGradient}
                         start={{x: 1, y: 0}} end={{x: 0, y: 1}}
                         style={[styles.plusminus_button, hiding_style]}>
                         <Text key={"minus-button"} style={styles.plusminus_text}>{"-"}</Text>
@@ -171,8 +178,9 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 </View>
 
                 <View style={styles.plus_container}
-                    onTouchStart={() => {this.changeTemperature(true)(Math.max(16, this.state.set_pt+0.5));}}>
-                    <LinearGradient colors={this._selectedGradient}
+                    onTouchStart={() => {this.setState({plusButtonPressed: true}); this.changeTemperature(true)(Math.max(16, this.state.set_pt+0.5));}}
+                    onTouchEnd={() => {this.setState({plusButtonPressed: false})}}>
+                    <LinearGradient colors={plusButtonPressed ? this._highlightGradient : this._selectedGradient}
                         start={{x: 1, y: 0}} end={{x: 0, y: 1}}
                         style={[styles.plusminus_button, hiding_style]}>
                         <Text key={"plus-button"} style={styles.plusminus_text}>{"+"}</Text>
@@ -180,7 +188,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 </View>
 
                 <View style={styles.set_point_container}>
-                    <Text style={[styles.set_point_text, viewType === 'detail' ? styles.set_point_offset : {}]}>{fan ? set_pt.toFixed(1)+'°C' : 'Off'}</Text>
+                    <Text style={[styles.set_point_text, viewType === 'detail' ? styles.set_point_offset : {}]}>{fan ? set_pt.toFixed(1)+'°C' : I18n.t('Off')}</Text>
                 </View>
             </View>
         );

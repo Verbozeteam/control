@@ -93,7 +93,7 @@ class LightsPanel extends React.Component<PropsType>  {
                     viewType={viewType} />
                 <Text key={key+'-name'}
                     style={[switch_styles.name, viewType === 'detail' ? {height: 100} : {}]}>
-                    {"Presets"}
+                    {I18n.t("Presets")}
                 </Text>
             </View>
         </View>;

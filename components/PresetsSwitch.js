@@ -94,7 +94,7 @@ class PresetsSwitch extends React.Component<PropsType, StateType> {
         const { currentPresetIndex } = this.state;
 
         var on_press = (() => this.changePreset((this.state.currentPresetIndex + 1) % presets.length)).bind(this);
-        var values = presets.map((p, i) => i == 0 ? "Off" : i.toString()).reverse();
+        var values = presets.map((p, i) => i == 0 ? I18n.t("Off") : i.toString()).reverse();
         var actions = presets.map((p, i) => ((() => this.changePreset(presets.length-1-i)).bind(this)));
 
         return (

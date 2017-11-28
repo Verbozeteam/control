@@ -10,5 +10,13 @@ export const panel_translations = {
     'Do Not Disturb': {
         en: 'Do Not Disturb',
         ar: 'عدم الإزعاج',
-    }
+    },
+    'Presets': {
+        en: 'Presets',
+        ar: 'إعدادات مسبقة',
+    },
+    'Room Temperature is': {
+        en: 'Room Temperature is',
+        ar: 'حرارة الغرفة:',
+    },
 };
