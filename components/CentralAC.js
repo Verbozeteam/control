@@ -4,6 +4,8 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
+import LinearGradient from 'react-native-linear-gradient';
+
 import type { LayoutType, ViewType } from '../config/flowtypes';
 
 const GenericCircularSlider = require('../react-components/GenericCircularSlider');
@@ -40,6 +42,9 @@ class CentralAC extends React.Component<PropsType, StateType> {
         'Low',
         'High'
     ];
+
+    _selectedGradient = ['#36DBFD', '#178BFB'];
+    _highlightGradient = ['#41FFFF', '#1CA7FF'];
 
     _fan_icon = require('../assets/images/fan.png');
 
@@ -111,6 +116,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         var room_temp_text = "";
         var slider = null;
         var toggles = null;
+        var hiding_style = null;
 
         if (viewType === 'detail') {
             room_temp_text = "Room Temperature is " + temp.toFixed(1) + "°C";
@@ -135,6 +141,10 @@ class CentralAC extends React.Component<PropsType, StateType> {
                     actions={this._fan_actions}
                     selected={fan} />
             );
+        } else {
+            hiding_style = {
+                display: "none",
+            }
         }
 
         return (
@@ -150,6 +160,24 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 <Text style={styles.room_temperature}>
                     {room_temp_text}
                 </Text>
+
+                <View style={styles.minus_container}
+                    onTouchStart={() => {this.changeTemperature(true)(Math.max(16, this.state.set_pt-0.5));}}>
+                    <LinearGradient colors={this._selectedGradient}
+                        start={{x: 1, y: 0}} end={{x: 0, y: 1}}
+                        style={[styles.plusminus_button, hiding_style]}>
+                        <Text key={"minus-button"} style={styles.plusminus_text}>{"-"}</Text>
+                    </LinearGradient>
+                </View>
+
+                <View style={styles.plus_container}
+                    onTouchStart={() => {this.changeTemperature(true)(Math.max(16, this.state.set_pt+0.5));}}>
+                    <LinearGradient colors={this._selectedGradient}
+                        start={{x: 1, y: 0}} end={{x: 0, y: 1}}
+                        style={[styles.plusminus_button, hiding_style]}>
+                        <Text key={"plus-button"} style={styles.plusminus_text}>{"+"}</Text>
+                    </LinearGradient>
+                </View>
 
                 <View style={styles.set_point_container}>
                     <Text style={[styles.set_point_text, viewType === 'detail' ? styles.set_point_offset : {}]}>{fan ? set_pt.toFixed(1)+'°C' : 'Off'}</Text>
@@ -187,7 +215,30 @@ const styles = StyleSheet.create({
     },
     set_point_offset: {
         marginTop: -80,
-    }
+    },
+    minus_container: {
+        position: 'absolute',
+        left: 15,
+    },
+    plus_container: {
+        position: 'absolute',
+        right: 15,
+    },
+    plusminus_button: {
+        width: 80,
+        height: 80,
+        marginTop: -70,
+        borderRadius: 150,
+        borderWidth: 5,
+        borderColor: '#181B31',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    plusminus_text: {
+        color: '#ffffff',
+        fontSize: 90,
+        marginTop: -10,
+    },
 });
 
 module.exports = CentralAC;
