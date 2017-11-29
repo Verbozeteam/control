@@ -1,234 +1,266 @@
-/* @flow */
-
 import * as React from 'react';
-import { View, Text, AppRegistry, StyleSheet, Platform, DeviceEventEmitter }
-    from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+import PropTypes from 'prop-types';
 
-import LinearGradient from 'react-native-linear-gradient';
-import Immersive from 'react-native-immersive';
+import { connect } from 'react-redux';
 
-const Grid = require('./components/Grid');
-const Socket = require('./lib/Socket');
+const I18n = require('./i18n/i18n');
+import SystemSetting from 'react-native-system-setting';
+const SocketCommunication = require('./lib/SocketCommunication');
+const UserPreferences = require('./lib/UserPreferences');
+const Clock = require('./components/Clock');
+const PagingView = require('./components/PagingView');
+const ConnectionStatus = require('./components/ConnectionStatus');
 
-const connection_config = require('./config/connection_config');
+const connectionActions = require ('./redux-objects/actions/connection');
+const settingsActions = require ('./redux-objects/actions/settings');
+const screenActions = require ('./redux-objects/actions/screen');
 
-import type { ConfigType } from './config/flowtypes';
+import type { SocketDataType, DiscoveredDeviceType } from '../config/ConnectionTypes';
 
-type PropsType = {};
+function mapStateToProps(state) {
+    return {
+        language: state.settings.language,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        setConnectionStatus: b => {dispatch(connectionActions.set_connection_status(b));},
+        addDiscoveredDevice: d => {dispatch(connectionActions.add_discovered_device(d));},
+        setCurrentDevice: d => {dispatch(connectionActions.set_current_device(d));},
+        setConfig: c => {dispatch(connectionActions.set_config(c));},
+        setThingsStates: thing_to_state => {dispatch(connectionActions.set_things_states(thing_to_state));},
+        setLanguage: l => {dispatch(settingsActions.set_language(l));},
+        setScreenDimmingState: is_dim => {dispatch(screenActions.dim_screen(is_dim));},
+    };
+}
 
 type StateType = {
-    loading: boolean,
-    config: ConfigType,
-    thingsState: Object
+    screenDimmed: boolean,
+    hotelThingId: string,
+    cardIn: boolean,
 };
 
-class VerbozeControl extends React.Component<PropsType, StateType> {
+class VerbozeControl extends React.Component<{}, StateType> {
+    _unsubscribe: () => null = () => {return null;};
 
     state = {
-        loading: true,
-        config: {},
-        thingsState: {}
+        screenDimmed: false,
+        hotelThingId: "",
+        cardIn: true,
     };
 
-    _background_gradient: Array<string> = ['#333333', '#000000'];
-    _blocked_things: Array<string> = [];
+    _screen_dim_timeout: number;
+    _screen_dim_timeout_duration: number = __DEV__ ? 60000 : 30000;
+    _last_touch_time: number = 0;
+
+    _discovery_timeout: any = undefined;
 
     componentWillMount() {
-        if (Platform.OS === 'android') {
-            Immersive.on();
-            Immersive.setImmersive(true);
-            Immersive.addImmersiveListener(this.restoreImmersive);
-        }
-    }
+        /** Connect to the socket communication library */
+        console.log("Initializing sockets...");
+        SocketCommunication.initialize();
+        SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
+        SocketCommunication.setOnMessage(this.handleSocketData.bind(this));
+        SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
+        SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
 
-    componentDidMount() {
-        DeviceEventEmitter.addListener(Socket.socket_connected, function() {
-            console.log('Socket connected!');
+        this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
+        this.onReduxStateChanged();
+
+        /** Load user preferences */
+        UserPreferences.load((() => {
+            console.log("preferences loaded");
+
+            /** Load saved language */
+            var lang = UserPreferences.get('language');
+            if (lang) {
+                console.log('Language loaded from preferences: ', lang);
+                this.props.setLanguage(lang);
+                I18n.setLanguage(lang);
+            }
+
+            /** Load device and start discovery */
+            var cur_device = UserPreferences.get('device');
+            if (cur_device) {
+                console.log('Device loaded from preferences: ', cur_device);
+                this.props.setCurrentDevice(cur_device);
+            }
+        }).bind(this));
+
+        /** Set volume to max */
+        SystemSetting.getVolume().then((volume) => {
+            if (volume < 1) {
+                SystemSetting.setVolume(1);
+            }
         });
 
-        DeviceEventEmitter.addListener(Socket.socket_data, function(data) {
-            // console.log(data);
-            this.handleSocketData(JSON.parse(data.data));
-        }.bind(this));
+        /** Max brightness */
+        SystemSetting.setBrightnessForce(1);
 
-        DeviceEventEmitter.addListener(Socket.socket_disconnected, function() {
-            console.log('Socket disconnected!');
-        });
+        /** Initialize dimming procedures */
+        this._resetScreenDim();
 
-        // if (__DEV__) {
-        Socket.connect(connection_config.address, connection_config.port);
-        this.fetchConfig();
-        // } else {
-        //     Socket.discoverDevices();
-        //
-        //     DeviceEventEmitter.addListener(Socket.device_discovered,
-        //         function(data) {
-        //             console.log('Found name', data.name, data.ip);
-        //             Socket.connect(data.ip, 7990);
-        //             this.fetchConfig();
-        //         }.bind(this)
-        //     );
-        // }
+        /** Periodic discovery */
+        SocketCommunication.discoverDevices();
+        this._discovery_timeout = setInterval(() => {
+            SocketCommunication.discoverDevices();
+        }, 10000);
     }
 
     componentWillUnmount() {
-        if (Platform.OS === 'android') {
-            Immersive.removeImmersiveListener(this.restoreImmersive);
+        this._unsubscribe();
+        SocketCommunication.cleanup();
+        clearTimeout(this._discovery_timeout);
+    }
+
+    onReduxStateChanged() {
+        // on every state change, check if we need to connect to socket
+        const reduxState = this.context.store.getState();
+        if (reduxState && reduxState.connection.currentDevice)
+            SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
+        if (reduxState && reduxState.connection.thingStates) {
+            var hotel_thing = reduxState.connection.thingStates[this.state.hotelThingId];
+            if (hotel_thing && hotel_thing.card != this.state.cardIn) {
+                this.setState({cardIn: hotel_thing.card});
+            }
         }
-
-        Socket.killThread();
     }
 
-    restoreImmersive() {
-        Immersive.on();
-    }
-
-    fetchConfig() {
-        console.log('fetch config');
-        this.setState({
-            loading: true
-        });
-
-        Socket.write(JSON.stringify({
+    handleSocketConnected() {
+        console.log('Socket connected!');
+        this.props.setConnectionStatus(true);
+        SocketCommunication.sendMessage({
             code: 0
-        }));
-    }
-
-    applyConfig(config: ConfigType) {
-        this.setState({
-            loading: false,
-            config: config
         });
     }
 
-    handleSocketData(data: Object) {
-        const { thingsState } = this.state;
+    handleSocketDisconnected() {
+        console.log('Socket disconnected!');
+        this.props.setConnectionStatus(false);
+        this.props.setConfig({});
+    }
+
+    handleSocketData(data: SocketDataType) {
+        if (Object.keys(data).length == 0)
+            return;
+
+        console.log("handleSocketData: ", data);
 
         // if config provided, apply it
         if ('config' in data) {
-            this.applyConfig(data.config);
+            this.props.setConfig(data.config);
+            this.extractI18NFromConfigAndFindHotelThing(data.config);
             delete data['config'];
         }
 
-        // go through thing ids and update if thing is not blocked
-        for (var key in data) {
-            if (this._blocked_things.indexOf(key) === -1) {
-                thingsState[key] = data[key];
+        if (Object.keys(data).length > 0)
+            this.props.setThingsStates(data);
+    }
+
+    handleDeviceDiscovered(device: DiscoveredDeviceType) {
+        console.log('Found device: ', device.name, device.ip, ":", device.port);
+        this.props.addDiscoveredDevice(device);
+    }
+
+    extractI18NFromConfigAndFindHotelThing(config: ConfigType) {
+        if (config.rooms) {
+            for (var i = 0; i < config.rooms.length; i++) {
+                const room = config.rooms[i];
+                I18n.addTranslations(room.name);
+                if ('grid' in room) {
+                    for (var j = 0; j < room.grid.length; j++) {
+                        const grid = room.grid[j];
+                        for (var k = 0; k < grid.panels.length; k++) {
+                            const panel = grid.panels[k];
+                            I18n.addTranslations(panel.name);
+                            for (var l = 0; l < panel.things.length; l++) {
+                                const thing = panel.things[l];
+                                if (thing.category === 'hotel_controls')
+                                    this.setState({hotelThingId: thing.id});
+                                I18n.addTranslations(thing.name);
+                            }
+                        }
+                    }
+                }
             }
         }
-
-        this.setState({thingsState});
     }
 
-    updateThing(id: string, update: Object, remote_only?: boolean) {
-        remote_only = remote_only || false;
-
-        Socket.write(JSON.stringify({
-            thing: id,
-            ...update
-        }));
-        console.log('Socket write: ', id, update, remote_only);
-
-        if (!remote_only) {
-            const { thingsState } = this.state;
-            thingsState[id] = Object.assign(thingsState[id], update);
+    _resetScreenDim() {
+        SystemSetting.setBrightnessForce(1);
+        clearTimeout(this._screen_dim_timeout);
+        this._screen_dim_timeout = setTimeout((() => {
             this.setState({
-                thingsState
+                screenDimmed: true,
             });
-        }
+            this.props.setScreenDimmingState(true);
+            SystemSetting.setBrightnessForce(0);
+        }).bind(this), this._screen_dim_timeout_duration);
     }
 
-    blockThing(id: string) {
-        this._blocked_things.push(id);
-    }
-
-    unblockThing(id: string) {
-        const index = this._blocked_things.indexOf(id);
-        if (index !== -1) {
-            this._blocked_things.splice(index, 1);
+    _wakeupScreen() {
+        if (this.state.screenDimmed) {
+            this.setState({
+                screenDimmed: false,
+            });
+            this.props.setScreenDimmingState(false);
         }
+        this._resetScreenDim();
     }
 
     render() {
+        const { screenDimmed, cardIn } = this.state;
 
-        // console.log('ROOT STATE: ', this.state);
-
-        const { config, loading, thingsState } = this.state;
-        const { rooms } = config;
-
-        const background_gradient =
-            rooms && rooms.layout && rooms.layout.gradient
-            || this._background_gradient;
-
-
-        var loading_text = null;
-        if (loading) {
-            loading_text = <View style={styles.loading_container}>
-                <Text style={styles.loading_text}>
-                    Loading...
-                </Text>
-            </View>;
-        };
-
-        var grid = null;
-        if (rooms) {
-            var grid = <Grid {...rooms[0]}
-                thingsState={thingsState}
-                updateThing={this.updateThing.bind(this)}
-                blockThing={this.blockThing.bind(this)}
-                unblockThing={this.unblockThing.bind(this)}/>;
+        var inner_ui = null;
+        if (screenDimmed || !cardIn) {
+            inner_ui = <Clock displayWarning={cardIn ? "" : "Please insert the room card to use."}/>;
         }
 
-        // const rooms_column = <View style={styles.rooms_column}>
-        //     <View style={styles.room_box}></View>
-        //     <View style={styles.room_box}></View>
-        //     <View style={styles.room_box}></View>
-        //     <View style={styles.room_box}></View>
-        // </View>
-
-        return (
-            <View style={styles.container}>
-                {/* {rooms_column} */}
-                {grid}
-                {loading_text}
-            </View>
-        );
+        return <View style={styles.container}
+            onTouchStart={cardIn ? this._wakeupScreen.bind(this) : null}
+            onTouchMove={cardIn ? this._wakeupScreen.bind(this) : null}>
+            <PagingView />
+            {inner_ui}
+            <ConnectionStatus />
+        </View>
     }
 }
+
+VerbozeControl.contextTypes = {
+    store: PropTypes.object
+};
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000'
-        // alignItems: 'center',
-        // justifyContent: 'center'
+        backgroundColor: '#1a1a1a'
     },
-    rooms_column: {
-        flex: 1,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        height: '100%',
-        width: 100,
-        backgroundColor: 'red',
-        padding: 5
-    },
-    room_box: {
-        height: 80,
-        width: 80,
-        backgroundColor: 'green',
-        margin: 5
-    },
-    loading_container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    loading_text: {
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 20,
-        color: '#FFFFFF'
-    }
 });
 
-module.exports = VerbozeControl;
+VerbozeControl = connect(mapStateToProps, mapDispatchToProps) (VerbozeControl);
+
+/**
+ * Create the Redux store and wrap the application in a redux context
+ */
+
+import { createStore, combineReducers, bindActionCreators } from 'redux';
+import { Provider } from 'react-redux';
+
+const settingsReducers = require('./redux-objects/reducers/settings');
+const connectionReducers = require('./redux-objects/reducers/connection');
+const screenReducers = require('./redux-objects/reducers/screen');
+let STORE = createStore(combineReducers({
+    settings: settingsReducers,
+    connection: connectionReducers,
+    screen: screenReducers,
+}));
+
+class VerbozeControlWrap extends React.Component<any> {
+    render() {
+        return <Provider store={STORE}><VerbozeControl /></Provider>
+    }
+}
+
+module.exports = VerbozeControlWrap;
