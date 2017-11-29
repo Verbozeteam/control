@@ -1,3 +1,4 @@
 [submodule "react-components"]
 	path = react-components
-	url = git@github.com:Verbozeteam/react-components.git
+	url = https://github.com/Verbozeteam/react-components.git
+  branch = dev

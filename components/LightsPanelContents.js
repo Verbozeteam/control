@@ -6,34 +6,31 @@ import { View, Text, StyleSheet }
 
 const Panel = require('./Panel');
 
-const LightDimmer = require('../react-components/LightDimmer.js');
+const LightDimmer = require('./LightDimmer');
 const LightSwitch = require('./LightSwitch');
+const PresetsSwitch = require('./PresetsSwitch');
 
 const I18n = require('../i18n/i18n');
 
-import type { GenericThingType, ViewType } from '../config/flowtypes';
+import type { ViewType } from '../config/flowtypes';
+import type { GenericThingType } from '../config/ConnectionTypes';
 
 type PropsType = {
     things: Array<GenericThingType>,
-    thingsState: Object,
     layout: Object,
     viewType: ViewType,
-    updateThing: (id: string, update: Object, remote_only?: boolean) => null,
+    presets?: Array<Object>,
 };
 
 class LightsPanel extends React.Component<PropsType>  {
-    on_update_thing(id: string, update: Object) {
-        this.props.updateThing(id, update);
-    }
-
-    renderDimmer(dimmer: GenericThingType, state: Object) {
+    renderDimmer(dimmer: GenericThingType) {
         const { viewType, layout } = this.props;
 
-        var dimmer_name = <View></View>;
+        var dimmer_name = '';
         var slider_width = layout.width - 20;
         var slider_height = 60;
         if (viewType == 'detail') {
-            dimmer_name = <View style={dimmer_styles.name_container}><Text style={dimmer_styles.name}>{I18n.t(dimmer.name.en)}</Text></View>;
+            dimmer_name = I18n.t(dimmer.name.en);
             slider_height = 90;
             slider_width *= (3/4);
         } else if (layout.height <= 300) {
@@ -45,57 +42,87 @@ class LightsPanel extends React.Component<PropsType>  {
             style={dimmer_styles.container}>
             <LightDimmer
                 key={dimmer.id}
-                orientation={'horizontal'}
-                intensity={state.intensity}
                 id={dimmer.id}
-                layout={{width: slider_width, height: slider_height, top: 0, left: 0}}
-                update={this.on_update_thing.bind(this)}/>
-            {dimmer_name}
+                layout={{width: slider_width, height: slider_height, top: 0, left: 0}}/>
+            <View key={dimmer.id+'-name'}
+                style={dimmer_styles.name_container}>
+                <Text style={dimmer_styles.name}>
+                    {dimmer_name}
+                </Text>
+            </View>
         </View>;
     }
 
-    renderLightSwitch(light_switch: GenericThingType, state: Object) {
+    renderLightSwitch(light_switch: GenericThingType) {
         const { viewType, layout } = this.props;
 
-        return <LightSwitch
+        var switch_name = '';
+
+        if (viewType == 'detail') {
+            switch_name = I18n.t(light_switch.name.en);
+        }
+
+        return <View key={light_switch.id+'-container'}
+            style={switch_styles.container}>
+            <View key={light_switch.id+'-container-container'}
+                style={switch_styles.container_container}>
+                <LightSwitch
                     key={light_switch.id}
-                    {...light_switch}
-                    viewType={viewType}
-                    lightSwitchState={state}
-                    updateThing={this.props.updateThing}/>
+                    id={light_switch.id}
+                    layout={{}}
+                    viewType={viewType} />
+                <Text key={light_switch.id+'-name'}
+                    style={[switch_styles.name, viewType === 'detail' ? {height: 100} : {}]}>
+                    {switch_name}
+                </Text>
+            </View>
+        </View>;
+    }
+
+    renderPresetsSwitch(presets: Array<Object>) {
+        const { viewType, layout } = this.props;
+        var key = 'presets-'+Object.keys(presets[0]).sort()[0];
+
+        return <View key={key}
+            style={switch_styles.container}>
+            <View key={key+'-container-container'}
+                style={switch_styles.container_container}>
+                <PresetsSwitch
+                    key={key+'-switch'}
+                    presets={presets}
+                    viewType={viewType} />
+                <Text key={key+'-name'}
+                    style={[switch_styles.name, viewType === 'detail' ? {height: 100} : {}]}>
+                    {I18n.t("Presets")}
+                </Text>
+            </View>
+        </View>;
     }
 
     render() {
-        const { things, thingsState, layout } = this.props;
+        const { things, layout, presets, viewType } = this.props;
 
         var dimmers = [];
         var switches = [];
         for (var i = 0; i < things.length; i++) {
             if (things[i].category === 'dimmers')
-                dimmers.push(this.renderDimmer(things[i], thingsState[things[i].id]));
+                dimmers.push(this.renderDimmer(things[i]));
             else
-                switches.push(this.renderLightSwitch(things[i], thingsState[things[i].id]));
+               switches.push(this.renderLightSwitch(things[i]));
         }
 
-        if (layout.height > 300) {
-            return (
-                <View style={styles.container}>
-                    {dimmers}
-                    <View style={styles.switches_container}>
-                        {switches}
-                    </View>
-                </View>
-            );
-        } else {
-            return (
-                <View style={styles.container_sm}>
-                    {dimmers}
-                    <View style={styles.switches_container_sm}>
-                        {switches}
-                    </View>
-                </View>
-            );
+        if (viewType ==='detail' && presets && typeof(presets) == "object" && presets.length > 0 ) {
+            switches.push(this.renderPresetsSwitch(presets));
         }
+
+        return (
+            <View style={layout.height > 300 ? styles.container : styles.container_sm}>
+                {dimmers}
+                <View style={layout.height > 300 ? styles.switches_container : styles.switches_container_sm}>
+                    {switches}
+                </View>
+            </View>
+        );
     }
 }
 
@@ -126,15 +153,33 @@ const dimmer_styles = StyleSheet.create({
         flex: 1,
     },
     name_container: {
-        marginLeft: 20,
+        marginLeft: 0,
         justifyContent: 'center',
+        flex: 1,
+    },
+    name: {
+        marginLeft: 20,
+        fontSize: 20,
+        fontFamily: 'HKNova-MediumR',
+        color: '#FFFFFF',
+    },
+});
+
+const switch_styles = StyleSheet.create({
+    container: {
+        flexDirection: 'column',
+        flex: 1,
+    },
+    container_container: {
+        flexDirection: 'column',
         flex: 1,
     },
     name: {
         fontSize: 20,
         fontFamily: 'HKNova-MediumR',
         color: '#FFFFFF',
-    },
+        textAlign: 'center',
+    }
 });
 
 module.exports = LightsPanel;

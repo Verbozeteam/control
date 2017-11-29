@@ -1,16 +1,14 @@
 /* @flow */
 
 import * as React from 'react';
-
 import PropTypes from 'prop-types';
-import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
-import type { LayoutType, ViewType } from '../config/flowtypes';
+const GenericSlider = require('../react-components/GenericSlider');
 
 const connectionActions = require('../redux-objects/actions/connection');
 const SocketCommunication = require('../lib/SocketCommunication');
 
-const I18n = require('../i18n/i18n');
+import type { LayoutType } from '../config/flowtypes';
 
 type StateType = {
     intensity: number,
@@ -19,18 +17,16 @@ type StateType = {
 type PropsType = {
     id: string,
     layout: LayoutType,
-    viewType: ViewType,
 };
 
-class LightSwitch extends React.Component<PropsType, StateType> {
+class LightDimmer extends React.Component<PropsType, StateType> {
     _unsubscribe: () => null = () => {return null;};
 
     state = {
         intensity: 0,
     };
 
-    _light_bulb_img_on = require('../assets/images/lighton.png');
-    _light_bulb_img_off = require('../assets/images/lightoff.png');
+    _dimmer_icon = require('../assets/images/dimmer.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -65,35 +61,26 @@ class LightSwitch extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { id, layout, viewType } = this.props;
+        const { layout } = this.props;
         const { intensity } = this.state;
-        const light_bulb_img = intensity ? this._light_bulb_img_on : this._light_bulb_img_off;
-
-        var on_press = () => {};
-        if (viewType === 'detail')
-            on_press = (() => this.changeIntensity(1-this.state.intensity)).bind(this);
 
         return (
-            <TouchableWithoutFeedback
-                onPressIn={on_press}>
-                <Image style={[layout, styles.light_bulb]}
-                    resizeMode='contain'
-                    source={light_bulb_img}>
-                </Image>
-            </TouchableWithoutFeedback>
+            <GenericSlider
+                layout={layout}
+                icon={this._dimmer_icon}
+                value={intensity}
+                orientation={'horizontal'}
+                maximum={100}
+                minimum={0}
+                round={(value: number) => Math.round(value)}
+                onMove={this.changeIntensity.bind(this)}
+                onRelease={this.changeIntensity.bind(this)} />
         );
     }
 }
-LightSwitch.contextTypes = {
+
+LightDimmer.contextTypes = {
     store: PropTypes.object
 };
 
-const styles = StyleSheet.create({
-    light_bulb: {
-        flex: 1,
-        width: undefined,
-        height: undefined,
-    },
-});
-
-module.exports = LightSwitch;
+module.exports = LightDimmer;

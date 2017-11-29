@@ -15,10 +15,12 @@
 	"dependencies": {
 		"hex-rgb": "^1.0.0",
 		"interpolate-rgb": "0.0.2",
-		"react": "16.0.0-alpha.12",
-		"react-native": "0.48.4",
+		"prop-types": "^15.6.0",
+		"react": "^16.1.1",
+		"react-native": "^0.50.3",
 		"react-native-linear-gradient": "^2.3.0",
 		"react-native-storage": "^0.2.2",
+		"react-native-svg": "^5.5.1",
 		"react-native-system-setting": "^1.0.7",
 		"react-redux": "^5.0.6",
 		"redux": "^3.7.2",
@@ -32,7 +34,7 @@
 		"flow-bin": "^0.56.0",
 		"jest": "21.2.1",
 		"react-test-renderer": "16.0.0-alpha.12",
-		"redux-devtools": "^3.4.0"
+		"redux-devtools": "^3.4.1"
 	},
 	"jest": {
 		"preset": "react-native"
