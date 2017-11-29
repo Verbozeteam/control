@@ -9,8 +9,11 @@ const SocketCommunication = require('../lib/SocketCommunication');
 
 import type { ViewType } from '../config/flowtypes';
 
+const I18n = require('../i18n/i18n');
+
 type PropsType = {
     id: string,
+    viewType: ViewType,
 };
 
 type StateType = {
@@ -55,7 +58,6 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                         service_state: my_redux_state.room_service,
                         dnd_state: my_redux_state.do_not_disturb
                     });
-
                 }
             }
         }
@@ -91,29 +93,46 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
 
     render() {
         const { service_state, dnd_state } = this.state;
+        const { viewType } = this.props;
 
-        const room_service_card = <TouchableWithoutFeedback
-            onPress={this.toggleRoomService.bind(this)}>
-                <Image style={styles.card}
-                    resizeMode='contain'
-                    source={(service_state) ?
-                        this._room_service_on_img : this._room_service_off_img}>
-                </Image>
-            </TouchableWithoutFeedback>
+        const card_defs = [{
+            on_image: this._room_service_on_img,
+            off_image: this._room_service_off_img,
+            text: I18n.t("Room Service"),
+            toggler: this.toggleRoomService.bind(this),
+            state: service_state,
+        }, {
+            on_image: this._do_not_disturb_on_img,
+            off_image: this._do_not_disturb_off_img,
+            text: I18n.t("Do Not Disturb"),
+            toggler: this.toggleDoNotDisturb.bind(this),
+            state: dnd_state,
+        }]
 
-        const do_not_disturb_card = <TouchableWithoutFeedback
-            onPress={this.toggleDoNotDisturb.bind(this)}>
-                <Image style={styles.card}
-                    resizeMode='contain'
-                    source={(dnd_state) ?
-                        this._do_not_disturb_on_img : this._do_not_disturb_off_img}>
-                </Image>
-            </TouchableWithoutFeedback>;
+        var cards = [];
+
+        for (var i = 0; i < 2; i++) {
+            cards[i] = (
+                <View style={styles.card_container}
+                    key={'card-'+i}>
+                    <TouchableWithoutFeedback
+                    onPress={card_defs[i].toggler}>
+                        <Image style={styles.card}
+                            resizeMode='contain'
+                            source={(card_defs[i].state) ? card_defs[i].on_image : card_defs[i].off_image}>
+                        </Image>
+                    </TouchableWithoutFeedback>
+                    <View pointerEvents={'none'}
+                      style={[styles.text_container, viewType !== 'detail' ? styles.text_container_sm : {}]}>
+                        <Text style={styles.text}>{viewType === 'detail' ? card_defs[i].text : ""}</Text>
+                    </View>
+                </View>
+            );
+        }
 
         return (
             <View style={styles.container}>
-                {room_service_card}
-                {do_not_disturb_card}
+                {cards}
             </View>
         );
     }
@@ -128,11 +147,30 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         overflow: 'visible'
     },
-    card: {
+    card_container: {
         flex: 1,
-        height: undefined,
-        width: undefined,
-    }
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    text_container: {
+        width: 140,
+        position: 'absolute',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    text_container_sm: {
+    },
+    text: {
+        fontSize: 34,
+        fontFamily: 'HKNova-MediumR',
+        color: '#FFFFFF',
+        textAlign: 'center',
+    },
+    card: {
+        height: '100%',
+        width: '100%',
+    },
+
 });
 
 module.exports = HotelControlsPanelContents;

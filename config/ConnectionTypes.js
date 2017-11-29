@@ -31,7 +31,8 @@ export type GenericThingType = {
 export type PanelType = {
     ratio: number, // row height ratio within column
     name: NameType, // panel name
-    things: Array<GenericThingType>
+    things: Array<GenericThingType>,
+    presets?: Array<Object>, // array of presets, each one is a dictionary of <thing-id> -> <state>
 };
 
 export type GridColumnType = {

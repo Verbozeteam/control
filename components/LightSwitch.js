@@ -1,8 +1,9 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Image, Animated, TouchableWithoutFeedback, StyleSheet }
-    from 'react-native';
+
+import PropTypes from 'prop-types';
+import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
 
@@ -28,8 +29,8 @@ class LightSwitch extends React.Component<PropsType, StateType> {
         intensity: 0,
     };
 
-    _light_bulb_img_on = require('../assets/images/light_bulb_on.png');
-    _light_bulb_img_off = require('../assets/images/light_bulb_off.png');
+    _light_bulb_img_on = require('../assets/images/lighton.png');
+    _light_bulb_img_off = require('../assets/images/lightoff.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -68,39 +69,26 @@ class LightSwitch extends React.Component<PropsType, StateType> {
         const { intensity } = this.state;
         const light_bulb_img = intensity ? this._light_bulb_img_on : this._light_bulb_img_off;
 
-        if (viewType === 'detail') {
-            return (
-                <TouchableWithoutFeedback
-                    onPressIn={(() => this.changeIntensity(1-this.state.intensity)).bind(this)}>
-                    <Image style={[layout, styles.light_bulb]}
-                        resizeMode='contain'
-                        source={light_bulb_img}>
-                    </Image>
-                </TouchableWithoutFeedback>
-            );
-        } else {
-            return (
+        var on_press = () => {};
+        if (viewType === 'detail')
+            on_press = (() => this.changeIntensity(1-this.state.intensity)).bind(this);
+
+        return (
+            <TouchableWithoutFeedback
+                onPressIn={on_press}>
                 <Image style={[layout, styles.light_bulb]}
                     resizeMode='contain'
                     source={light_bulb_img}>
                 </Image>
-            );
-        }
+            </TouchableWithoutFeedback>
+        );
     }
 }
 LightSwitch.contextTypes = {
-    store: React.PropTypes.object
+    store: PropTypes.object
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        flexDirection: 'row',
-        overflow: 'visible',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#00ff00'
-    },
     light_bulb: {
         flex: 1,
         width: undefined,

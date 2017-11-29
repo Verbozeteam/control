@@ -21,26 +21,19 @@ class PageIcon extends React.Component<PropsType> {
         selected: false
     };
 
-    _icon = null;
-
     _onLongPress() {
         if (this.props.longPress)
             this.props.longPress();
     }
 
-    componentWillMount() {
-        if (this.props.iconName)
-            this._icon = this.props.iconName;
-    }
-
     render() {
-        const { name, changePage, longPress, selected } = this.props;
+        const { name, changePage, longPress, selected, iconName } = this.props;
 
         const selected_style = (selected) ? styles.selected : null;
-        var title = this._icon ?
+        var title = iconName ?
                 <Image style={styles.icon}
                     resizeMode='contain'
-                    source={this._icon}>
+                    source={iconName}>
                 </Image>
             :
                 <Text style={styles.header}>

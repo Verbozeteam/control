@@ -6,19 +6,20 @@ import { View, Text, LayoutAnimation, Platform, UIManager, StyleSheet }
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 const connectionActions = require ('../redux-objects/actions/connection');
+const screenActions = require ('../redux-objects/actions/screen');
 
 const I18n = require('../i18n/i18n');
 const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
 const HotelControlsPanelContents = require('./HotelControlsPanelContents');
-const ACCONTROLLLL = require('../react-components/ACControl');
+const CentralAC = require('./CentralAC');
 
 import type { LayoutType, ViewType } from '../config/flowtypes';
-import type { RoomType, GenericThingType, ConfigType } from '../config/ConnectionTypes';
+import type { RoomType, GenericThingType, PanelType, ConfigType } from '../config/ConnectionTypes';
 
 type PropsType = {
     layout: LayoutType,
-    roomIndex?: number,
+    roomIndex: number,
     ...any
 };
 
@@ -35,9 +36,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     _collapsed_layout = {};
     _num_panels: number = 0;
 
-    static defaultProps = {
-        roomIndex: 0,
-    };
+    _screen_blocker_timer = undefined;
 
     state = {
         config: {},
@@ -48,12 +47,15 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const { store } = this.context;
         const reduxState = store.getState();
         const { config } = this.state;
-        const { id } = this.props;
 
         if (reduxState && reduxState.connection && reduxState.connection.config) {
             if (JSON.stringify(config) != JSON.stringify(reduxState.connection.config)) {
                 this.setState({config: reduxState.connection.config});
             }
+        }
+
+        if (reduxState && reduxState.screen && reduxState.screen.isDimmed && this.state.currentPanel != -1) {
+            this.setState({currentPanel: -1});
         }
     }
 
@@ -79,6 +81,11 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
 
+        right_to_left = false;
+        if (I18n._language_direction == 'right_to_left') {
+          right_to_left = true;
+        }
+
         this._presentation_layout = [];
         this._num_panels = 0;
 
@@ -93,7 +100,12 @@ class RoomGrid extends React.Component<PropsType, StateType> {
 
         // calculate panel layouts (height, width, top and left offsets)
         var top = layout.top + layout.margin;
-        var left = layout.left + layout.margin;
+        var left = 0;
+        if (right_to_left)  {
+          left = layout.width - layout.left - layout.margin;
+        } else {
+          left = layout.left + layout.margin;
+        }
         for (var i = 0; i < grid.length; i++) {
             // calculate column width based on ratio width
             const column_width = grid[i].ratio * ratio_width
@@ -103,13 +115,21 @@ class RoomGrid extends React.Component<PropsType, StateType> {
             if (grid[i].panels.length === 0) {
                 // reset top offset and increment left offset
                 top = layout.margin;
-                left += column_width + layout.margin * 2;
+                if (right_to_left) {
+                  left -= column_width + layout.margin * 2;
+                } else {
+                  left += column_width + layout.margin * 2;
+                }
                 continue;
             }
 
             // calculate sum of row ratios to calculate single row width
             var { ratio } = grid[i].panels.reduce((a, b) => ({ratio: a.ratio + b.ratio}));
             const ratio_height = (layout.height - layout.margin * 2) / ratio;
+
+            if (right_to_left) {
+              left -= column_width + layout.margin * 2;
+            }
 
             for (var j = 0; j < grid[i].panels.length; j++) {
                 // calculate row height based on ratio height
@@ -131,7 +151,9 @@ class RoomGrid extends React.Component<PropsType, StateType> {
 
             // reset top offset and increment left offset
             top = layout.top + layout.margin;
-            left += column_width + layout.margin * 2;
+            if (!right_to_left) {
+              left += column_width + layout.margin * 2;
+            }
         }
     }
 
@@ -139,6 +161,11 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
         const detail = roomConfig.detail;
+
+        right_to_left = false;
+        if (I18n._language_direction == 'right_to_left') {
+          right_to_left = true;
+        }
 
         // calculate single column width and single row width for
         // collapsed panels
@@ -152,19 +179,30 @@ class RoomGrid extends React.Component<PropsType, StateType> {
             height: layout.height - layout.margin * 4,
             width: ratio_width * detail.ratio - layout.margin * 2,
             top: layout.top + layout.margin,
-            left: layout.left + ratio_width + layout.margin
         };
 
         // calculate collapsed layout for use when panels become collapsed
         this._collapsed_layout = {
             height: ratio_height - layout.margin * 2,
             width: ratio_width - layout.margin * 2,
-            left: layout.left + layout.margin
         };
+
+        if (right_to_left) {
+          this._detail_layout.left = layout.left + layout.margin;
+          this._collapsed_layout.left = layout.left + (layout.width - ratio_width) - layout.margin;
+        } else {
+          this._detail_layout.left = layout.left + ratio_width + layout.margin;
+          this._collapsed_layout.left = layout.left + layout.margin;
+        }
     }
 
     setCurrentPanel(i: number) {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+        if (this._screen_blocker_timer)
+            clearTimeout(this._screen_blocker_timer);
+        this.context.store.dispatch(screenActions.set_paging_lock(true));
+        this._screen_blocker_timer = setTimeout(() => this.context.store.dispatch(screenActions.set_paging_lock(false)), 500);
 
         if (i == this.state.currentPanel)
             i = -1;
@@ -174,22 +212,28 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         });
     }
 
-    renderPanelContents(viewType: ViewType, layout: LayoutType, things: Array<GenericThingType>) {
+    renderPanelContents(viewType: ViewType, layout: LayoutType, panel: PanelType) {
+        var things: Array<GenericThingType> = panel.things;
         if (things.length > 0 && viewType !== 'collapsed') {
-            var content_props = {
-                viewType: viewType,
-                things: things,
-                layout: layout,
-            }
+            var presets = null;
 
             switch (things[0].category) {
                 case 'dimmers':
                 case 'light_switches':
-                    return  <LightsPanelContents {...content_props}/>
+                    return  <LightsPanelContents
+                        viewType={viewType}
+                        things={things}
+                        layout={layout}
+                        presets={panel.presets}/>
                 case 'hotel_controls':
-                    return <HotelControlsPanelContents id={things[0].id}/>;
+                    return <HotelControlsPanelContents
+                        id={things[0].id}
+                        viewType={viewType}/>;
                 case 'central_acs':
-                    return <ACCONTROLLLL />;
+                    return <CentralAC
+                        id={things[0].id}
+                        layout={layout}
+                        viewType={viewType}/>;
             }
         }
         return null;
@@ -213,7 +257,7 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                     layout={[this._presentation_layout[index], styles.panel]}
                     viewType={'present'}
                     toggleDetail={() => this.setCurrentPanel(index)}>
-                    {this.renderPanelContents('present', this._presentation_layout[index], grid[i].panels[j].things)}
+                    {this.renderPanelContents('present', this._presentation_layout[index], grid[i].panels[j])}
                 </Panel>
 
                 panels.push(panel);
@@ -237,13 +281,13 @@ class RoomGrid extends React.Component<PropsType, StateType> {
                 const index = panels.length;
 
                 // decide panel layout based on whether detail or collapsed
-                var panel_layout = null;
+                var panel_layout: LayoutType = null;
                 var view_type = 'collapsed';
                 var contents = null;
                 if (index === currentPanel) {
                     panel_layout = this._detail_layout;
                     view_type = 'detail';
-                    contents = this.renderPanelContents('detail', panel_layout, grid[i].panels[j].things);
+                    contents = this.renderPanelContents('detail', panel_layout, grid[i].panels[j]);
                 } else {
                     panel_layout = {
                         ...this._collapsed_layout,

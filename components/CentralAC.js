@@ -1,389 +1,252 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Image, PanResponder, TouchableWithoutFeedback, StyleSheet }
-    from 'react-native';
+import PropTypes from 'prop-types';
+import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
-import type { GenericThingType, ViewType } from '../config/flowtypes';
+import LinearGradient from 'react-native-linear-gradient';
+
+import type { LayoutType, ViewType } from '../config/flowtypes';
+
+const GenericCircularSlider = require('../react-components/GenericCircularSlider');
+const GenericToggle = require('../react-components/GenericToggle');
+
+const connectionActions = require('../redux-objects/actions/connection');
+const SocketCommunication = require('../lib/SocketCommunication');
 
 const I18n = require('../i18n/i18n');
 
-import LinearGradient from 'react-native-linear-gradient';
-const interpolateRGB = require('interpolate-rgb');
-const rgbHex = require('rgb-hex');
-const hexRgb = require('hex-rgb');
+type StateType = {
+    set_pt: number,
+    temp: number,
+    fan: number,
 
-type PropsType = {
-    ...GenericThingType,
-    viewType?: ViewType,
-    aCState?: {
-        temp: number,
-        set_pt: number,
-        fan: number
-    },
-    updateThing?: (id: string, update: Object, remote_only?: boolean) => null,
-    blockThing?: (id: string) => null,
-    unblockThing?: (id: string) => null
+    minusButtonPressed: boolean,
+    plusButtonPressed: boolean,
 };
 
-type StateType = {
-    touch: boolean,
-    touch_set_pt: number,
-    touch_start_set_pt: number
-}
+type PropsType = {
+    id: string,
+    layout: LayoutType,
+    viewType: ViewType,
+};
 
 class CentralAC extends React.Component<PropsType, StateType> {
-    static defaultProps = {
-        viewType: 'present',
-        aCState: {
-            temp: 25,
-            set_pt: 25,
-            fan: 0
-        }
-    };
+    _unsubscribe: () => null = () => {return null;};
 
     state = {
-        touch: false,
-        touch_set_pt: 0,
-        touch_start_set_pt: 0,
+        set_pt: 0,
+        temp: 0,
+        fan: 0,
+
+        minusButtonPressed: false,
+        plusButtonPressed: false,
     };
 
-    _cold_gradient = [hexRgb('#2463E2'), hexRgb('#163F93')];
-    _warm_gradient = [hexRgb('#F2616E'), hexRgb('#9C1E31')];
-
-    _button_gradient: [string, string] = ['#DDDDDD', '#AAAAAA'];
-    _pressed_button_gradient: [string, string] = ['#2463E2', '#163F93'];
-
-    _min_temperature: number = 16;
-    _max_temperature: number = 30;
-
-    _temperature_detail_width: number = 400;
-    _ratio: number;
-
-    _fan_speeds: Array<[number, string]> = [
-        [0, I18n.t('Off')],
-        [1, I18n.t('Low')],
-        [2, I18n.t('High')]
+    _fan_speeds = [
+        I18n.t('Off'),
+        I18n.t('Low'),
+        I18n.t('High')
     ];
 
-    _panResponder: Object;
+    _selectedGradient = ['#36DBFD', '#178BFB'];
+    _highlightGradient = ['#41FFFF', '#1CA7FF'];
+
+    _fan_icon = require('../assets/images/fan.png');
+
+    _fan_actions = [
+        () => this.changeFan(0),
+        () => this.changeFan(1),
+        () => this.changeFan(2)
+    ];
 
     componentWillMount() {
-        this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (evt, gestureState) => true,
-            onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
-            onMoveShouldSetPanResponder: (evt, gestureState) => true,
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
+        this.onReduxStateChanged();
+    }
 
-            onPanResponderGrant: this._onPanResponderGrant.bind(this),
-            onPanResponderMove: this._onPanResponderMove.bind(this),
-            onPanResponderRelease: this._onPanResponderRelease.bind(this)
+    componentWillUnmount() {
+        this._unsubscribe();
+    }
+
+    onReduxStateChanged() {
+        const { store } = this.context;
+        const reduxState = store.getState();
+        const { set_pt, temp, fan } = this.state;
+        const { id } = this.props;
+
+        if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+            const my_redux_state = reduxState.connection.thingStates[id];
+            if (my_redux_state &&
+                ((my_redux_state.set_pt != undefined && my_redux_state.set_pt != set_pt) ||
+                 (my_redux_state.temp != undefined && my_redux_state.temp != temp) ||
+                 (my_redux_state.fan != undefined && my_redux_state.fan != fan))) {
+                this.setState({
+                    set_pt: my_redux_state.set_pt,
+                    temp: my_redux_state.temp,
+                    fan: my_redux_state.fan,
+                });
+            }
+        }
+    }
+
+    round(value: number) {
+        return (Math.round(value * 2) / 2);
+    }
+
+    changeTemperature(send_socket: boolean) {
+        return ((new_set_pt: number) => {
+            if (send_socket) {
+                SocketCommunication.sendMessage({
+                    thing: this.props.id,
+                    set_pt: new_set_pt,
+                });
+            }
+            this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {set_pt: new_set_pt}));
+        }).bind(this);
+    }
+
+    changeFan(speed: number) {
+        SocketCommunication.sendMessage({
+            thing: this.props.id,
+            fan: speed,
         });
-    }
-
-    _onPanResponderGrant(evt: Object, gestureState: Object) {
-        const { blockThing, id } = this.props;
-        const { set_pt } = this.props.aCState;
-
-        blockThing(id);
-
-        this.setState({
-            touch: true,
-            touch_set_pt: set_pt,
-            touch_start_set_pt: set_pt
-        });
-    }
-
-    _onPanResponderMove(evt: Object, gestureState: {dx: number}) {
-        const { id, updateThing } = this.props;
-        const { touch_set_pt, touch_start_set_pt } = this.state;
-
-        var new_set_pt: number = Math.round((touch_start_set_pt +
-            (gestureState.dx / this._ratio)) * 2) / 2.0;
-
-        if (new_set_pt < this._min_temperature) {
-            new_set_pt = this._min_temperature;
-        }
-
-        else if (new_set_pt > this._max_temperature) {
-            new_set_pt = this._max_temperature;
-        }
-
-        if (new_set_pt !== touch_set_pt) {
-            this.setState({
-                touch_set_pt: new_set_pt
-            });
-
-            updateThing(id, {set_pt: new_set_pt}, true);
-        }
-    }
-
-    _onPanResponderRelease(evt: Object, gestureState: Object) {
-        const { unblockThing, id, updateThing } = this.props;
-        const { touch_set_pt } = this.state;
-
-        this.setState({
-            touch: false
-        });
-
-        updateThing(id, {set_pt: touch_set_pt});
-
-        unblockThing(id);
-    }
-
-    raiseTemperature() {
-        const { updateThing, id } = this.props;
-        const { set_pt, fan } = this.props.aCState;
-
-        if (set_pt < this._max_temperature) {
-            updateThing(id, {set_pt: set_pt + 0.5});
-        }
-    }
-
-
-    lowerTemperature() {
-        const { updateThing, id } = this.props;
-        const { set_pt } = this.props.aCState;
-
-        if (set_pt > this._min_temperature) {
-            updateThing(id, {set_pt: set_pt - 0.5});
-        }
-    }
-
-    setFanSpeed(speed: number) {
-        const { updateThing, id } = this.props;
-
-        updateThing(id, {fan: speed});
-    }
-
-    calculateRatio() {
-        this._ratio = (this._temperature_detail_width - 60) / (this._max_temperature -
-            this._min_temperature);
+        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {fan: speed}));
     }
 
     render() {
-        const { viewType, aCState } = this.props;
-        const { temp, fan } = this.props.aCState;
-        var { set_pt } = this.props.aCState;
-        const { touch, touch_set_pt,
-            touch_start_set_pt } = this.state;
+        const { id, layout, viewType } = this.props;
+        const { set_pt, temp, fan, minusButtonPressed, plusButtonPressed } = this.state;
 
-        this.calculateRatio();
+        var room_temp_text = "";
+        var slider = null;
+        var toggles = null;
+        var hiding_style = null;
 
-        const temperature_attributes = viewType === 'detail' ?
-            this._panResponder.panHandlers : {};
-
-        if (touch) {
-            set_pt = touch_set_pt;
-        }
-
-        // console.log(aCState);
-
-        var set_temperature = null;
-        if (!fan) {
-            set_temperature = <View style={styles.set_temperature_container}>
-                <Text style={styles.set_temperature}>
-                    {I18n.t('Off')}
-                </Text>
-                <Text style={styles.fan_speed_display}></Text>
-            </View>;
-        } else {
-            set_temperature = <View style={styles.set_temperature_container}>
-                <Text style={styles.set_temperature}>
-                    {parseFloat(set_pt).toFixed(1)}°C
-                </Text>
-                <Text style={styles.fan_speed_display}>
-                    {viewType !== 'detail' ?
-                        this._fan_speeds[fan][1] : null}
-                </Text>
-            </View>;
-        }
-
-        var temperature_setter = null;
-        var fan_speed = null;
-        var room_temperature = null;
         if (viewType === 'detail') {
+            room_temp_text = I18n.t("Room Temperature is") + " " + temp.toFixed(1) + "°C";
 
-            room_temperature = <View style={styles.room_temperature}>
-                <Text style={styles.room_temperature_text}>
-                    {I18n.t('Room Temperature')} {parseFloat(temp).toFixed(1)}°C
-                </Text>
-            </View>;
-
-
-            const temperature_percentage = (set_pt - this._min_temperature) /
-                (this._max_temperature - this._min_temperature);
-
-            const color1 = interpolateRGB(this._cold_gradient[0],
-                this._warm_gradient[0], temperature_percentage);
-            const color2 = interpolateRGB(this._cold_gradient[1],
-                this._warm_gradient[1], temperature_percentage);
-
-            const knob_gradient = ['#' + rgbHex(color1[0], color1[1], color1[2]),
-                '#' + rgbHex(color2[0], color2[1], color2[2])];
-
-            temperature_setter = (
-                <View style={styles.temperature_setter}>
-                    <TouchableWithoutFeedback onPressIn={() =>
-                         this.lowerTemperature()}>
-                         <LinearGradient colors={this._button_gradient}
-                             start={{x: 0, y: 0}}
-                             end={{x: 1, y: 1}}
-                             style={styles.button}>
-                             <Text style={styles.button_text}>
-                                 -
-                             </Text>
-                         </LinearGradient>
-                    </TouchableWithoutFeedback>
-                    <View {...temperature_attributes}
-                        style={[{width: this._temperature_detail_width},
-                        styles.temperature_slider]}>
-                        <LinearGradient colors={knob_gradient}
-                            start={{x: 0, y: 0}}
-                            end={{x: 1, y: 1}}
-                            style={[{left: this._ratio * (set_pt - this._min_temperature)},
-                                styles.temperature_knob, {borderColor: knob_gradient[1]}]}>
-                        </LinearGradient>
-                    </View>
-                    <TouchableWithoutFeedback onPressIn={() =>
-                         this.raiseTemperature()}>
-                         <LinearGradient colors={this._button_gradient}
-                             start={{x: 0, y: 0}}
-                             end={{x: 1, y: 1}}
-                             style={styles.button}>
-                             <Text style={styles.button_text}>
-                                 +
-                             </Text>
-                         </LinearGradient>
-                    </TouchableWithoutFeedback>
-                </View>
+            slider = (
+                <GenericCircularSlider value={set_pt}
+                    minimum={16} maximum={30}
+                    round={this.round.bind(this)}
+                    onMove={this.changeTemperature(false).bind(this)}
+                    onRelease={this.changeTemperature(true).bind(this)}
+                    diameter={layout.height/1.5}
+                    disabled={fan === 0}/>
             );
 
-            var fan_speed_buttons = [];
-            for (var i = 0; i < this._fan_speeds.length; i++) {
-                const gradient = fan === this._fan_speeds[i][0] ?
-                    this._pressed_button_gradient : this._button_gradient;
-                const speed = this._fan_speeds[i][0];
-                fan_speed_buttons.push(<TouchableWithoutFeedback
-                    key={'fan-speed-' + i}
-                    onPress={() => this.setFanSpeed(speed)}>
-                        <LinearGradient colors={gradient}
-                            start={{x: 0, y: 0}}
-                            end={{x: 1, y: 1}}
-                            style={styles.fan_speed_button}>
-                            <Text style={styles.button_text}>
-                                {this._fan_speeds[i][1]}
-                            </Text>
-                        </LinearGradient>
-                    </TouchableWithoutFeedback>);
+            toggles = (
+                <GenericToggle values={this._fan_speeds}
+                    icon={this._fan_icon}
+                    layout={{
+                        height: 80,
+                        width: 350
+                    }}
+                    actions={this._fan_actions}
+                    selected={fan} />
+            );
+        } else {
+            hiding_style = {
+                display: "none",
             }
-
-            fan_speed = <View style={styles.fan_speed}>
-                <Image style={styles.fan}
-                    source={require('../assets/images/fan.png')}></Image>
-                {fan_speed_buttons}
-            </View>;
         }
 
         return (
             <View style={styles.container}>
-                {set_temperature}
-                {temperature_setter}
-                {fan_speed}
-                {room_temperature}
+                <View>
+                    {slider}
+                </View>
+
+                <View>
+                    {toggles}
+                </View>
+
+                <Text style={styles.room_temperature}>
+                    {room_temp_text}
+                </Text>
+
+                <View style={styles.minus_container}
+                    onTouchStart={() => {this.setState({minusButtonPressed: true}); this.changeTemperature(true)(Math.max(16, this.state.set_pt-0.5));}}
+                    onTouchEnd={() => {this.setState({minusButtonPressed: false})}}>
+                    <LinearGradient colors={minusButtonPressed ? this._highlightGradient : this._selectedGradient}
+                        start={{x: 1, y: 0}} end={{x: 0, y: 1}}
+                        style={[styles.plusminus_button, hiding_style]}>
+                        <Text key={"minus-button"} style={styles.plusminus_text}>{"-"}</Text>
+                    </LinearGradient>
+                </View>
+
+                <View style={styles.plus_container}
+                    onTouchStart={() => {this.setState({plusButtonPressed: true}); this.changeTemperature(true)(Math.max(16, this.state.set_pt+0.5));}}
+                    onTouchEnd={() => {this.setState({plusButtonPressed: false})}}>
+                    <LinearGradient colors={plusButtonPressed ? this._highlightGradient : this._selectedGradient}
+                        start={{x: 1, y: 0}} end={{x: 0, y: 1}}
+                        style={[styles.plusminus_button, hiding_style]}>
+                        <Text key={"plus-button"} style={styles.plusminus_text}>{"+"}</Text>
+                    </LinearGradient>
+                </View>
+
+                <View style={styles.set_point_container}>
+                    <Text style={[styles.set_point_text, viewType === 'detail' ? styles.set_point_offset : {}]}>{fan ? set_pt.toFixed(1)+'°C' : I18n.t('Off')}</Text>
+                </View>
             </View>
         );
     }
 }
+
+CentralAC.contextTypes = {
+    store: PropTypes.object
+};
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0)'
-    },
-    set_temperature_container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    fan_speed_display: {
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 17,
-        color: '#FFFFFF'
-    },
-    set_temperature: {
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 64,
-        color: '#FFFFFF'
     },
     room_temperature: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
+        marginTop: 20,
+        fontSize: 22,
+        color: '#aaaaaa',
+        fontFamily: 'HKNova-MediumR'
     },
-    room_temperature_text: {
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 25,
-        color: '#FFFFFF'
-    },
-    temperature_setter: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row'
-    },
-    temperature_slider: {
-        height: 70,
-        borderRadius: 5,
-        backgroundColor: '#444444',
-    },
-    temperature_knob: {
+    set_point_container: {
         position: 'absolute',
-        top: 0,
-        height: '100%',
-        borderRadius: 5,
-        width: 60,
-        backgroundColor: '#FFFFFF',
-        borderWidth: 1,
-    },
-    button: {
-        height: 70,
-        width: 60,
-        borderRadius: 5,
-        marginRight: 20,
-        marginLeft: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingBottom: 10
     },
-    fan_speed_button: {
-        height: 70,
-        width: 120,
-        borderRadius: 5,
-        marginRight: 20,
-        marginLeft: 20,
-        alignItems: 'center',
-        justifyContent: 'center'
+    set_point_text: {
+        fontSize: 70,
+        color: '#ffffff',
+        fontFamily: 'HKNova-MediumR'
     },
-    button_text: {
-        fontFamily: 'HKNova-MediumR',
-        fontSize: 32,
-        color: '#FFFFFF'
+    set_point_offset: {
+        marginTop: -80,
     },
-    fan_speed: {
-        flex: 1,
+    minus_container: {
+        position: 'absolute',
+        left: 15,
+    },
+    plus_container: {
+        position: 'absolute',
+        right: 15,
+    },
+    plusminus_button: {
+        width: 80,
+        height: 80,
+        marginTop: -70,
+        borderRadius: 150,
+        borderWidth: 5,
+        borderColor: '#181B31',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'row'
     },
-    fan: {
-        height: 70,
-        width: 70,
-        marginLeft: 20,
-        marginRight: 20
-    }
+    plusminus_text: {
+        color: '#ffffff',
+        fontSize: 90,
+        marginTop: -10,
+    },
 });
 
 module.exports = CentralAC;

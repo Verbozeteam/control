@@ -26,6 +26,8 @@ class LightDimmer extends React.Component<PropsType, StateType> {
         intensity: 0,
     };
 
+    _dimmer_icon = require('../assets/images/dimmer.png');
+
     componentWillMount() {
         const { store } = this.context;
         this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
@@ -65,12 +67,12 @@ class LightDimmer extends React.Component<PropsType, StateType> {
         return (
             <GenericSlider
                 layout={layout}
+                icon={this._dimmer_icon}
                 value={intensity}
                 orientation={'horizontal'}
                 maximum={100}
                 minimum={0}
                 round={(value: number) => Math.round(value)}
-                update={() => {}}
                 onMove={this.changeIntensity.bind(this)}
                 onRelease={this.changeIntensity.bind(this)} />
         );

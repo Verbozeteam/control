@@ -20,8 +20,9 @@ type StateType = {
 type PageType = {
     name: string,
     iconName: string,
+    selectedIconName?: string,
     longPress?: () => any,
-    renderer: () => any,
+    renderer: (number) => any,
 };
 
 class PagingView extends React.Component<any, StateType> {
@@ -33,34 +34,45 @@ class PagingView extends React.Component<any, StateType> {
     _pages : Array<PageType> = [{
         name: "Room",
         iconName: require('../assets/images/room.png'),
-        renderer: this.renderRoomView.bind(this)
+        selectedIconName: require('../assets/images/room_selected.png'),
+        renderer: (index: number) => this.renderRoomView(index || 0)
     }, {
         name: "Settings",
         iconName: require('../assets/images/cog.png'),
+        selectedIconName: require('../assets/images/cog_selected.png'),
         longPress: (() => this.context.store.dispatch(settingsActions.toggle_dev_mode())).bind(this),
         renderer: this.renderSettingsView.bind(this)
     }];
 
-    renderRoomView() {
+    renderRoomView(index: number) {
         return <RoomGrid layout={{
             left: 0,
             top: 0,
             width: Dimensions.get('screen').width - 80,
             height: Dimensions.get('screen').height,
-        }}/>;
+        }} roomIndex={index}/>;
     }
 
-    renderSettingsView() {
+    renderSettingsView(index: number) {
         return <Settings />;
+    }
+
+    changePage(index: number) {
+        return (() => {
+            var reduxState = this.context.store.getState();
+            // dont change the page if the index didn't change or if we are in pagingLock
+            if (this.state.currentPage != index && (!reduxState || !reduxState.screen || !reduxState.screen.pagingLock))
+                this.setState({currentPage: index})
+        }).bind(this);
     }
 
     render() {
         var page_icons = this._pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
-                iconName={page.iconName}
+                iconName={(page.selectedIconName && this.state.currentPage == i) ? page.selectedIconName : page.iconName}
                 selected={i == this.state.currentPage}
-                changePage={() => {if (this.state.currentPage != i) this.setState({currentPage: i})}}
+                changePage={this.changePage(i).bind(this)}
                 longPress={page.longPress}
             />
         );
@@ -71,7 +83,7 @@ class PagingView extends React.Component<any, StateType> {
                     {page_icons}
                 </View>
                 <View style={styles.content_container}>
-                    {this._pages[this.state.currentPage].renderer()}
+                    {this._pages[this.state.currentPage].renderer(this.state.currentPage)}
                 </View>
             </View>
         );
