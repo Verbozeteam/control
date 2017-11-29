@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontFamily: 'HKNova-MediumR',
         fontSize: 20,
-        color: '#FFFFFF',
+        color: '#FFFFFF'
     },
     name_large: {
         flex: 1,
