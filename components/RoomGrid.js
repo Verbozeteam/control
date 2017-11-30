@@ -19,12 +19,10 @@ import type { RoomType, GenericThingType, PanelType, ConfigType } from '../confi
 
 type PropsType = {
     layout: LayoutType,
-    roomIndex: number,
-    ...any
+    roomConfig: RoomType,
 };
 
 type StateType = {
-    config: ConfigType,
     currentPanel: number,
 };
 
@@ -39,20 +37,12 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     _screen_blocker_timer = undefined;
 
     state = {
-        config: {},
         currentPanel: -1,
     };
 
     onReduxStateChanged() {
         const { store } = this.context;
         const reduxState = store.getState();
-        const { config } = this.state;
-
-        if (reduxState && reduxState.connection && reduxState.connection.config) {
-            if (JSON.stringify(config) != JSON.stringify(reduxState.connection.config)) {
-                this.setState({config: reduxState.connection.config});
-            }
-        }
 
         if (reduxState && reduxState.screen && reduxState.screen.isDimmed && this.state.currentPanel != -1) {
             this.setState({currentPanel: -1});
@@ -77,7 +67,8 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         this._unsubscribe();
     }
 
-    calculatePresentationLayout(roomConfig: RoomType) {
+    calculatePresentationLayout() {
+        const { roomConfig } = this.props;
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
 
@@ -157,7 +148,8 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         }
     }
 
-    calculateDetailAndCollapsedLayout(roomConfig: RoomType) {
+    calculateDetailAndCollapsedLayout() {
+        const { roomConfig } = this.props;
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
         const detail = roomConfig.detail;
@@ -240,10 +232,11 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     }
 
 
-    renderPresentationView(roomConfig: RoomType) {
+    renderPresentationView() {
+        const { roomConfig } = this.props;
         const grid = roomConfig.grid;
 
-        this.calculatePresentationLayout(roomConfig);
+        this.calculatePresentationLayout();
 
         var panels = [];
         for (var i = 0; i < grid.length; i++) {
@@ -267,12 +260,13 @@ class RoomGrid extends React.Component<PropsType, StateType> {
         return panels;
     }
 
-    renderDetailWithCollapsedView(roomConfig: RoomType) {
+    renderDetailWithCollapsedView() {
+        const { roomConfig } = this.props;
         const grid = roomConfig.grid;
         const layout = {...this.props.layout, ...roomConfig.layout};
         const { currentPanel } = this.state;
 
-        this.calculateDetailAndCollapsedLayout(roomConfig);
+        this.calculateDetailAndCollapsedLayout();
 
         var panels = [];
         var counter = 0;
@@ -313,19 +307,18 @@ class RoomGrid extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { roomIndex } = this.props;
-        const { config, currentPanel } = this.state;
+        const { roomConfig } = this.props;
+        const { currentPanel } = this.state;
 
-        if (!config || Object.keys(config).length == 0 || !config.rooms || config.rooms.length <= roomIndex)
+        if (!roomConfig)
             return <View />
 
-        const roomConfig = config.rooms[roomIndex];
         var content = null;
 
         if (currentPanel == -1)
-            content = this.renderPresentationView(roomConfig);
+            content = this.renderPresentationView();
         else
-            content = this.renderDetailWithCollapsedView(roomConfig);
+            content = this.renderDetailWithCollapsedView();
 
         return (
             <View style={[styles.container, roomConfig.layout || {}]}>

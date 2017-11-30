@@ -20,6 +20,7 @@ import type { SocketDataType, DiscoveredDeviceType } from '../config/ConnectionT
 
 function mapStateToProps(state) {
     return {
+        connectionStatus: state.connection.isConnected,
         language: state.settings.language,
     };
 }
@@ -211,11 +212,12 @@ class VerbozeControl extends React.Component<{}, StateType> {
     }
 
     render() {
+        const { connectionStatus } = this.props;
         const { screenDimmed, cardIn } = this.state;
 
         var inner_ui = null;
         if (screenDimmed || !cardIn) {
-            inner_ui = <Clock displayWarning={cardIn ? "" : "Please insert the room card to use."}/>;
+            inner_ui = <Clock displayWarning={(cardIn || !connectionStatus) ? "" : "Please insert the room card to use."}/>;
         }
 
         return <View style={styles.container}

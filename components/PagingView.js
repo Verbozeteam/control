@@ -8,12 +8,15 @@ import { connect } from 'react-redux';
 const settingsActions = require ('../redux-objects/actions/settings');
 
 import type { LayoutType, NameType } from '../config/flowtypes';
+import type { RoomType, ConfigType } from '../config/ConnectionTypes';
 
+const I18n = require('../i18n/i18n');
 const PageIcon = require('./PageIcon');
 const RoomGrid = require('./RoomGrid');
 const Settings = require('./Settings');
 
 type StateType = {
+    config: ConfigType,
     currentPage: number,
 };
 
@@ -26,8 +29,10 @@ type PageType = {
 };
 
 class PagingView extends React.Component<any, StateType> {
+    _unsubscribe: () => null = () => {return null;};
 
     state = {
+        config: null,
         currentPage: 0,
     };
 
@@ -44,13 +49,42 @@ class PagingView extends React.Component<any, StateType> {
         renderer: this.renderSettingsView.bind(this)
     }];
 
+    componentWillMount() {
+        const { store } = this.context;
+        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
+        this.onReduxStateChanged();
+    }
+
+    componentWillUnmount() {
+        this._unsubscribe();
+    }
+
+    onReduxStateChanged() {
+        const { store } = this.context;
+        const reduxState = store.getState();
+        const { config } = this.state;
+
+        if (reduxState && reduxState.connection && reduxState.connection.config) {
+            if (JSON.stringify(config) != JSON.stringify(reduxState.connection.config)) {
+                this.setState({config: reduxState.connection.config, currentPage: 0});
+            }
+        }
+    }
+
     renderRoomView(index: number) {
-        return <RoomGrid layout={{
-            left: 0,
-            top: 0,
-            width: Dimensions.get('screen').width - 80,
-            height: Dimensions.get('screen').height,
-        }} roomIndex={index}/>;
+        var roomConfig: RoomType = null;
+        if (this.state.config && this.state.config.rooms)
+            roomConfig = this.state.config.rooms[index];
+
+        return <RoomGrid
+            key={'room-grid-' + index}
+            layout={{
+                left: 0,
+                top: 0,
+                width: Dimensions.get('screen').width - 80,
+                height: Dimensions.get('screen').height,
+            }}
+            roomConfig={roomConfig}/>;
     }
 
     renderSettingsView(index: number) {
@@ -67,7 +101,17 @@ class PagingView extends React.Component<any, StateType> {
     }
 
     render() {
-        var page_icons = this._pages.map((page, i) =>
+        const { config } = this.state;
+
+        var pages = [];
+        if (config && config.rooms && config.rooms.length > 0)
+            pages = config.rooms.map((room) => {
+                return {...this._pages[0], ...{name: I18n.t(room.name.en)}};
+            });
+
+        pages.push(this._pages[this._pages.length-1]);
+
+        var page_icons = pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
                 iconName={(page.selectedIconName && this.state.currentPage == i) ? page.selectedIconName : page.iconName}
@@ -83,7 +127,7 @@ class PagingView extends React.Component<any, StateType> {
                     {page_icons}
                 </View>
                 <View style={styles.content_container}>
-                    {this._pages[this.state.currentPage].renderer(this.state.currentPage)}
+                    {pages[this.state.currentPage].renderer(this.state.currentPage)}
                 </View>
             </View>
         );
