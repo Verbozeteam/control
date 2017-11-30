@@ -10,6 +10,7 @@ import type { LayoutType, ViewType } from '../config/flowtypes';
 
 const GenericCircularSlider = require('../react-components/GenericCircularSlider');
 const GenericToggle = require('../react-components/GenericToggle');
+const GenericButton = require('../react-components/GenericButton');
 
 const connectionActions = require('../redux-objects/actions/connection');
 const SocketCommunication = require('../lib/SocketCommunication');
@@ -167,24 +168,24 @@ class CentralAC extends React.Component<PropsType, StateType> {
                     {room_temp_text}
                 </Text>
 
-                <View style={styles.minus_container}
-                    onTouchStart={() => {this.setState({minusButtonPressed: true}); this.changeTemperature(true)(Math.max(16, this.state.set_pt-0.5));}}
-                    onTouchEnd={() => {this.setState({minusButtonPressed: false})}}>
-                    <LinearGradient colors={minusButtonPressed ? this._highlightGradient : this._selectedGradient}
-                        start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-                        style={[styles.plusminus_button, hiding_style]}>
-                        <Text key={"minus-button"} style={styles.plusminus_text}>{"-"}</Text>
-                    </LinearGradient>
+                <View style={styles.minus_container}>
+                  <GenericButton
+                    disabled={fan === 0}
+                    icon={require('../assets/images/minus.png')}
+                    style={hiding_style}
+                    action={() => {
+                      this.changeTemperature(true)(Math.max(16, this.state.set_pt - 0.5))
+                    }} />
                 </View>
 
-                <View style={styles.plus_container}
-                    onTouchStart={() => {this.setState({plusButtonPressed: true}); this.changeTemperature(true)(Math.max(16, this.state.set_pt+0.5));}}
-                    onTouchEnd={() => {this.setState({plusButtonPressed: false})}}>
-                    <LinearGradient colors={plusButtonPressed ? this._highlightGradient : this._selectedGradient}
-                        start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-                        style={[styles.plusminus_button, hiding_style]}>
-                        <Text key={"plus-button"} style={styles.plusminus_text}>{"+"}</Text>
-                    </LinearGradient>
+                <View style={styles.plus_container}>
+                  <GenericButton
+                    disabled={fan === 0}
+                    icon={require('../assets/images/plus.png')}
+                    style={hiding_style}
+                    action={() => {
+                      this.changeTemperature(true)(Math.max(16, this.state.set_pt + 0.5))
+                    }} />
                 </View>
 
                 <View style={styles.set_point_container}>
@@ -226,26 +227,13 @@ const styles = StyleSheet.create({
     },
     minus_container: {
         position: 'absolute',
+        top: 180,
         left: 15,
     },
     plus_container: {
         position: 'absolute',
+        top: 180,
         right: 15,
-    },
-    plusminus_button: {
-        width: 80,
-        height: 80,
-        marginTop: -70,
-        borderRadius: 150,
-        borderWidth: 5,
-        borderColor: '#181B31',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    plusminus_text: {
-        color: '#ffffff',
-        fontSize: 90,
-        marginTop: -10,
     },
 });
 
