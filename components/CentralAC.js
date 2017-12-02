@@ -130,7 +130,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         if (viewType === 'detail') {
             room_temp_text = I18n.t("Room Temperature is") + " " + temp.toFixed(1) + "°C";
             set_temp_text = fan ? set_pt.toFixed(1)+'°C' : I18n.t('Off');
-            set_temp_title_text = I18n.t("Set temperature");
+            set_temp_title_text = fan ? I18n.t("Set temperature") : "";
 
             slider = (
                 <GenericCircularSlider value={set_pt}
