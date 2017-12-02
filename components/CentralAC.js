@@ -120,13 +120,17 @@ class CentralAC extends React.Component<PropsType, StateType> {
         const { id, layout, viewType } = this.props;
         const { set_pt, temp, fan, minusButtonPressed, plusButtonPressed } = this.state;
 
-        var room_temp_text = "";
+        var room_temp_text = temp.toFixed(1) + "°C";
+        var set_temp_text = "";
+        var set_temp_title_text = "";
         var slider = null;
         var toggles = null;
         var hiding_style = null;
 
         if (viewType === 'detail') {
             room_temp_text = I18n.t("Room Temperature is") + " " + temp.toFixed(1) + "°C";
+            set_temp_text = fan ? set_pt.toFixed(1)+'°C' : I18n.t('Off');
+            set_temp_title_text = I18n.t("Set temperature");
 
             slider = (
                 <GenericCircularSlider value={set_pt}
@@ -164,7 +168,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                     {toggles}
                 </View>
 
-                <Text style={styles.room_temperature}>
+                <Text style={viewType === 'detail' ? styles.room_temperature : styles.room_temperature_collapsed}>
                     {room_temp_text}
                 </Text>
 
@@ -189,7 +193,8 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 </View>
 
                 <View style={styles.set_point_container}>
-                    <Text style={[styles.set_point_text, viewType === 'detail' ? styles.set_point_offset : {}]}>{fan ? set_pt.toFixed(1)+'°C' : I18n.t('Off')}</Text>
+                    <Text style={styles.set_point_title_text}>{set_temp_title_text}</Text>
+                    <Text style={styles.set_point_text}>{set_temp_text}</Text>
                 </View>
             </View>
         );
@@ -212,18 +217,30 @@ const styles = StyleSheet.create({
         color: '#aaaaaa',
         fontFamily: 'HKNova-MediumR'
     },
-    set_point_container: {
-        position: 'absolute',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    set_point_text: {
+    room_temperature_collapsed: {
         fontSize: 70,
         color: '#ffffff',
         fontFamily: 'HKNova-MediumR'
     },
+    set_point_container: {
+        position: 'absolute',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+    },
+    set_point_title_text: {
+        fontSize: 24,
+        color: '#ffffff',
+        fontFamily: 'HKNova-MediumR',
+        marginTop: -110,
+    },
+    set_point_text: {
+        fontSize: 70,
+        color: '#ffffff',
+        fontFamily: 'HKNova-MediumR',
+        marginTop: -20,
+    },
     set_point_offset: {
-        marginTop: -80,
     },
     minus_container: {
         position: 'absolute',
