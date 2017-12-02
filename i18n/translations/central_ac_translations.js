@@ -15,7 +15,7 @@ export const central_ac_translations = {
         en: 'Room Temperature',
         ar: 'حرارة الغرفة'
     },
-    'Set temperature': {
+    'Set Temperature': {
         en: 'Set temperature',
         ar: 'ضبط الحرارة'
     },

@@ -128,7 +128,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         center_text_main = set_pt.toFixed(1) + '°C';
         center_text_sub = I18n.t('Set Temperature');
       } else {
-        center_text_main = 'Off';
+        center_text_main = I18n.t('Off');
       }
 
       room_temp_text = I18n.t('Room Temperature') + ' ' + temp.toFixed(1) + '°C';
