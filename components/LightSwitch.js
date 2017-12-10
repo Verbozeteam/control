@@ -67,7 +67,6 @@ class LightSwitch extends React.Component<PropsType, StateType> {
     render() {
         const { id, layout, viewType } = this.props;
         const { intensity } = this.state;
-        const light_bulb_img = intensity ? this._light_bulb_img_on : this._light_bulb_img_off;
 
         var on_press = () => {};
         if (viewType === 'detail')
@@ -76,10 +75,20 @@ class LightSwitch extends React.Component<PropsType, StateType> {
         return (
             <TouchableWithoutFeedback
                 onPressIn={on_press}>
-                <Image style={[layout, styles.light_bulb]}
-                    resizeMode='contain'
-                    source={light_bulb_img}>
-                </Image>
+              <View style={styles.container}>
+                <View style={[styles.light_bulb_container, {opacity: intensity}]}>
+                  <Image style={[layout, styles.light_bulb]}
+                      resizeMode={'contain'}
+                      source={this._light_bulb_img_on}>
+                  </Image>
+                </View>
+                <View style={[styles.light_bulb_container, {opacity: ~~!intensity}]}>
+                  <Image style={[layout, styles.light_bulb]}
+                    resizeMode={'contain'}
+                    source={this._light_bulb_img_off}>
+                  </Image>
+                </View>
+              </View>
             </TouchableWithoutFeedback>
         );
     }
@@ -89,11 +98,21 @@ LightSwitch.contextTypes = {
 };
 
 const styles = StyleSheet.create({
-    light_bulb: {
-        flex: 1,
-        width: undefined,
-        height: undefined,
-    },
+  container: {
+    flex: 1
+  },
+  light_bulb_container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: '100%',
+    width: '100%'
+  },
+  light_bulb: {
+      flex: 1,
+      width: undefined,
+      height: undefined,
+  },
 });
 
 module.exports = LightSwitch;
