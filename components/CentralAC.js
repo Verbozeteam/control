@@ -184,6 +184,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
             disabled={fan === 0 || set_pt == this._min_temp}
             icon={require('../assets/images/minus.png')}
             style={hiding_style}
+            borderRadius={0.1}
             action={() => {
               this.changeTemperature(true)(Math.max(this._min_temp, this.state.set_pt - 0.5))
             }} />
@@ -194,6 +195,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
             disabled={fan === 0 || set_pt == this._max_temp}
             icon={require('../assets/images/plus.png')}
             style={hiding_style}
+            borderRadius={0.1}
             action={() => {
               this.changeTemperature(true)(Math.min(this._max_temp, this.state.set_pt + 0.5))
             }} />
