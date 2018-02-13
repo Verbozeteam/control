@@ -11,8 +11,9 @@ type PropsType = {
     name: string,
     iconName?: string,
     selected: boolean,
-    changePage: () => null,
-    longPress: () => null
+    changePage?: () => null,
+    longPress: () => null,
+    height: number,
 };
 
 class PageIcon extends React.Component<PropsType> {
@@ -21,13 +22,8 @@ class PageIcon extends React.Component<PropsType> {
         selected: false
     };
 
-    _onLongPress() {
-        if (this.props.longPress)
-            this.props.longPress();
-    }
-
     render() {
-        const { name, changePage, longPress, selected, iconName } = this.props;
+        const { name, changePage, longPress, selected, iconName, height } = this.props;
 
         const selected_style = (selected) ? styles.selected : null;
         var title = iconName ?
@@ -42,9 +38,10 @@ class PageIcon extends React.Component<PropsType> {
 
         return (
             <TouchableOpacity onPressIn={changePage}
+                activeOpacity={1}
                 delayLongPress={5000}
-                onLongPress={this._onLongPress.bind(this)}
-                style={[styles.container, selected_style]}>
+                onLongPress={longPress}
+                style={[styles.container, selected_style, {height}]}>
                 {title}
             </TouchableOpacity>
         );
@@ -55,15 +52,15 @@ const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#101010',
-        flex: 1,
     },
     selected: {
-        backgroundColor: '#1a1a1a'
+        backgroundColor: '#666666'
     },
     header: {
+        width: '100%',
+        paddingLeft: 10,
         fontFamily: 'HKNova-MediumR',
-        fontSize: 17,
+        fontSize: 21,
         color: '#FFFFFF'
     },
     icon: {

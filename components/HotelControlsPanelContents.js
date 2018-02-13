@@ -96,17 +96,17 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
         const { viewType } = this.props;
 
         const card_defs = [{
-            on_image: this._room_service_on_img,
-            off_image: this._room_service_off_img,
-            text: I18n.t("Room Service"),
-            toggler: this.toggleRoomService.bind(this),
-            state: service_state,
-        }, {
             on_image: this._do_not_disturb_on_img,
             off_image: this._do_not_disturb_off_img,
             text: I18n.t("Do Not Disturb"),
             toggler: this.toggleDoNotDisturb.bind(this),
             state: dnd_state,
+        }, {
+            on_image: this._room_service_on_img,
+            off_image: this._room_service_off_img,
+            text: I18n.t("Room Service"),
+            toggler: this.toggleRoomService.bind(this),
+            state: service_state,
         }]
 
         var cards = [];
@@ -117,14 +117,22 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                     key={'card-'+i}>
                     <TouchableWithoutFeedback
                     onPress={card_defs[i].toggler}>
-                        <Image style={styles.card}
-                            resizeMode='contain'
-                            source={(card_defs[i].state) ? card_defs[i].on_image : card_defs[i].off_image}>
-                        </Image>
+                        <View style={styles.card}>
+                            <Image style={[styles.card, {opacity: card_defs[i].state}]}
+                                fadeDuration={0}
+                                resizeMode='contain'
+                                source={card_defs[i].on_image}>
+                            </Image>
+                            <Image style={[styles.card, {opacity: 1-card_defs[i].state}]}
+                                fadeDuration={0}
+                                resizeMode='contain'
+                                source={card_defs[i].off_image}>
+                            </Image>
+                        </View>
                     </TouchableWithoutFeedback>
                     <View pointerEvents={'none'}
                       style={[styles.text_container, viewType !== 'detail' ? styles.text_container_sm : {}]}>
-                        <Text style={styles.text}>{viewType === 'detail' ? card_defs[i].text : ""}</Text>
+                        <Text style={[styles.text, card_defs[i].state ? {'color': 'white'} : {'color': '#666666'}]}>{viewType === 'detail' ? card_defs[i].text : ""}</Text>
                     </View>
                 </View>
             );
@@ -157,6 +165,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         alignItems: 'center',
         justifyContent: 'center',
+        bottom: 160
     },
     text_container_sm: {
     },
@@ -167,6 +176,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     card: {
+        position: 'absolute',
         height: '100%',
         width: '100%',
     },

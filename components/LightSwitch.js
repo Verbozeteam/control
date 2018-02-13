@@ -14,18 +14,24 @@ const I18n = require('../i18n/i18n');
 
 type StateType = {
     intensity: number,
+    my_category: string,
+    my_last_non_zero: number,
 };
 
 type PropsType = {
-    id: string,
+    id?: string,
+    onSwitch?: number => null,
     layout: LayoutType,
     viewType: ViewType,
+    intensity?: number,
 };
 
 class LightSwitch extends React.Component<PropsType, StateType> {
     _unsubscribe: () => null = () => {return null;};
 
     state = {
+        my_category: 'light_switches',
+        my_last_non_zero: 100,
         intensity: 0,
     };
 
@@ -45,45 +51,63 @@ class LightSwitch extends React.Component<PropsType, StateType> {
     onReduxStateChanged() {
         const { store } = this.context;
         const reduxState = store.getState();
-        const { intensity } = this.state;
+        const { intensity, my_category, my_last_non_zero } = this.state;
         const { id } = this.props;
 
-        if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
-            const my_redux_state = reduxState.connection.thingStates[id];
-            if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity) {
-                this.setState({intensity: my_redux_state.intensity});
+        if (id) {
+            var total_change = {};
+            if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+                const my_redux_state = reduxState.connection.thingStates[id];
+                if (my_redux_state && my_redux_state.category !== my_category)
+                    total_change.my_category = my_redux_state.category;
+                if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity)
+                    total_change.intensity = my_redux_state.intensity;
+                if (my_redux_state && my_redux_state.intensity && my_redux_state.intensity !== my_last_non_zero)
+                    total_change.my_last_non_zero = my_redux_state.intensity;
             }
+            if (Object.keys(total_change).length > 0)
+                this.setState(total_change);
         }
     }
 
     changeIntensity(intensity: number) {
-        SocketCommunication.sendMessage({
-            thing: this.props.id,
-            intensity
-        });
-        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {intensity}));
+        if (this.props.onSwitch)
+            this.props.onSwitch(intensity);
+        if (this.props.id) {
+            SocketCommunication.sendMessage({
+                thing: this.props.id,
+                intensity
+            });
+            this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {intensity}));
+        }
     }
 
     render() {
         const { id, layout, viewType } = this.props;
-        const { intensity } = this.state;
+        var { intensity, my_category, my_last_non_zero } = this.state;
+        if (this.props.intensity)
+            intensity = this.props.intensity;
+
+        var intensity_after_switch = my_category === 'light_switches' ? (1 - intensity) : (intensity > 0 ? 0 : my_last_non_zero);
 
         var on_press = () => {};
         if (viewType === 'detail')
-            on_press = (() => this.changeIntensity(1-this.state.intensity)).bind(this);
+            on_press = (() => this.changeIntensity(intensity_after_switch)).bind(this);
 
         return (
             <TouchableWithoutFeedback
                 onPressIn={on_press}>
               <View style={styles.container}>
-                <View style={[styles.light_bulb_container, {opacity: intensity}]}>
+                <View style={[styles.light_bulb_container, {opacity: intensity === 0 ? 0 : 1}]}>
                   <Image style={[layout, styles.light_bulb]}
-                      resizeMode={'contain'}
-                      source={this._light_bulb_img_on}>
+                    fadeDuration={0}
+                    resizeMode={'contain'}
+                    source={this._light_bulb_img_on}>
                   </Image>
                 </View>
-                <View style={[styles.light_bulb_container, {opacity: ~~!intensity}]}>
+                <View style={[styles.light_bulb_container, {opacity: intensity === 0 ? 1 : 0}]}>
                   <Image style={[layout, styles.light_bulb]}
+                    fadeDuration={0}
                     resizeMode={'contain'}
                     source={this._light_bulb_img_off}>
                   </Image>

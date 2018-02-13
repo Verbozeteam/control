@@ -54,22 +54,20 @@ class HotelControls extends React.Component<PropsType> {
         const { do_not_disturb, room_service, card, power }
             = this.props.hotelControlsState;
 
-        console.log('HOTEL CONTROl => ', this.props);
-
         const room_service_card = <TouchableWithoutFeedback
             onPress={() => this.toggleRoomService()}>
                 <Image style={styles.card}
+                    fadeDuration={0}
                     resizeMode='contain'
                     source={(room_service) ?
                         this._room_service_on_img : this._room_service_off_img}>
                 </Image>
             </TouchableWithoutFeedback>
 
-
-
         const do_not_disturb_card = <TouchableWithoutFeedback
             onPress={() => this.toggleDoNotDisturb()}>
                 <Image style={styles.card}
+                    fadeDuration={0}
                     resizeMode='contain'
                     source={(do_not_disturb) ?
                         this._do_not_disturb_on_img : this._do_not_disturb_off_img}>
