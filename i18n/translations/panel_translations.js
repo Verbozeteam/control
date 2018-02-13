@@ -19,4 +19,8 @@ export const panel_translations = {
         en: 'Room Temperature is',
         ar: 'حرارة الغرفة:',
     },
+    'All': {
+        en: 'All',
+        ar: 'الجميع',
+    }
 };
