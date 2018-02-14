@@ -65,8 +65,11 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
                     }
                 }
             }
+            var total_update = {};
             if (is_on !== this.state.all_state)
-                this.setState({all_state: is_on});
+                total_update.all_state = is_on;
+            if (Object.keys(total_update).length > 0)
+                this.setState(total_update);
         }
     }
 
@@ -156,6 +159,15 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
         </View>;
     }
 
+    dimmerHasSwitch(id: string): boolean {
+        const { store } = this.context;
+        const reduxState = store.getState();
+
+        if (reduxState && reduxState.connection && reduxState.connection.thingStates && id in reduxState.connection.thingStates)
+            return reduxState.connection.thingStates[id].has_switch;
+        return false;
+    }
+
     render() {
         const { things, layout, presets, viewType } = this.props;
 
@@ -165,7 +177,8 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
         for (var i = 0; i < things.length; i++) {
             if (things[i].category === 'dimmers') {
                 dimmers.push(this.renderDimmer(things[i]));
-                dimmer_switches.push(this.renderLightSwitch(things[i]));
+                if (this.dimmerHasSwitch(things[i].id))
+                    dimmer_switches.push(this.renderLightSwitch(things[i]));
             } else
                switches.push(this.renderLightSwitch(things[i]));
         }
@@ -239,7 +252,6 @@ const switch_styles = StyleSheet.create({
     },
     name: {
         fontSize: 20,
-        height: 30,
         marginTop: -50,
         fontFamily: 'HKNova-MediumR',
         color: '#FFFFFF',

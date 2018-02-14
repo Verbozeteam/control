@@ -21,6 +21,7 @@ type StateType = {
     set_pt: number,
     temp: number,
     fan: number,
+    fan_speeds: Array<string>,
 };
 
 type PropsType = {
@@ -36,21 +37,10 @@ class CentralAC extends React.Component<PropsType, StateType> {
       set_pt: 0,
       temp: 0,
       fan: 0,
+      fan_speeds: [],
   };
 
-  _fan_speeds = [
-      I18n.t('Off'),
-      I18n.t('Low'),
-      I18n.t('High')
-  ];
-
   _fan_icon = require('../assets/images/fan.png');
-
-  _fan_actions = [
-      () => this.changeFan(0),
-      () => this.changeFan(1),
-      () => this.changeFan(2)
-  ];
 
   _max_temp: number = 30;
   _min_temp: number = 16;
@@ -81,6 +71,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                   set_pt: my_redux_state.set_pt,
                   temp: my_redux_state.temp,
                   fan: my_redux_state.fan,
+                  fan_speeds: my_redux_state.fan_speeds,
               });
           }
       }
@@ -112,7 +103,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
   render() {
     const { id, layout, viewType } = this.props;
-    const { set_pt, temp, fan } = this.state;
+    const { set_pt, temp, fan, fan_speeds } = this.state;
 
     var slider = null;
     var toggles = null;
@@ -154,27 +145,28 @@ class CentralAC extends React.Component<PropsType, StateType> {
         </View>,
       ];
 
+      var current_fan_speeds = ["Low", "High"];
+      if (fan_speeds && fan_speeds.length > 0) {
+        current_fan_speeds = fan_speeds.map(s => I18n.t(s));
+      }
+
+      var fan_speed_boxes = [];
+      for (var i = 0; i < current_fan_speeds.length; i++) {
+        const index = i+1;
+        fan_speed_boxes.push(
+          <TouchableWithoutFeedback key={"fan-speed-"+index} onPressIn={fanToggleEvent(index)}>
+            <View style={styles.fan_speed_container}>
+              {toggle_dot[fan == index ? 0: 1]}
+              <Text style={styles.fan_speed_text}>{current_fan_speeds[i]}</Text>
+            </View>
+          </TouchableWithoutFeedback>
+        );
+      }
+
       toggles = (
         <View style={styles.fan_controls_container}>
           <Text style={[styles.fan_speed_text, {flex: 1}]}>{I18n.t('Fan')}</Text>
-          <TouchableWithoutFeedback onPressIn={fanToggleEvent(1)}>
-            <View style={styles.fan_speed_container}>
-              {toggle_dot[fan == 1 ? 0: 1]}
-              <Text style={styles.fan_speed_text}>{I18n.t('Low')}</Text>
-            </View>
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPressIn={fanToggleEvent(2)}>
-            <View style={styles.fan_speed_container}>
-              {toggle_dot[fan == 2 ? 0: 1]}
-              <Text style={styles.fan_speed_text}>{I18n.t('Medium')}</Text>
-            </View>
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPressIn={fanToggleEvent(3)}>
-            <View style={styles.fan_speed_container}>
-              {toggle_dot[fan == 3 ? 0: 1]}
-              <Text style={styles.fan_speed_text}>{I18n.t('High')}</Text>
-            </View>
-          </TouchableWithoutFeedback>
+          {fan_speed_boxes}
         </View>
       );
     } else {
