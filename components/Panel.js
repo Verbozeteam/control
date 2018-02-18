@@ -57,12 +57,12 @@ class Panel extends React.Component<PropTypes> {
         if (viewType === 'collapsed')
             panel_style = styles.container_collapsed;
         return (
-            <LinearGradient colors={['#1c2f4f', '#0f1f3f']}
+            <LinearGradient colors={['#666666', '#666666']}
                   start={{x: 1, y: 0}} end={{x: 0, y: 1}}
                   {...this._panResponder.panHandlers}
                   style={[layout, panel_style]}>
                 <PanelHeader name={name.en}
-                    close={viewType === 'detail' ?
+                    close={viewType === 'detail' && toggleDetail ?
                     () => toggleDetail() : undefined}/>
                 {this.props.children}
             </LinearGradient>

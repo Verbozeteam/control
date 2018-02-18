@@ -3,7 +3,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 
-const GenericSlider = require('../react-components/GenericSlider');
+const GenericSliderSimple = require('../react-components/GenericSliderSimple');
 
 const connectionActions = require('../redux-objects/actions/connection');
 const SocketCommunication = require('../lib/SocketCommunication');
@@ -66,15 +66,13 @@ class LightDimmer extends React.Component<PropsType, StateType> {
         const { intensity } = this.state;
 
         return (
-            <GenericSlider
+            <GenericSliderSimple
                 layout={layout}
                 icon={this._dimmer_icon}
                 value={intensity}
                 orientation={'horizontal'}
                 maximum={100}
                 minimum={0}
-                textGenerator={v => name}
-                showValue={true}
                 round={(value: number) => Math.round(value)}
                 onMove={this.changeIntensity.bind(this)}
                 onRelease={this.changeIntensity.bind(this)} />

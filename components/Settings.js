@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
         flex: 3,
         color: '#FFFFFF',
         width: 200,
-        backgroundColor: '#0f0f0f'
+        backgroundColor: '#444444'
     }
 });
 
