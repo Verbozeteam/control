@@ -5,8 +5,6 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
-import type { LayoutType, ViewType } from '../config/flowtypes';
-
 const GenericToggle = require('../react-components/GenericToggle');
 
 const connectionActions = require('../redux-objects/actions/connection');
@@ -19,7 +17,6 @@ type StateType = {
 };
 
 type PropsType = {
-    viewType: ViewType,
     presets: Array<Object>,
 };
 
@@ -90,7 +87,7 @@ class PresetsSwitch extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { presets, viewType } = this.props;
+        const { presets } = this.props;
         const { currentPresetIndex } = this.state;
 
         var on_press = (() => this.changePreset((this.state.currentPresetIndex + 1) % presets.length)).bind(this);

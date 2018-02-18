@@ -1,14 +1,12 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 
+import { ConfigManager } from './ConfigManager';
+import type { GroupType, ThingMetadataType, ConfigType } from './ConfigManager';
 const settingsActions = require ('../redux-objects/actions/settings');
-
-import type { LayoutType, NameType } from '../config/flowtypes';
-import type { RoomType, PanelType, GenericThingType } from '../config/ConnectionTypes';
 
 const I18n = require('../i18n/i18n');
 const PageIcon = require('./PageIcon');
@@ -20,7 +18,7 @@ const HotelControlsPanelContents = require('./HotelControlsPanelContents');
 const CentralAC = require('./CentralAC');
 
 type StateType = {
-    panels: Array<PanelType>,
+    groups: Array<GroupType>,
     currentPage: number,
 };
 
@@ -30,110 +28,99 @@ type PageType = {
     selectedIconName?: string,
     longPress?: () => any,
     renderer: (number) => any,
-    height: number
+    height: ?number,
+    is_pressable: ?boolean,
+    getBackground: number => any,
 };
 
 class PagingView extends React.Component<any, StateType> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => null = () => null;
 
     state = {
-        panels: [],
+        groups: [],
         currentPage: 0,
     };
 
     _pages : {[string]: PageType} = {
-        panel: {
-            name: "Panel",
-            height: 60,
+        group: {
+            name: "Group",
             renderer: (index: number) => this.renderRoomView(index-1),
+            getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
+            longPress: () => settingsActions.toggleDevMode(),
         },
         settings: {
-            name: "Admin Settings",
-            iconName: require('../assets/images/iconhome.png'),
-            selectedIconName: require('../assets/images/iconhome.png'),
-            height: 200,
-            longPress: (() => {
-                this.changePage(0);
-                this.context.store.dispatch(settingsActions.toggle_dev_mode());
-            }).bind(this),
-            renderer: this.renderSettingsView.bind(this),
-            is_pressable: false,
-        },
-        user_settings: {
             name: "Settings",
             height: 60,
-            renderer: ((i: number) => {
-                this.context.store.dispatch(settingsActions.set_dev_mode(false));
-                return this.renderSettingsView(i);
-            }).bind(this),
+            renderer: this.renderSettingsView.bind(this),
+            getBackground: (index: number) => this._backgrounds.settings,
             is_pressable: true,
-        }
+        },
+    };
+
+    _backgrounds = {
+        'dimmers': require('../assets/images/lights_stack.jpg'),
+        'light_switches': require('../assets/images/lights_stack.jpg'),
+        'curtains': require('../assets/images/curtain_back.jpg'),
+        'hotel_controls': require('../assets/images/services_stack.jpg'),
+        'central_acs': require('../assets/images/thermostat_stack.jpg'),
+        'settings': require('../assets/images/fituri.jpg'),
     };
 
     componentWillMount() {
-        const { store } = this.context;
-        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
-        this.onReduxStateChanged();
+        this._unsubscribe = ConfigManager.registerConfigChangeCallback(this.onConfigChanged.bind(this));
+        if (ConfigManager.config)
+            this.onConfigChanged(ConfigManager.config);
     }
 
     componentWillUnmount() {
         this._unsubscribe();
     }
 
-    onReduxStateChanged() {
-        const { store } = this.context;
-        const reduxState = store.getState();
-        const { panels } = this.state;
+    onConfigChanged(config: ConfigType) {
+        const { groups } = this.state;
 
-        if (reduxState && reduxState.connection && reduxState.connection.config && reduxState.connection.config.rooms) {
-            var reduxConfig = reduxState.connection.config;
-            var reduxPanels = [];
-            for (var r = 0; r < reduxConfig.rooms.length; r++) {
-                var room = reduxConfig.rooms[r];
-                for (var g = 0; g < room.grid.length; g++) {
-                    var grid = room.grid[g];
-                    for (var p = 0; p < grid.panels.length; p++) {
-                        var panel = grid.panels[p];
-                        reduxPanels.push(panel);
-                    }
-                }
+        if (config && config.rooms) {
+            var newGroups = [];
+            for (var r = 0; r < config.rooms.length; r++) {
+                var room = config.rooms[r];
+                newGroups = newGroups.concat(room.groups);
             }
 
-            if (JSON.stringify(reduxPanels) != JSON.stringify(panels)) {
-                this.setState({panels: reduxPanels, currentPage: 0});
+            if (JSON.stringify(newGroups) != JSON.stringify(groups)) {
+                this.setState({groups: newGroups, currentPage: 0});
             }
         }
     }
 
-    renderPanelContents(panel: PanelType, layout: Object) {
-        var things: Array<GenericThingType> = panel.things.filter(t => t.category !== 'empty');
+    getGroupBackground(index: number) {
+        const { groups } = this.state;
+        const group = groups[index-1];
+        var things: Array<ThingMetadataType> = group.things.filter(t => t.category !== 'empty');
+        if (things.length > 0)
+            return this._backgrounds[things[0].category];
+        return null;
+    }
+
+    renderGroupContents(group: GroupType, layout: Object) {
+        var things: Array<ThingMetadataType> = group.things.filter(t => t.category !== 'empty');
         if (things.length > 0) {
             switch (things[0].category) {
                 case 'dimmers':
                 case 'light_switches':
-                    return  <LightsPanelContents
-                        viewType={'detail'}
-                        things={things}
-                        layout={layout}
-                        presets={panel.presets}/>
+                    return  <LightsPanelContents things={things} layout={layout} presets={group.presets}/>
                 case 'hotel_controls':
-                    return <HotelControlsPanelContents
-                        id={things[0].id}
-                        viewType={'detail'}/>;
+                    return <HotelControlsPanelContents id={things[0].id} layout={layout}/>;
                 case 'central_acs':
-                    return <CentralAC
-                        id={things[0].id}
-                        layout={layout}
-                        viewType={'detail'}/>;
+                    return <CentralAC id={things[0].id} layout={layout}/>;
             }
         }
         return null;
     }
 
     renderRoomView(index: number) {
-        const { panels } = this.state;
-        const panel = panels[index];
+        const { groups } = this.state;
+        const group = groups[index];
         var layout = {
             left: 0,
             top: 0,
@@ -142,11 +129,10 @@ class PagingView extends React.Component<any, StateType> {
         };
 
         return (
-            <Panel key={'panel-' + index}
-                name={I18n.t(panel.name.en)}
-                layout={layout}
-                viewType={'detail'}>
-                {this.renderPanelContents(panel, layout)}
+            <Panel key={'group-' + index}
+                name={I18n.t(group.name)}
+                layout={layout}>
+                {this.renderGroupContents(group, layout)}
             </Panel>
         );
     }
@@ -165,34 +151,50 @@ class PagingView extends React.Component<any, StateType> {
     }
 
     render() {
-        const { panels } = this.state;
+        const { groups, currentPage } = this.state;
+
+        const screenDimensions = {
+            width: Dimensions.get('screen').width,
+            height: Dimensions.get('screen').height
+        };
 
         var pages = [this._pages.settings];
-        if (panels && panels.length > 0) {
-            pages = pages.concat(panels.map(panel => {return {...this._pages.panel, ...{name: I18n.t(panel.name.en)}}}));
+        if (groups && groups.length > 0) {
+            pages = pages.concat(groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}}));
         }
-        pages.push(this._pages.user_settings);
+
+        var numFlexedIcons = pages.map(p => p.height ? 0 : 1).reduce((a, b) => a+b);
+        var totalPresetHeight = pages.map(p => p.height || 0).reduce((a, b) => a+b);
 
         var page_icons = pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
-                iconName={(page.selectedIconName && this.state.currentPage == i) ? page.selectedIconName : page.iconName}
-                selected={i == this.state.currentPage}
+                iconName={(page.selectedIconName && currentPage == i) ? page.selectedIconName : page.iconName}
+                selected={i == currentPage}
                 changePage={page.is_pressable ? this.changePage(i).bind(this) : null}
                 longPress={page.longPress}
-                height={page.height}
+                height={page.height || (screenDimensions.height-totalPresetHeight) / numFlexedIcons}
             />
         );
 
-        page_icons.splice(page_icons.length - 1, 0, <View key={"separator"} style={{marginTop: 4, marginBottom: 4, marginLeft: 20, width: 160, height: 1, backgroundColor: 'white'}}></View>);
+        var bkg = pages[currentPage].getBackground(currentPage);
 
         return (
             <View style={styles.container}>
-                <View style={styles.sidebar_container}>
-                    {page_icons}
-                </View>
+                <Image
+                    source={bkg}
+                    style={[styles.content_container, screenDimensions]}
+                    />
                 <View style={styles.content_container}>
-                    {pages[this.state.currentPage].renderer(this.state.currentPage)}
+                    {pages[currentPage].renderer(currentPage)}
+                </View>
+                <View style={styles.sidebar_container}>
+                    <Image
+                        source={bkg}
+                        style={[styles.content_container, screenDimensions, {opacity: 0.8}]}
+                        blurRadius={3}
+                        />
+                    {page_icons}
                 </View>
             </View>
         );
@@ -205,15 +207,27 @@ PagingView.contextTypes = {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: 'row',
+        position: 'relative',
     },
     sidebar_container: {
+        left: 0,
+        top: 0,
+        position: 'absolute',
         width: 200,
-        backgroundColor: '#3B9FFF',
+        height: '100%',
+        overflow: 'hidden',
+        backgroundColor: '#000000',
+
+        display: 'flex',
+        flexDirection: 'column',
     },
     content_container: {
-        flex: 1,
-        backgroundColor: '#666666'
+        left: 0,
+        top: 0,
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        paddingLeft: 200,
     },
 });
 

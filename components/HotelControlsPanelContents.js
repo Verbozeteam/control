@@ -1,19 +1,17 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Image, TouchableWithoutFeedback, StyleSheet }
-    from 'react-native';
+import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-const connectionActions = require('../redux-objects/actions/connection');
-const SocketCommunication = require('../lib/SocketCommunication');
 
-import type { ViewType } from '../config/flowtypes';
+import { ConfigManager } from './ConfigManager';
+import type { ThingStateType, ThingMetadataType } from './ConfigManager';
 
 const I18n = require('../i18n/i18n');
 
 type PropsType = {
     id: string,
-    viewType: ViewType,
+    layout: Object,
 };
 
 type StateType = {
@@ -22,7 +20,7 @@ type StateType = {
 };
 
 class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => null = () => null;
 
     state = {
         service_state: 0,
@@ -35,32 +33,27 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
     _do_not_disturb_off_img = require('../assets/images/do_not_disturb_off.png');
 
     componentWillMount() {
-        const { store } = this.context;
-        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
-        this.onReduxStateChanged();
+        this.componentWillReceiveProps(this.props);
+    }
+
+    componentWillReceiveProps(newProps: PropsType) {
+        this._unsubscribe();
+        this._unsubscribe = ConfigManager.registerThingStateChangeCallback(newProps.id, this.onHotelControlsChanged.bind(this));
+        if (newProps.id in ConfigManager.things)
+            this.onHotelControlsChanged(ConfigManager.thingMetas[newProps.id], ConfigManager.things[newProps.id]);
     }
 
     componentWillUnmount() {
         this._unsubscribe();
     }
 
-    onReduxStateChanged() {
-        const { store } = this.context;
-        const reduxState = store.getState();
+    onHotelControlsChanged(meta: ThingMetadataType, hcState: ThingStateType) {
         const { service_state, dnd_state } = this.state;
-        const { id } = this.props;
-
-        if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
-            const my_redux_state = reduxState.connection.thingStates[id];
-            if (my_redux_state && my_redux_state.room_service != undefined && my_redux_state.do_not_disturb != undefined) {
-                if (my_redux_state.room_service != service_state || my_redux_state.do_not_disturb != dnd_state) {
-                    this.setState({
-                        service_state: my_redux_state.room_service,
-                        dnd_state: my_redux_state.do_not_disturb
-                    });
-                }
-            }
-        }
+        if (service_state !== hcState.room_service || dnd_state !== hcState.do_not_disturb)
+            this.setState({
+                service_state: hcState.room_service,
+                dnd_state: hcState.do_not_disturb
+            });
     }
 
     toggleRoomService() {
@@ -69,12 +62,7 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
         service_state = 1 - service_state;
         dnd_state = 0;
 
-        SocketCommunication.sendMessage({
-            thing: this.props.id,
-            room_service: service_state,
-            do_not_disturb: dnd_state,
-        });
-        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {room_service: service_state, do_not_disturb: dnd_state}));
+        ConfigManager.setThingState(this.props.id, {room_service: service_state, do_not_disturb: dnd_state}, true);
     }
 
     toggleDoNotDisturb() {
@@ -83,17 +71,11 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
         dnd_state = 1 - dnd_state;
         service_state = 0;
 
-        SocketCommunication.sendMessage({
-            thing: this.props.id,
-            room_service: service_state,
-            do_not_disturb: dnd_state,
-        });
-        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {room_service: service_state, do_not_disturb: dnd_state}));
+        ConfigManager.setThingState(this.props.id, {room_service: service_state, do_not_disturb: dnd_state}, true);
     }
 
     render() {
         const { service_state, dnd_state } = this.state;
-        const { viewType } = this.props;
 
         const card_defs = [{
             on_image: this._do_not_disturb_on_img,
@@ -131,8 +113,8 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                         </View>
                     </TouchableWithoutFeedback>
                     <View pointerEvents={'none'}
-                      style={[styles.text_container, viewType !== 'detail' ? styles.text_container_sm : {}]}>
-                        <Text style={[styles.text, card_defs[i].state ? {'color': 'white'} : {'color': '#666666'}]}>{viewType === 'detail' ? card_defs[i].text : ""}</Text>
+                      style={styles.text_container}>
+                        <Text style={[styles.text, card_defs[i].state ? {'color': 'white'} : {'color': '#666666'}]}>{card_defs[i].text}</Text>
                     </View>
                 </View>
             );
@@ -145,9 +127,6 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
         );
     }
 }
-HotelControlsPanelContents.contextTypes = {
-    store: PropTypes.object
-};
 
 const styles = StyleSheet.create({
     container: {

@@ -33,8 +33,10 @@ class PageIcon extends React.Component<PropsType> {
                 </Image>
             :
                 <Text style={styles.header}>
-                    {I18n.t(name)}
-                </Text>
+                    {I18n.t(name).toUpperCase()}
+                </Text>;
+
+        var sizeStyle = height ? {height} : {flex: 1};
 
         return (
             <TouchableOpacity onPressIn={changePage}
@@ -54,13 +56,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     selected: {
-        backgroundColor: '#666666'
+        backgroundColor: '#FFFFFF22'
     },
     header: {
         width: '100%',
         paddingLeft: 10,
-        fontFamily: 'HKNova-MediumR',
+        paddingRight: 10,
         fontSize: 21,
+        textAlign: 'right',
+        fontWeight: '100',
+
         color: '#FFFFFF'
     },
     icon: {

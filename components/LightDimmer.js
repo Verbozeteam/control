@@ -5,10 +5,8 @@ import PropTypes from 'prop-types';
 
 const GenericSliderSimple = require('../react-components/GenericSliderSimple');
 
-const connectionActions = require('../redux-objects/actions/connection');
-const SocketCommunication = require('../lib/SocketCommunication');
-
-import type { LayoutType } from '../config/flowtypes';
+import { ConfigManager } from './ConfigManager';
+import type { ThingStateType, ThingMetadataType } from './ConfigManager';
 
 type StateType = {
     intensity: number,
@@ -17,11 +15,11 @@ type StateType = {
 type PropsType = {
     id: string,
     name: string,
-    layout: LayoutType,
+    layout: Object,
 };
 
 class LightDimmer extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => null = () => null;
 
     state = {
         intensity: 0,
@@ -30,35 +28,31 @@ class LightDimmer extends React.Component<PropsType, StateType> {
     _dimmer_icon = require('../assets/images/dimmer.png');
 
     componentWillMount() {
-        const { store } = this.context;
-        this._unsubscribe = store.subscribe(this.onReduxStateChanged.bind(this));
-        this.onReduxStateChanged();
+        this.componentWillReceiveProps(this.props);
+    }
+
+    componentWillReceiveProps(newProps: PropsType) {
+        this._unsubscribe();
+        if (newProps.id) {
+            this._unsubscribe = ConfigManager.registerThingStateChangeCallback(newProps.id, this.onLightChanged.bind(this));
+            if (newProps.id && newProps.id in ConfigManager.things)
+                this.onLightChanged(ConfigManager.thingMetas[newProps.id], ConfigManager.things[newProps.id]);
+        }
     }
 
     componentWillUnmount() {
         this._unsubscribe();
     }
 
-    onReduxStateChanged() {
-        const { store } = this.context;
-        const reduxState = store.getState();
+    onLightChanged(meta: ThingMetadataType, lightState: ThingStateType) {
         const { intensity } = this.state;
-        const { id } = this.props;
 
-        if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
-            const my_redux_state = reduxState.connection.thingStates[id];
-            if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity) {
-                this.setState({intensity: my_redux_state.intensity});
-            }
-        }
+        if (lightState.intensity !== intensity)
+            this.setState({intensity: lightState.intensity});
     }
 
     changeIntensity(intensity: number) {
-        SocketCommunication.sendMessage({
-            thing: this.props.id,
-            intensity
-        });
-        this.context.store.dispatch(connectionActions.set_thing_partial_state(this.props.id, {intensity}));
+        ConfigManager.setThingState(this.props.id, {intensity}, true);
     }
 
     render() {
@@ -79,9 +73,5 @@ class LightDimmer extends React.Component<PropsType, StateType> {
         );
     }
 }
-
-LightDimmer.contextTypes = {
-    store: PropTypes.object
-};
 
 module.exports = LightDimmer;

@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
+import { ConfigManager } from './components/ConfigManager';
+
 const I18n = require('./i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./lib/SocketCommunication');
@@ -63,9 +65,9 @@ class VerbozeControl extends React.Component<{}, StateType> {
         console.log("Initializing sockets...");
         SocketCommunication.initialize();
         SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
-        SocketCommunication.setOnMessage(this.handleSocketData.bind(this));
         SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
+        ConfigManager.initialize(SocketCommunication); // this registers SocketCommunication.setOnMessage
 
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
         this.onReduxStateChanged();
@@ -141,23 +143,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
         console.log('Socket disconnected!');
         this.props.setConnectionStatus(false);
         this.props.setConfig({});
-    }
-
-    handleSocketData(data: SocketDataType) {
-        if (Object.keys(data).length == 0)
-            return;
-
-        console.log("handleSocketData: ", data);
-
-        // if config provided, apply it
-        if ('config' in data) {
-            this.props.setConfig(data.config);
-            this.extractI18NFromConfigAndFindHotelThing(data.config);
-            delete data['config'];
-        }
-
-        if (Object.keys(data).length > 0)
-            this.props.setThingsStates(data);
     }
 
     handleDeviceDiscovered(device: DiscoveredDeviceType) {
