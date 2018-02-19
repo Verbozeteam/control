@@ -10,8 +10,9 @@ import type { ThingStateType, ThingMetadataType, PresetType } from './ConfigMana
 
 const Panel = require('./Panel');
 
+import { LightSwitch } from './LightSwitch';
+
 const LightDimmer = require('./LightDimmer');
-const LightSwitch = require('./LightSwitch');
 const PresetsSwitch = require('./PresetsSwitch');
 
 const I18n = require('../i18n/i18n');
@@ -74,48 +75,24 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
         const { layout } = this.props;
 
         var dimmer_name = I18n.t(dimmer.name);
-        var slider_width = layout.width - 40;
+        var slider_width = layout.width / 2 - 40;
         var slider_height = 90;
 
-        return <View
-            key={dimmer.id+'-container'}
-            style={dimmer_styles.container}>
+        return <View key={dimmer.id+'-dimmer-container'} style={styles.dimmer_container}>
+            <Text style={styles.dimmer_name}>{I18n.t(dimmer.name).toUpperCase()}</Text>
             <LightDimmer
-                key={dimmer.id}
                 id={dimmer.id}
-                name={dimmer_name}
-                layout={{width: slider_width - 130, height: slider_height, top: 0, left: 0}}/>
-            <View style={{width: 130, marginLeft: 10,}}>
-                <Text style={dimmer_styles.name}>{I18n.t(dimmer.name)}</Text>
-            </View>
+                layout={{width: slider_width, height: slider_height, top: 0, left: 0}}/>
         </View>;
     }
 
     renderLightSwitch(light_switch: ThingMetadataType) {
-        const { layout } = this.props;
-
-        var switch_name = I18n.t(light_switch.name);
-
-        return <View key={light_switch.id+'-container'}
-            style={switch_styles.container}>
-            <View key={light_switch.id+'-container-container'}
-                style={switch_styles.container_container}>
-                <LightSwitch
-                    key={light_switch.id}
-                    id={light_switch.id}
-                    layout={{}} />
-                <Text key={light_switch.id+'-name'}
-                    style={switch_styles.name}>
-                    {switch_name}
-                </Text>
-            </View>
+        return <View style={styles.switch_container} key={light_switch.id}>
+            <LightSwitch id={light_switch.id}/>
         </View>;
     }
 
     renderAllSwitch() {
-        const { layout } = this.props;
-        var switch_name = I18n.t('All');
-
         var on_switch = ((new_val) => {
             var total_change = {};
             for (var t = 0; t < this.props.things.length; t++) {
@@ -126,18 +103,11 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
             ConfigManager.setThingsStates(total_change, true);
         }).bind(this);
 
-        return <View key={'all-switch-container'}
-            style={switch_styles.container}>
-            <View style={switch_styles.container_container}>
-                <LightSwitch
-                    id={null}
-                    intensity={this.state.all_state}
-                    onSwitch={on_switch} />
-                <Text
-                    style={switch_styles.name}>
-                    {switch_name}
-                </Text>
-            </View>
+        return <View style={styles.all_switch_container} key={"all-switch"}>
+            <LightSwitch
+                id={null}
+                intensity={this.state.all_state}
+                onSwitch={on_switch} />
         </View>;
     }
 
@@ -147,29 +117,31 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
         var dimmers = [];
         var switches = [];
         var dimmer_switches = [];
+        var total_left_flex = 0;
         for (var i = 0; i < things.length; i++) {
             if (things[i].category === 'dimmers') {
                 dimmers.push(this.renderDimmer(things[i]));
-                if (ConfigManager.thingMetas[things[i].id].has_switch)
-                    dimmer_switches.push(this.renderLightSwitch(things[i]));
-            } else
-               switches.push(this.renderLightSwitch(things[i]));
+                // if (ConfigManager.thingMetas[things[i].id].has_switch)
+                //     dimmer_switches.push(this.renderLightSwitch(things[i]));
+                total_left_flex += 6;
+            } else {
+                switches.push(this.renderLightSwitch(things[i]));
+                total_left_flex += 4;
+            }
         }
 
-        switches = dimmer_switches.concat(switches);
-
-        for (var i = switches.length; i < 4; i++)
-            switches.push(<View style={switch_styles.container} key={"dummy-switch-"+i}></View>);
-
-        switches.push(this.renderAllSwitch());
+        var filler = <View style={{flex: total_left_flex-4}}></View>
 
         return (
             <View style={styles.container}>
-                <View style={styles.switches_container}>
+                <View style={styles.controls_container}>
+                    {dimmers}
+                    <View style={styles.separator_container}><View style={styles.separator}></View></View>
                     {switches}
                 </View>
-                <View style={styles.dimmers_container}>
-                    {dimmers}
+                <View style={styles.controls_container}>
+                    {filler}
+                    {this.renderAllSwitch()}
                 </View>
             </View>
         );
@@ -179,54 +151,43 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        flexDirection: 'row',
+    },
+    controls_container: {
         flexDirection: 'column',
-    },
-    switches_container: {
-        flexDirection: 'row',
         flex: 1,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
     },
-    dimmers_container: {
-        flexDirection: 'row',
+    separator_container: {
+        width: '100%',
         flex: 1,
-    },
-});
-
-const dimmer_styles = StyleSheet.create({
-    container: {
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'row',
-        flex: 1,
     },
-    name_container: {
-        marginLeft: 0,
+    separator: {
+        width: '80%',
+        height: 1,
+        backgroundColor: '#666666',
+    },
+    switch_container: {
+        flex: 4,
         justifyContent: 'center',
-        flex: 1,
     },
-    name: {
-        marginLeft: 20,
-        fontSize: 20,
-        fontFamily: 'HKNova-MediumR',
-        color: '#FFFFFF',
-    },
-});
-
-const switch_styles = StyleSheet.create({
-    container: {
+    dimmer_container: {
+        flex: 6,
+        justifyContent: 'center',
         flexDirection: 'column',
-        flex: 1,
     },
-    container_container: {
-        flexDirection: 'column',
-        flex: 1,
-    },
-    name: {
-        fontSize: 20,
-        marginTop: -50,
-        fontFamily: 'HKNova-MediumR',
+    dimmer_name: {
         color: '#FFFFFF',
-        textAlign: 'center',
-    }
+        fontSize: 20,
+    },
+    all_switch_container: {
+        flex: 4,
+        justifyContent: 'center',
+        flexDirection: 'column',
+    },
 });
 
 module.exports = LightsPanel;

@@ -31,7 +31,7 @@ class Panel extends React.Component<PropsType> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
+        padding: 20,
         borderRadius: 2,
     },
     container_collapsed: {

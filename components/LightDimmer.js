@@ -3,7 +3,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 
-const GenericSliderSimple = require('../react-components/GenericSliderSimple');
+import { DimmerSlider } from './DimmerSlider';
 
 import { ConfigManager } from './ConfigManager';
 import type { ThingStateType, ThingMetadataType } from './ConfigManager';
@@ -14,7 +14,6 @@ type StateType = {
 
 type PropsType = {
     id: string,
-    name: string,
     layout: Object,
 };
 
@@ -56,20 +55,18 @@ class LightDimmer extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { layout, name } = this.props;
+        const { layout } = this.props;
         const { intensity } = this.state;
 
         return (
-            <GenericSliderSimple
-                layout={layout}
-                icon={this._dimmer_icon}
+            <DimmerSlider
+                width={layout.width}
+                height={layout.height}
                 value={intensity}
-                orientation={'horizontal'}
-                maximum={100}
-                minimum={0}
+                maxValue={100}
                 round={(value: number) => Math.round(value)}
-                onMove={this.changeIntensity.bind(this)}
-                onRelease={this.changeIntensity.bind(this)} />
+                onChange={this.changeIntensity.bind(this)}
+                glowColor={'#BA3737'} />
         );
     }
 }

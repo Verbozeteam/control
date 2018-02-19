@@ -44,7 +44,10 @@ class PageIcon extends React.Component<PropsType> {
                 delayLongPress={5000}
                 onLongPress={longPress}
                 style={[styles.container, selected_style, {height}]}>
-                {title}
+                <View style={styles.contentWrapper}>
+                    {title}
+                    <View style={styles.underline}></View>
+                </View>
             </TouchableOpacity>
         );
     }
@@ -52,16 +55,22 @@ class PageIcon extends React.Component<PropsType> {
 
 const styles = StyleSheet.create({
     container: {
+        position: 'relative',
+        alignSelf: 'baseline',
         alignItems: 'center',
         justifyContent: 'center',
+        width: '100%',
+        paddingRight: 10,
+    },
+    contentWrapper: {
+        alignSelf: 'flex-end',
+        position: 'relative',
+        backgroundColor: '#00000000', // if you don't do this, underline extends to end... (???)
     },
     selected: {
         backgroundColor: '#FFFFFF22'
     },
     header: {
-        width: '100%',
-        paddingLeft: 10,
-        paddingRight: 10,
         fontSize: 21,
         textAlign: 'right',
         fontWeight: '100',
@@ -71,6 +80,13 @@ const styles = StyleSheet.create({
     icon: {
         flex: 1,
         width: '100%',
+    },
+    underline: {
+        width: '100%',
+        height: 2,
+        backgroundColor: '#BA3737',
+        position: 'absolute',
+        bottom: 0,
     }
 });
 

@@ -217,6 +217,9 @@ const styles = StyleSheet.create({
         height: '100%',
         overflow: 'hidden',
         backgroundColor: '#000000',
+        borderRightWidth: 1,
+        borderRightColor: '#ffffff',
+
 
         display: 'flex',
         flexDirection: 'column',

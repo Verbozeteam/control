@@ -8,6 +8,8 @@ import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native'
 import { ConfigManager } from './ConfigManager';
 import type { ThingStateType, ThingMetadataType } from './ConfigManager';
 
+import { MagicCircle } from './MagicCircle';
+
 const I18n = require('../i18n/i18n');
 
 type StateType = {
@@ -17,11 +19,11 @@ type StateType = {
 
 type PropsType = {
     id: ?string,
-    onSwitch: ?(number => null),
-    intensity: ?number,
+    onSwitch?: number => null,
+    intensity?: number,
 };
 
-class LightSwitch extends React.Component<PropsType, StateType> {
+export class LightSwitch extends React.Component<PropsType, StateType> {
     _unsubscribe: () => null = () => null;
 
     state = {
@@ -84,44 +86,16 @@ class LightSwitch extends React.Component<PropsType, StateType> {
         var on_press = (() => this.changeIntensity(intensity_after_switch)).bind(this);
 
         return (
-            <TouchableWithoutFeedback onPressIn={on_press}>
-                <View style={styles.container}>
-                    <View style={[styles.light_bulb_container, {opacity: intensity === 0 ? 0 : 1}]}>
-                        <Image style={styles.light_bulb}
-                            fadeDuration={0}
-                            resizeMode={'contain'}
-                            source={this._light_bulb_img_on}>
-                        </Image>
-                    </View>
-                    <View style={[styles.light_bulb_container, {opacity: intensity === 0 ? 1 : 0}]}>
-                        <Image style={styles.light_bulb}
-                            fadeDuration={0}
-                            resizeMode={'contain'}
-                            source={this._light_bulb_img_off}>
-                        </Image>
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
+            <MagicCircle
+                width={70}
+                height={70}
+                text={I18n.t(intensity > 0 ? "ON" : "OFF")}
+                onPressIn={on_press}
+                isOn={intensity > 0}
+                sideText={I18n.t(!id ? "ALL" : ConfigManager.thingMetas[id].name.toUpperCase())}
+                glowColor={'#BA3737'}
+                textColor={'#FFFFFF'}
+                />
         );
     }
-}
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1
-    },
-    light_bulb_container: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        height: '100%',
-        width: '100%'
-    },
-    light_bulb: {
-        flex: 1,
-        width: undefined,
-        height: undefined,
-    },
-});
-
-module.exports = LightSwitch;
+};
