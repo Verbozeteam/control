@@ -8,7 +8,7 @@ import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native'
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
-import { MagicButton } from '../react-components/MagicButton';
+import MagicButton from '../react-components/MagicButton';
 
 const I18n = require('../js-api-utils/i18n/i18n');
 

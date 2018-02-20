@@ -7,8 +7,8 @@ import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-n
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
-import { MagicThermostatSlider } from '../react-components/MagicThermostatSlider';
-import { MagicButton } from '../react-components/MagicButton';
+import MagicThermostatSlider from '../react-components/MagicThermostatSlider';
+import MagicButton from '../react-components/MagicButton';
 
 const I18n = require('../js-api-utils/i18n/i18n');
 
