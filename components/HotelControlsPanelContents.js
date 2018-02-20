@@ -4,10 +4,12 @@ import * as React from 'react';
 import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
-import { ConfigManager } from './ConfigManager';
-import type { ThingStateType, ThingMetadataType } from './ConfigManager';
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
-const I18n = require('../i18n/i18n');
+import { MagicButton } from '../react-components/MagicButton';
+
+const I18n = require('../js-api-utils/i18n/i18n');
 
 type PropsType = {
     id: string,
@@ -26,11 +28,6 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
         service_state: 0,
         dnd_state: 0,
     };
-
-    _room_service_on_img = require('../assets/images/room_service_on.png');
-    _room_service_off_img = require('../assets/images/room_service_off.png');
-    _do_not_disturb_on_img = require('../assets/images/do_not_disturb_on.png');
-    _do_not_disturb_off_img = require('../assets/images/do_not_disturb_off.png');
 
     componentWillMount() {
         this.componentWillReceiveProps(this.props);
@@ -77,52 +74,38 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
     render() {
         const { service_state, dnd_state } = this.state;
 
-        const card_defs = [{
-            on_image: this._do_not_disturb_on_img,
-            off_image: this._do_not_disturb_off_img,
-            text: I18n.t("Do Not Disturb"),
-            toggler: this.toggleDoNotDisturb.bind(this),
-            state: dnd_state,
-        }, {
-            on_image: this._room_service_on_img,
-            off_image: this._room_service_off_img,
-            text: I18n.t("Room Service"),
-            toggler: this.toggleRoomService.bind(this),
-            state: service_state,
-        }]
-
-        var cards = [];
-
-        for (var i = 0; i < 2; i++) {
-            cards[i] = (
-                <View style={styles.card_container}
-                    key={'card-'+i}>
-                    <TouchableWithoutFeedback
-                    onPress={card_defs[i].toggler}>
-                        <View style={styles.card}>
-                            <Image style={[styles.card, {opacity: card_defs[i].state}]}
-                                fadeDuration={0}
-                                resizeMode='contain'
-                                source={card_defs[i].on_image}>
-                            </Image>
-                            <Image style={[styles.card, {opacity: 1-card_defs[i].state}]}
-                                fadeDuration={0}
-                                resizeMode='contain'
-                                source={card_defs[i].off_image}>
-                            </Image>
-                        </View>
-                    </TouchableWithoutFeedback>
-                    <View pointerEvents={'none'}
-                      style={styles.text_container}>
-                        <Text style={[styles.text, card_defs[i].state ? {'color': 'white'} : {'color': '#666666'}]}>{card_defs[i].text}</Text>
-                    </View>
-                </View>
-            );
-        }
-
         return (
             <View style={styles.container}>
-                {cards}
+                <View style={styles.column} />
+                <View style={styles.column}>
+                    <View style={styles.buttonContainer} />
+
+                    <View style={styles.buttonContainer}>
+                        <MagicButton
+                            width={70}
+                            height={70}
+                            onPressIn={this.toggleRoomService.bind(this)}
+                            isOn={service_state == 1 ? true : false}
+                            sideText={I18n.t("HOUSEKEEPING")}
+                            glowColor={'#37BA37'}
+                            textColor={'#FFFFFF'}
+                            />
+                    </View>
+
+                    <View style={styles.buttonContainer}>
+                        <MagicButton
+                            width={70}
+                            height={70}
+                            onPressIn={this.toggleDoNotDisturb.bind(this)}
+                            isOn={dnd_state == 1 ? true : false}
+                            sideText={I18n.t("DO NOT DISTURB")}
+                            glowColor={'#BA3737'}
+                            textColor={'#FFFFFF'}
+                            />
+                    </View>
+
+                    <View style={styles.buttonContainer} />
+                </View>
             </View>
         );
     }
@@ -132,34 +115,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'row',
-        overflow: 'visible'
     },
-    card_container: {
+    column: {
+        flex: 1,
+        flexDirection: 'column',
+    },
+    buttonContainer: {
+        flexDirection: 'column',
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    text_container: {
-        width: 140,
-        position: 'absolute',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bottom: 160
-    },
-    text_container_sm: {
-    },
-    text: {
-        fontSize: 34,
-        fontFamily: 'HKNova-MediumR',
-        color: '#FFFFFF',
-        textAlign: 'center',
-    },
-    card: {
-        position: 'absolute',
-        height: '100%',
-        width: '100%',
-    },
-
 });
 
 module.exports = HotelControlsPanelContents;

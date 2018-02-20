@@ -5,12 +5,12 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { View, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
-import { ConfigManager } from './ConfigManager';
-import type { ThingStateType, ThingMetadataType } from './ConfigManager';
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
-import { MagicCircle } from './MagicCircle';
+import { MagicButton } from '../react-components/MagicButton';
 
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
     intensity: number,
@@ -23,7 +23,7 @@ type PropsType = {
     intensity?: number,
 };
 
-export class LightSwitch extends React.Component<PropsType, StateType> {
+export default class LightSwitch extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
 
     state = {
@@ -86,7 +86,7 @@ export class LightSwitch extends React.Component<PropsType, StateType> {
         var on_press = (() => this.changeIntensity(intensity_after_switch)).bind(this);
 
         return (
-            <MagicCircle
+            <MagicButton
                 width={70}
                 height={70}
                 text={I18n.t(intensity > 0 ? "ON" : "OFF")}

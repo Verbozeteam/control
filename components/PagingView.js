@@ -4,11 +4,11 @@ import * as React from 'react';
 import { View, Text, Dimensions, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
 
-import { ConfigManager } from './ConfigManager';
-import type { GroupType, ThingMetadataType, ConfigType } from './ConfigManager';
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { GroupType, ThingMetadataType, ConfigType } from '../js-api-utils/ConfigManager';
 const settingsActions = require ('../redux-objects/actions/settings');
 
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 const PageIcon = require('./PageIcon');
 const Settings = require('./Settings');
 
@@ -219,8 +219,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#000000',
         borderRightWidth: 1,
         borderRightColor: '#ffffff',
-
-
         display: 'flex',
         flexDirection: 'column',
     },

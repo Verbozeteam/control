@@ -3,9 +3,7 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
-const I18n = require('../i18n/i18n');
-
-import type { LayoutType, NameType } from '../config/flowtypes';
+const I18n = require('../js-api-utils/i18n/i18n');
 
 type PropsType = {
     name: string,

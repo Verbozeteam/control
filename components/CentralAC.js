@@ -4,13 +4,13 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 
-import { ConfigManager } from './ConfigManager';
-import type { ThingStateType, ThingMetadataType } from './ConfigManager';
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
-import { ACSlider } from './ACSlider';
-import { MagicCircle } from './MagicCircle';
+import { MagicThermostatSlider } from '../react-components/MagicThermostatSlider';
+import { MagicButton } from '../react-components/MagicButton';
 
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
     set_pt: number,
@@ -99,34 +99,29 @@ class CentralAC extends React.Component<PropsType, StateType> {
         var ac = ConfigManager.things[id];
         var isEnabled = ac.fan !== 0;
 
-        var minusProps = !isEnabled ? {
-            style: tabStyles.signsButtonsContainer
-        } : {
-            onMouseLeave: (() => this.setState({highlightButton: -1})).bind(this),
-            onMouseEnter: (() => this.setState({highlightButton: 0})).bind(this),
-            onClick: () => this.changeTemperature(true)(Math.max(16, ac.set_pt - 0.5)),
-            style: tabStyles.signsButtonsContainer
-        };
-        var plusProps = !isEnabled ? {
-            style: tabStyles.signsButtonsContainer
-        } : {
-            onMouseLeave: (() => this.setState({highlightButton: -1})).bind(this),
-            onMouseEnter: (() => this.setState({highlightButton: 1})).bind(this),
-            onClick: () => this.changeTemperature(true)(Math.min(32, ac.set_pt + 0.5)),
-            style: tabStyles.signsButtonsContainer,
-        };
+        var minusStyle = tabStyles.signsButtonsContainer;
+        var plusStyle = tabStyles.signsButtonsContainer;
+
+        var lowerTemp = () => this.changeTemperature(true)(Math.max(16, ac.set_pt - 0.5));
+        var raiseTemp = () => this.changeTemperature(true)(Math.min(32, ac.set_pt + 0.5));
+        var setHighlight = h => this.setState({highlightButton: h});
+        if (!isEnabled) {
+            lowerTemp = () => {};
+            raiseTemp = () => {};
+            setHighlight = (n) => {};
+        }
 
         if (!isEnabled) {
-            minusProps.style = {...minusProps.style, ...tabStyles.signsButtonsDisabled};
-            plusProps.style = {...plusProps.style, ...tabStyles.signsButtonsDisabled};
+            minusStyle = {...minusStyle, ...tabStyles.signsButtonsDisabled};
+            plusStyle = {...plusStyle, ...tabStyles.signsButtonsDisabled};
         } else if (highlightButton === 0)
-            minusProps.style = {...minusProps.style, ...tabStyles.signsButtonsHighlight};
+            minusStyle = {...minusStyle, ...tabStyles.signsButtonsHighlight};
         else if (highlightButton === 1)
-            plusProps.style = {...plusProps.style, ...tabStyles.signsButtonsHighlight};
+            plusStyle = {...plusStyle, ...tabStyles.signsButtonsHighlight};
 
         roomTemperatureView = (
             <View style={tabStyles.roomTempContainer}>
-                <Text style={tabStyles.roomTempText}>{ac.temp.toFixed(1) + " °C"}</Text>
+                <Text style={[tabStyles.roomTempText, {fontSize: 40}]}>{ac.temp.toFixed(1) + " °C"}</Text>
                 <Text style={tabStyles.roomTempText}>{"Room temperature"}</Text>
             </View>
         );
@@ -135,38 +130,46 @@ class CentralAC extends React.Component<PropsType, StateType> {
             <View style={tabStyles.settingsContainer}>
                 <View style={tabStyles.settingTemp}>
                     <View style={tabStyles.settingTempButtonsContainer}>
-                        <Text {...minusProps}>{"-"}</Text>
+                        <TouchableWithoutFeedback
+                            onPressIn={(() => {lowerTemp(); setHighlight(0);}).bind(this)}
+                            onPressOut={() => setHighlight(-1)}>
+                            <View><Text style={minusStyle}>{"-"}</Text></View>
+                        </TouchableWithoutFeedback>
                         <Text style={tabStyles.settingTempText}>{ac.set_pt.toFixed(1) + " °C"}</Text>
-                        <Text {...plusProps}>{"+"}</Text>
+                        <TouchableWithoutFeedback
+                            onPressIn={(() => {raiseTemp(); setHighlight(1);}).bind(this)}
+                            onPressOut={() => setHighlight(-1)}>
+                            <View><Text style={plusStyle}>{"+"}</Text></View>
+                        </TouchableWithoutFeedback>
                     </View>
-                    <ACSlider width={Math.max(tabWidth/2-40, 185)}
-                              height={30}
-                              value={ac.set_pt}
-                              enabled={isEnabled}
-                              onChange={this.changeTemperature(true)} />
+                    <MagicThermostatSlider  width={Math.max(tabWidth/2-40, 185)}
+                                            height={50}
+                                            value={ac.set_pt}
+                                            enabled={isEnabled}
+                                            onChange={this.changeTemperature(true)} />
                 </View>
                 <View style={tabStyles.settingFanContainer}>
-                    <MagicCircle width={70}
+                    <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 0}
                                  text={"OFF"}
                                  textColor={"#ffffff"}
                                  glowColor={this._accentColor}
-                                 onClick={() => this.changeFan(0)}
+                                 onPressIn={() => this.changeFan(0)}
                                  extraStyle={tabStyles.fanButton} />
-                    <MagicCircle width={70}
+                    <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 1}
                                  glowColor={this._accentColor}
-                                 onClick={() => this.changeFan(1)}
+                                 onPressIn={() => this.changeFan(1)}
                                  text={"LO"}
                                  textColor={"#ffffff"}
                                  extraStyle={tabStyles.fanButton} />
-                    <MagicCircle width={70}
+                    <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 2}
                                  glowColor={this._accentColor}
-                                 onClick={() => this.changeFan(2)}
+                                 onPressIn={() => this.changeFan(2)}
                                  text={"HI"}
                                  textColor={"#ffffff"}
                                  extraStyle={tabStyles.fanButton} />
@@ -176,8 +179,8 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
         return (
             <View style={{...tabStyles.container}}>
-                <View style={tabStyles.leftTab}>{settingsView}</View>
-                <View style={tabStyles.rightTab}>{roomTemperatureView}</View>
+            <View style={tabStyles.leftTab}>{roomTemperatureView}</View>
+                <View style={tabStyles.rightTab}>{settingsView}</View>
             </View>
         );
     }
@@ -194,42 +197,44 @@ const tabStyles = {
         height: '100%',
     },
     rightTab: {
-        flex: 2,
+        flex: 3,
         position: 'relative',
         height: '100%',
     },
     roomTempContainer: {
-        width: 140,
+        alignSelf: 'flex-start',
+        alignItems: 'flex-start',
         position: 'absolute',
         bottom: 0,
     },
     roomTempText: {
         fontWeight: '100',
         color: '#ffffff',
-        fontSize: 22,
+        fontSize: 26,
+        textAlign: 'left',
     },
     settingsContainer: {
-        display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
     settingTemp: {
         flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     settingTempButtonsContainer: {
-        display: 'flex',
         flexDirection: 'row',
     },
     signsButtonsContainer: {
         fontSize: 28,
-        lineHeight: 2,
         color: '#aaaaaa',
         fontWeight: '100',
-        fontSize: 20,
+        fontSize: 50,
         textAlign: 'center',
-        lineHeight: 3,
+        height: 80,
+        width: 80,
         flex: 1,
     },
     signsButtonsHighlight: {
@@ -241,10 +246,10 @@ const tabStyles = {
     settingTempText: {
         fontWeight: '100',
         color: '#ffffff',
-        fontSize: 20,
+        fontSize: 50,
         textAlign: 'center',
-        lineHeight: 3,
-        flex: 3
+        height: 80,
+        flex: 3,
     },
     settingFanContainer: {
         display: 'flex',

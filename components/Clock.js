@@ -3,9 +3,33 @@
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../lib/UserPreferences');
-const { DaysOfWeek, MonthsOfYear } = require('../config/misc');
+
+const DaysOfWeek: Array<string> = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+];
+
+const MonthsOfYear: Array<string> = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+];
 
 type PropsType = {
     displayWarning: string,

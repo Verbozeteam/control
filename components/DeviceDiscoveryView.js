@@ -6,13 +6,13 @@ import { View, Text, FlatList, Button, TouchableOpacity, StyleSheet }
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 const SocketCommunication = require('../lib/SocketCommunication');
 
 const connectionActions = require ('../redux-objects/actions/connection');
 const UserPreferences = require('../lib/UserPreferences');
 
-import type { DiscoveredDeviceType } from '../config/ConnectionTypes';
+import type { DiscoveredDeviceType } from '../js-api-utils/ConnectionTypes';
 
 function mapStateToProps(state) {
     return {

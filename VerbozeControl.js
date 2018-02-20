@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { ConfigManager } from './components/ConfigManager';
+import { ConfigManager } from './js-api-utils/ConfigManager';
 
-const I18n = require('./i18n/i18n');
+const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
-const SocketCommunication = require('./lib/SocketCommunication');
-const UserPreferences = require('./lib/UserPreferences');
+const SocketCommunication = require('./js-api-utils/SocketCommunication');
+const UserPreferences = require('./js-api-utils/UserPreferences');
 const Clock = require('./components/Clock');
 const PagingView = require('./components/PagingView');
 const ConnectionStatus = require('./components/ConnectionStatus');
@@ -18,7 +18,7 @@ const connectionActions = require ('./redux-objects/actions/connection');
 const settingsActions = require ('./redux-objects/actions/settings');
 const screenActions = require ('./redux-objects/actions/screen');
 
-import type { SocketDataType, DiscoveredDeviceType } from '../config/ConnectionTypes';
+import type { SocketDataType, DiscoveredDeviceType } from './js-api-utils/ConnectionTypes';
 
 function mapStateToProps(state) {
     return {
@@ -46,7 +46,7 @@ type StateType = {
 };
 
 class VerbozeControl extends React.Component<{}, StateType> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => any = () => null;
 
     state = {
         screenDimmed: false,

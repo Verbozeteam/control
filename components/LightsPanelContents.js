@@ -5,16 +5,15 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 
-import { ConfigManager } from './ConfigManager';
-import type { ThingStateType, ThingMetadataType, PresetType } from './ConfigManager';
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType, PresetType } from '../js-api-utils/ConfigManager';
 
 const Panel = require('./Panel');
 
-import { LightSwitch } from './LightSwitch';
+import LightSwitch from './LightSwitch';
+import LightDimmer from './LightDimmer';
 
-const LightDimmer = require('./LightDimmer');
-
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
     all_state: number,
@@ -81,7 +80,8 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
             <Text style={styles.dimmer_name}>{I18n.t(dimmer.name).toUpperCase()}</Text>
             <LightDimmer
                 id={dimmer.id}
-                layout={{width: slider_width, height: slider_height, top: 0, left: 0}}/>
+                width={slider_width}
+                height={slider_height} />
         </View>;
     }
 

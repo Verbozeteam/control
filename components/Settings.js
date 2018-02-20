@@ -8,14 +8,18 @@ import { connect } from 'react-redux';
 const connectionActions = require ('../redux-objects/actions/connection');
 const settingsActions = require ('../redux-objects/actions/settings');
 
-const I18n = require('../i18n/i18n');
+const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../lib/UserPreferences');
 
 const Panel = require('./Panel');
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
 
-import type { LanguageType } from '../config/flowtypes';
-import { LanguageName } from '../config/flowtypes';
+type LanguageType = 'en' | 'ar';
+
+const LanguageName = {
+    'en': 'English',
+    'ar': 'Arabic',
+};
 
 function mapStateToProps(state) {
     return {
