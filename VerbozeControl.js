@@ -213,7 +213,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     render() {
         const { connectionStatus } = this.props;
-        const { screenDimmed, cardIn } = this.state;
+        const { screenDimmed } = this.state;
+        var cardIn = true;
 
         var inner_ui = null;
         if (screenDimmed || !cardIn) {
