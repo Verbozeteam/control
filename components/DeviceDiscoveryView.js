@@ -94,7 +94,7 @@ DeviceDiscoveryView.contextTypes = {
 
 type DeviceListItemPropsType = {
     device: DiscoveredDeviceType,
-    setDevice: (device: DiscoveredDeviceType) => null,
+    setDevice: (device: DiscoveredDeviceType) => any,
     selected: boolean,
 };
 

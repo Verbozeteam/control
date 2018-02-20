@@ -13,7 +13,7 @@ type PropsType = {
 
 class Clock extends React.Component<PropsType> {
 
-    _update_time_timeout: number;
+    _update_time_timeout;
 
     componentWillMount() {
         this._update();

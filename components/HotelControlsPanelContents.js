@@ -20,7 +20,7 @@ type StateType = {
 };
 
 class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => null;
+    _unsubscribe: () => any = () => null;
 
     state = {
         service_state: 0,

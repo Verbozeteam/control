@@ -11,7 +11,7 @@ type PropsType = {
     maxValue: number,
     increment?: number,
     glowColor?: string,
-    onChange?: number => null,
+    onChange?: number => any,
     disabled?: boolean,
     showKnob?: boolean,
 };

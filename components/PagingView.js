@@ -28,13 +28,13 @@ type PageType = {
     selectedIconName?: string,
     longPress?: () => any,
     renderer: (number) => any,
-    height: ?number,
-    is_pressable: ?boolean,
+    height?: number,
+    is_pressable?: boolean,
     getBackground: number => any,
 };
 
 class PagingView extends React.Component<any, StateType> {
-    _unsubscribe: () => null = () => null;
+    _unsubscribe: () => any = () => null;
 
     state = {
         groups: [],

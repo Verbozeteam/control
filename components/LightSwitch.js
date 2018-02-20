@@ -19,12 +19,12 @@ type StateType = {
 
 type PropsType = {
     id: ?string,
-    onSwitch?: number => null,
+    onSwitch?: number => any,
     intensity?: number,
 };
 
 export class LightSwitch extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => null;
+    _unsubscribe: () => any = () => null;
 
     state = {
         my_last_non_zero: 100,

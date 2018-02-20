@@ -26,7 +26,7 @@ type PropsType = {
 };
 
 class CentralAC extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => null;
+    _unsubscribe: () => any = () => null;
 
     state = {
         set_pt: 0,

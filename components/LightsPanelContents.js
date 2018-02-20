@@ -13,7 +13,6 @@ const Panel = require('./Panel');
 import { LightSwitch } from './LightSwitch';
 
 const LightDimmer = require('./LightDimmer');
-const PresetsSwitch = require('./PresetsSwitch');
 
 const I18n = require('../i18n/i18n');
 
@@ -24,12 +23,12 @@ type StateType = {
 type PropsType = {
     things: Array<ThingMetadataType>,
     layout: Object,
-    presets?: Array<PresetType>,
+    presets?: ?Array<PresetType>,
 };
 
 class LightsPanel extends React.Component<PropsType, StateType>  {
-    _unsubscribe1: () => null = () => null;
-    _unsubscribe2: () => null = () => null;
+    _unsubscribe1: () => any = () => null;
+    _unsubscribe2: () => any = () => null;
 
     state: StateType = {
         all_state: 1,

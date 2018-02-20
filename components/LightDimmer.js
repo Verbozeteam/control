@@ -18,7 +18,7 @@ type PropsType = {
 };
 
 class LightDimmer extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => null;
+    _unsubscribe: () => any = () => null;
 
     state = {
         intensity: 0,

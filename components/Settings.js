@@ -31,7 +31,7 @@ function mapDispatchToProps(dispatch) {
 }
 
 class Settings extends React.Component<any> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => any = () => null;
 
     componentWillMount() {
         const { store } = this.context;
@@ -90,8 +90,8 @@ class Settings extends React.Component<any> {
         }
 
         return (
-            <Panel layout={styles.container}
-                name={{en: "Settings"}}
+            <Panel layout={{}}
+                name={"Settings"}
                 viewType={'static'}>
 
                 {settings_views}

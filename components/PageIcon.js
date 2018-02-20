@@ -11,8 +11,8 @@ type PropsType = {
     name: string,
     iconName?: string,
     selected: boolean,
-    changePage?: () => null,
-    longPress: () => null,
+    changePage?: ?(() => any),
+    longPress?: ?(() => any),
     height: number,
 };
 

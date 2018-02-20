@@ -10,7 +10,7 @@ type PropsType = {
     height: number,
     value: number,
     enabled?: boolean,
-    onChange?: number => null,
+    onChange?: number => any,
 };
 
 type StateType = {

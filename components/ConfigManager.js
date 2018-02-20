@@ -45,9 +45,9 @@ export type MiddlewareUpdateType = {
     config: ConfigType,
 };
 
-export type ConfigChangeCallbackType = (ConfigType) => null;
+export type ConfigChangeCallbackType = (ConfigType) => any;
 
-export type ThingStateChangeCallbackType = (ThingMetadataType, ThingStateType) => null;
+export type ThingStateChangeCallbackType = (ThingMetadataType, ThingStateType) => any;
 
 export type LegacyConfigType = {
     id: string,
@@ -149,21 +149,22 @@ class ConfigManagerImpl {
         this.setThingsStates(update, false);
     }
 
-    registerConfigChangeCallback(cb: ConfigChangeCallbackType) {
+    registerConfigChangeCallback(cb: ConfigChangeCallbackType): () => boolean {
         this._configChangeCallbacks.push(cb);
         return () => this.deregisterConfigChangeCallback(cb);
     }
 
-    deregisterConfigChangeCallback(cb: ConfigChangeCallbackType) {
+    deregisterConfigChangeCallback(cb: ConfigChangeCallbackType): boolean {
         for (var c = 0; c < this._configChangeCallbacks.length; c++) {
             if (this._configChangeCallbacks[c] == cb) {
                 this._configChangeCallbacks.splice(c, 1);
-                return;
+                return true;
             }
         }
+        return false;
     }
 
-    registerThingStateChangeCallback(id: string, cb: ThingStateChangeCallbackType) {
+    registerThingStateChangeCallback(id: string, cb: ThingStateChangeCallbackType): () => boolean {
         if (id in this._thingStateChangeCallbacks)
             this._thingStateChangeCallbacks[id].push(cb);
         else
@@ -171,18 +172,19 @@ class ConfigManagerImpl {
         return () => this.deregisterThingStateChangeCallback(cb);
     }
 
-    deregisterThingStateChangeCallback(cb: ThingStateChangeCallbackType) {
+    deregisterThingStateChangeCallback(cb: ThingStateChangeCallbackType): boolean {
         for (var tid in this._thingStateChangeCallbacks) {
             for (var i = 0; i < this._thingStateChangeCallbacks[tid].length; i++) {
                 if (this._thingStateChangeCallbacks[tid][i] == cb) {
                     this._thingStateChangeCallbacks[tid].splice(i, 1);
-                    return;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
-    registerCategoryChangeCallback(category: string, cb: ThingStateChangeCallbackType) {
+    registerCategoryChangeCallback(category: string, cb: ThingStateChangeCallbackType): () => boolean {
         if (category in this._categoryStateChangeCallbacks)
             this._categoryStateChangeCallbacks[category].push(cb);
         else
@@ -190,15 +192,16 @@ class ConfigManagerImpl {
         return () => this.deregisterCategoryChangeCallback(cb);
     }
 
-    deregisterCategoryChangeCallback(cb: ThingStateChangeCallbackType) {
+    deregisterCategoryChangeCallback(cb: ThingStateChangeCallbackType): boolean {
         for (var cid in this._categoryStateChangeCallbacks) {
             for (var i = 0; i < this._categoryStateChangeCallbacks[cid].length; i++) {
                 if (this._categoryStateChangeCallbacks[cid][i] == cb) {
                     this._categoryStateChangeCallbacks[cid].splice(i, 1);
-                    return;
+                    return true;
                 }
             }
         }
+        return false;
     }
 };
 

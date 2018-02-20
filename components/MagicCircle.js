@@ -12,9 +12,9 @@ type PropsType = {
     isOn?: boolean,
     text?: string,
     textColor?: string,
-    onPress?: () => null,
-    onPressIn?: () => null,
-    onPressOut?: () => null,
+    onPress?: () => any,
+    onPressIn?: () => any,
+    onPressOut?: () => any,
     extraStyle?: Object,
     sideText?: string,
     sideTextStyle?: Object,
@@ -97,15 +97,18 @@ export class MagicCircle extends React.Component<PropsType, StateType> {
         };
 
         if (isOn || hover) {
-            style.shadowColor = glowColor;
-            style.shadowRadius = 5;
-            style.shadowOffset = {width: 0, height: 0};
-            style.shadowOpacity = 1;
-            //style.boxShadow = '0 0 10px 1px' + glowColor;
-            style.backgroundColor = glowColor;
+            style = {...style, ...{
+                shadowColor: glowColor,
+                shadowRadius: 5,
+                shadowOffset: {width: 0, height: 0},
+                shadowOpacity: 1,
+                backgroundColor: glowColor,
+            }};
         } else {
-            style.borderWidth = 2;
-            style.borderColor = offColor;
+            style = {...style, ...{
+                borderWidth: 2,
+                borderColor: offColor,
+            }};
         }
 
         // if (icon) {

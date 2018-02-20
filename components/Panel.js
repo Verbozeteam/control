@@ -7,7 +7,7 @@ import { View, TouchableWithoutFeedback, StyleSheet }
 type PropsType = {
     name?: string,
     layout?: Object,
-    children: ?Array<any>
+    children: any
 };
 
 class Panel extends React.Component<PropsType> {
