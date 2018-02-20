@@ -2,3 +2,6 @@
 	path = react-components
 	url = https://github.com/Verbozeteam/react-components.git
   branch = dev
+[submodule "js-api-utils"]
+	path = js-api-utils
+	url = git@github.com:Verbozeteam/js-api-utils.git
