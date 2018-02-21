@@ -25,7 +25,7 @@ type PropsType = {
     presets?: ?Array<PresetType>,
 };
 
-class LightsPanel extends React.Component<PropsType, StateType>  {
+export default class LightsPanel extends React.Component<PropsType, StateType>  {
     _unsubscribe1: () => any = () => null;
     _unsubscribe2: () => any = () => null;
 
@@ -188,5 +188,3 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
     },
 });
-
-module.exports = LightsPanel;

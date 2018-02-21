@@ -21,7 +21,7 @@ type StateType = {
     dnd_state: number,
 };
 
-class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
+export default class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
 
     state = {
@@ -76,7 +76,7 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
 
         return (
             <View style={styles.container}>
-                <View style={styles.column} />
+                <View style={styles.emptyColumn} />
                 <View style={styles.column}>
                     <View style={styles.buttonContainer} />
 
@@ -117,8 +117,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     column: {
-        flex: 1,
+        flex: 4,
         flexDirection: 'column',
+    },
+    emptyColumn: {
+        flex: 1,
     },
     buttonContainer: {
         flexDirection: 'column',
@@ -127,5 +130,3 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
 });
-
-module.exports = HotelControlsPanelContents;

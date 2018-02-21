@@ -25,7 +25,7 @@ type PropsType = {
     layout: Object,
 };
 
-class CentralAC extends React.Component<PropsType, StateType> {
+export default class CentralAC extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
 
     state = {
@@ -122,7 +122,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
         roomTemperatureView = (
             <View style={tabStyles.roomTempContainer}>
                 <Text style={[tabStyles.roomTempText, {fontSize: 40}]}>{ac.temp.toFixed(1) + " °C"}</Text>
-                <Text style={tabStyles.roomTempText}>{"Room temperature"}</Text>
+                <Text style={tabStyles.roomTempText}>{"ROOM TEMPERATURE"}</Text>
             </View>
         );
 
@@ -156,7 +156,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                                  textColor={"#ffffff"}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(0)}
-                                 extraStyle={tabStyles.fanButton} />
+                                 extraStyle={fanButtonStyle} />
                     <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 1}
@@ -164,7 +164,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                                  onPressIn={() => this.changeFan(1)}
                                  text={"LO"}
                                  textColor={"#ffffff"}
-                                 extraStyle={tabStyles.fanButton} />
+                                 extraStyle={fanButtonStyle} />
                     <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 2}
@@ -172,7 +172,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                                  onPressIn={() => this.changeFan(2)}
                                  text={"HI"}
                                  textColor={"#ffffff"}
-                                 extraStyle={tabStyles.fanButton} />
+                                 extraStyle={fanButtonStyle} />
                 </View>
             </View>
         );
@@ -257,11 +257,10 @@ const tabStyles = {
         width: 300,
         height: 80,
     },
-    fanButton: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
 };
 
-module.exports = CentralAC;
+const fanButtonStyle = {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+};

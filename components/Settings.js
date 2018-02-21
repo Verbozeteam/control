@@ -9,9 +9,9 @@ const connectionActions = require ('../redux-objects/actions/connection');
 const settingsActions = require ('../redux-objects/actions/settings');
 
 const I18n = require('../js-api-utils/i18n/i18n');
-const UserPreferences = require('../lib/UserPreferences');
+const UserPreferences = require('../js-api-utils/UserPreferences');
 
-const Panel = require('./Panel');
+import Panel from './Panel';
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
 
 type LanguageType = 'en' | 'ar';

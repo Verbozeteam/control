@@ -10,7 +10,7 @@ type PropsType = {
     children: any
 };
 
-class Panel extends React.Component<PropsType> {
+export default class Panel extends React.Component<PropsType> {
 
     static defaultProps = {
         name: "",
@@ -34,13 +34,4 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 2,
     },
-    container_collapsed: {
-        flex: 1,
-        padding: 10,
-        borderRadius: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-    }
 });
-
-module.exports = Panel;

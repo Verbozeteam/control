@@ -4,7 +4,7 @@ import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 const I18n = require('../js-api-utils/i18n/i18n');
-const UserPreferences = require('../lib/UserPreferences');
+const UserPreferences = require('../js-api-utils/UserPreferences');
 
 const DaysOfWeek: Array<string> = [
     'Sunday',

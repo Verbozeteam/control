@@ -4,7 +4,7 @@ import * as React from 'react';
 import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
 import PropTypes from 'prop-types';
 
-const UserPreferences = require('../lib/UserPreferences');
+const UserPreferences = require('../js-api-utils/UserPreferences');
 
 import { connect } from 'react-redux';
 

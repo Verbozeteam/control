@@ -7,10 +7,10 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 const I18n = require('../js-api-utils/i18n/i18n');
-const SocketCommunication = require('../lib/SocketCommunication');
+const SocketCommunication = require('../js-api-utils/SocketCommunication');
 
 const connectionActions = require ('../redux-objects/actions/connection');
-const UserPreferences = require('../lib/UserPreferences');
+const UserPreferences = require('../js-api-utils/UserPreferences');
 
 import type { DiscoveredDeviceType } from '../js-api-utils/ConnectionTypes';
 

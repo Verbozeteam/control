@@ -12,10 +12,11 @@ const I18n = require('../js-api-utils/i18n/i18n');
 const PageIcon = require('./PageIcon');
 const Settings = require('./Settings');
 
-const Panel = require('./Panel');
-const LightsPanelContents = require('./LightsPanelContents');
-const HotelControlsPanelContents = require('./HotelControlsPanelContents');
-const CentralAC = require('./CentralAC');
+import Panel from './Panel';
+import LightsPanelContents from './LightsPanelContents';
+import HotelControlsPanelContents from './HotelControlsPanelContents';
+import CentralAC from './CentralAC';
+import CurtainsPanelContents from './CurtainsPanelContents';
 
 type StateType = {
     groups: Array<GroupType>,
@@ -108,11 +109,13 @@ class PagingView extends React.Component<any, StateType> {
             switch (things[0].category) {
                 case 'dimmers':
                 case 'light_switches':
-                    return  <LightsPanelContents things={things} layout={layout} presets={group.presets}/>
+                    return  <LightsPanelContents things={things} layout={layout} presets={group.presets} />;
                 case 'hotel_controls':
-                    return <HotelControlsPanelContents id={things[0].id} layout={layout}/>;
+                    return <HotelControlsPanelContents id={things[0].id} layout={layout} />;
                 case 'central_acs':
-                    return <CentralAC id={things[0].id} layout={layout}/>;
+                    return <CentralAC id={things[0].id} layout={layout} />;
+                case 'curtains':
+                    return <CurtainsPanelContents things={things} layout={layout} />;
             }
         }
         return null;
@@ -127,12 +130,18 @@ class PagingView extends React.Component<any, StateType> {
             width: Dimensions.get('screen').width - 200,
             height: Dimensions.get('screen').height,
         };
+        var contentLayout = {
+            left: 0,
+            top: 0,
+            width: Dimensions.get('screen').width - 200 - 40, // panel padding
+            height: Dimensions.get('screen').height - 40, // panel padding
+        };
 
         return (
             <Panel key={'group-' + index}
                 name={I18n.t(group.name)}
                 layout={layout}>
-                {this.renderGroupContents(group, layout)}
+                {this.renderGroupContents(group, contentLayout)}
             </Panel>
         );
     }
