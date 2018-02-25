@@ -16,6 +16,7 @@ type StateType = {
     intensity: number,
     my_category: string,
     my_last_non_zero: number,
+    is_light_ui: boolean,
 };
 
 type PropsType = {
@@ -27,16 +28,19 @@ type PropsType = {
 };
 
 class LightSwitch extends React.Component<PropsType, StateType> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => null = () => null;
 
     state = {
         my_category: 'light_switches',
         my_last_non_zero: 100,
         intensity: 0,
+        is_light_ui: false,
     };
 
     _light_bulb_img_on = require('../assets/images/lighton.png');
     _light_bulb_img_off = require('../assets/images/lightoff.png');
+    _light_bulb_light_on = require('../assets/images/light_ui/lighton.png');
+    _light_bulb_light_off = require('../assets/images/light_ui/lightoff.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -51,12 +55,12 @@ class LightSwitch extends React.Component<PropsType, StateType> {
     onReduxStateChanged() {
         const { store } = this.context;
         const reduxState = store.getState();
-        const { intensity, my_category, my_last_non_zero } = this.state;
+        const { intensity, my_category, my_last_non_zero, is_light_ui } = this.state;
         const { id } = this.props;
 
-        if (id) {
+        if (reduxState && reduxState.connection && reduxState.connection.thingStates && reduxState.screen) {
             var total_change = {};
-            if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+            if (id) {
                 const my_redux_state = reduxState.connection.thingStates[id];
                 if (my_redux_state && my_redux_state.category !== my_category)
                     total_change.my_category = my_redux_state.category;
@@ -65,6 +69,8 @@ class LightSwitch extends React.Component<PropsType, StateType> {
                 if (my_redux_state && my_redux_state.intensity && my_redux_state.intensity !== my_last_non_zero)
                     total_change.my_last_non_zero = my_redux_state.intensity;
             }
+            if (reduxState.screen.isLight !== is_light_ui)
+                total_change.is_light_ui = reduxState.screen.isLight;
             if (Object.keys(total_change).length > 0)
                 this.setState(total_change);
         }
@@ -84,7 +90,7 @@ class LightSwitch extends React.Component<PropsType, StateType> {
 
     render() {
         const { id, layout, viewType } = this.props;
-        var { intensity, my_category, my_last_non_zero } = this.state;
+        var { intensity, my_category, my_last_non_zero, is_light_ui } = this.state;
         if (this.props.intensity)
             intensity = this.props.intensity;
 
@@ -102,14 +108,14 @@ class LightSwitch extends React.Component<PropsType, StateType> {
                   <Image style={[layout, styles.light_bulb]}
                     fadeDuration={0}
                     resizeMode={'contain'}
-                    source={this._light_bulb_img_on}>
+                    source={is_light_ui ? this._light_bulb_light_on : this._light_bulb_img_on}>
                   </Image>
                 </View>
                 <View style={[styles.light_bulb_container, {opacity: intensity === 0 ? 1 : 0}]}>
                   <Image style={[layout, styles.light_bulb]}
                     fadeDuration={0}
                     resizeMode={'contain'}
-                    source={this._light_bulb_img_off}>
+                    source={is_light_ui ? this._light_bulb_light_off : this._light_bulb_img_off}>
                   </Image>
                 </View>
               </View>

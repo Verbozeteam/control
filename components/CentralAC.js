@@ -22,6 +22,7 @@ type StateType = {
     temp: number,
     fan: number,
     fan_speeds: Array<string>,
+    is_light_ui: boolean,
 };
 
 type PropsType = {
@@ -31,13 +32,14 @@ type PropsType = {
 };
 
 class CentralAC extends React.Component<PropsType, StateType> {
-  _unsubscribe: () => null = () => {return null;};
+  _unsubscribe: () => null = () => null;
 
   state = {
       set_pt: 0,
       temp: 0,
       fan: 0,
       fan_speeds: [],
+      is_light_ui: false,
   };
 
   _fan_icon = require('../assets/images/fan.png');
@@ -58,20 +60,22 @@ class CentralAC extends React.Component<PropsType, StateType> {
   onReduxStateChanged() {
       const { store } = this.context;
       const reduxState = store.getState();
-      const { set_pt, temp, fan } = this.state;
+      const { set_pt, temp, fan, is_light_ui } = this.state;
       const { id } = this.props;
 
-      if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+      if (reduxState && reduxState.connection && reduxState.connection.thingStates && reduxState.screen) {
           const my_redux_state = reduxState.connection.thingStates[id];
           if (my_redux_state &&
               ((my_redux_state.set_pt != undefined && my_redux_state.set_pt != set_pt) ||
                (my_redux_state.temp != undefined && my_redux_state.temp != temp) ||
-               (my_redux_state.fan != undefined && my_redux_state.fan != fan))) {
+               (my_redux_state.fan != undefined && my_redux_state.fan != fan)) ||
+               (reduxState.screen.isLight != is_light_ui)) {
               this.setState({
                   set_pt: my_redux_state.set_pt,
                   temp: my_redux_state.temp,
                   fan: my_redux_state.fan,
                   fan_speeds: my_redux_state.fan_speeds,
+                  is_light_ui: reduxState.screen.isLight,
               });
           }
       }
@@ -103,7 +107,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
   render() {
     const { id, layout, viewType } = this.props;
-    const { set_pt, temp, fan, fan_speeds } = this.state;
+    const { set_pt, temp, fan, fan_speeds, is_light_ui } = this.state;
 
     var slider = null;
     var toggles = null;
@@ -131,7 +135,9 @@ class CentralAC extends React.Component<PropsType, StateType> {
           onMove={this.changeTemperature(false).bind(this)}
           onRelease={this.changeTemperature(true).bind(this)}
           diameter={layout.height / 1.5}
-          disabled={fan === 0} />
+          disabled={fan === 0}
+          knobGradient={is_light_ui ? ['#ffffff', '#ffffff'] : undefined}
+          highlightGradient={is_light_ui ? ['#ffffff', '#ffffff'] : undefined} />
       );
 
       var toggle_dot = [
@@ -157,7 +163,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
           <TouchableWithoutFeedback key={"fan-speed-"+index} onPressIn={fanToggleEvent(index)}>
             <View style={styles.fan_speed_container}>
               {toggle_dot[fan == index ? 0: 1]}
-              <Text style={styles.fan_speed_text}>{current_fan_speeds[i]}</Text>
+              <Text style={[styles.fan_speed_text, is_light_ui ? styles.light_ui_style : {}]}>{current_fan_speeds[i]}</Text>
             </View>
           </TouchableWithoutFeedback>
         );
@@ -165,7 +171,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
       toggles = (
         <View style={styles.fan_controls_container}>
-          <Text style={[styles.fan_speed_text, {flex: 1}]}>{I18n.t('Fan')}</Text>
+          <Text style={[styles.fan_speed_text, {flex: 1}, is_light_ui ? styles.light_ui_style : {}]}>{I18n.t('Fan')}</Text>
           {fan_speed_boxes}
         </View>
       );
@@ -184,7 +190,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
     var onoffButton = (
       <TouchableWithoutFeedback onPressIn={() => this.changeFan(fan === 0 ? 1 : 0)}>
         <View style={styles.button_container}>
-          <Text style={[styles.fan_speed_text, {height: 68}]}>{I18n.t(fan === 0 ? 'OFF' : 'ON')}</Text>
+          <Text style={[styles.fan_speed_text, {height: 68}, is_light_ui ? styles.light_ui_style : {}]}>{I18n.t(fan === 0 ? 'OFF' : 'ON')}</Text>
           <View style={{height: fan === 0 ? 0 : 2, width: '100%', backgroundColor: '#3B9FFF', bottom: 0}}></View>
         </View>
       </TouchableWithoutFeedback>
@@ -201,7 +207,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
           <View style={[styles.center_text_container, presentation_style]}>
             <Text style={[styles.center_text_main, fan === 0 ? {opacity: 0.5} : {}]}>{center_text_main}</Text>
-            <Text style={styles.center_text_sub}>{center_text_sub}</Text>
+            <Text style={[styles.center_text_sub, is_light_ui ? styles.light_ui_style : {}]}>{center_text_sub}</Text>
           </View>
         </View>
         <View style={styles.fans_container}>
@@ -282,6 +288,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#000000',
     fontFamily: 'HKNova-MediumR',
+  },
+  light_ui_style: {
+    color: '#FFFFFF',
   },
 });
 

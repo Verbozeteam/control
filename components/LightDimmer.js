@@ -12,6 +12,7 @@ import type { LayoutType } from '../config/flowtypes';
 
 type StateType = {
     intensity: number,
+    is_light_ui: boolean,
 };
 
 type PropsType = {
@@ -25,9 +26,11 @@ class LightDimmer extends React.Component<PropsType, StateType> {
 
     state = {
         intensity: 0,
+        is_light_ui: false,
     };
 
     _dimmer_icon = require('../assets/images/dimmer.png');
+    _dimmer_light_icon = require('../assets/images/light_ui/dimmer.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -42,13 +45,17 @@ class LightDimmer extends React.Component<PropsType, StateType> {
     onReduxStateChanged() {
         const { store } = this.context;
         const reduxState = store.getState();
-        const { intensity } = this.state;
+        const { intensity, is_light_ui } = this.state;
         const { id } = this.props;
 
-        if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+        if (reduxState && reduxState.connection && reduxState.connection.thingStates && reduxState.screen) {
             const my_redux_state = reduxState.connection.thingStates[id];
-            if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity) {
-                this.setState({intensity: my_redux_state.intensity});
+            if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity ||
+                reduxState.screen.isLight !== is_light_ui) {
+                this.setState({
+                    intensity: my_redux_state.intensity,
+                    is_light_ui: reduxState.screen.isLight,
+                });
             }
         }
     }
@@ -63,19 +70,20 @@ class LightDimmer extends React.Component<PropsType, StateType> {
 
     render() {
         const { layout, name } = this.props;
-        const { intensity } = this.state;
+        const { intensity, is_light_ui } = this.state;
 
         return (
             <GenericSliderSimple
                 layout={layout}
-                icon={this._dimmer_icon}
+                icon={is_light_ui ? this._dimmer_light_icon : this._dimmer_icon}
                 value={intensity}
                 orientation={'horizontal'}
                 maximum={100}
                 minimum={0}
                 round={(value: number) => Math.round(value)}
                 onMove={this.changeIntensity.bind(this)}
-                onRelease={this.changeIntensity.bind(this)} />
+                onRelease={this.changeIntensity.bind(this)}
+                knobColor={is_light_ui ? '#ffffff' : '#000000'} />
         );
     }
 }

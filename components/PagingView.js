@@ -19,27 +19,31 @@ const LightsPanelContents = require('./LightsPanelContents');
 const HotelControlsPanelContents = require('./HotelControlsPanelContents');
 const CentralAC = require('./CentralAC');
 const WaterFountainsPanel = require('./WaterFountainsPanel');
+const CurtainsPanel = require('./CurtainsPanel');
 
 type StateType = {
     panels: Array<PanelType>,
     currentPage: number,
+    is_light_ui: boolean,
 };
 
 type PageType = {
     name: string,
     iconName?: number,
     selectedIconName?: number,
+    iconNameLight?: number,
     longPress?: () => any,
     renderer: (number) => any,
     height: number
 };
 
 class PagingView extends React.Component<any, StateType> {
-    _unsubscribe: () => null = () => {return null;};
+    _unsubscribe: () => null = () => null;
 
     state = {
         panels: [],
         currentPage: 0,
+        is_light_ui: false,
     };
 
     _pages : {[string]: PageType} = {
@@ -53,6 +57,7 @@ class PagingView extends React.Component<any, StateType> {
             name: "Admin Settings",
             iconName: require('../assets/images/iconhome.png'),
             selectedIconName: require('../assets/images/iconhome.png'),
+            iconNameLight: require('../assets/images/light_ui/iconhome.png'),
             height: 200,
             longPress: (() => {
                 this.changePage(0);
@@ -85,7 +90,7 @@ class PagingView extends React.Component<any, StateType> {
     onReduxStateChanged() {
         const { store } = this.context;
         const reduxState = store.getState();
-        const { panels } = this.state;
+        const { panels, is_light_ui } = this.state;
 
         if (reduxState && reduxState.connection && reduxState.connection.config && reduxState.connection.config.rooms) {
             var reduxConfig = reduxState.connection.config;
@@ -104,6 +109,8 @@ class PagingView extends React.Component<any, StateType> {
             if (JSON.stringify(reduxPanels) != JSON.stringify(panels)) {
                 this.setState({panels: reduxPanels, currentPage: 0});
             }
+            if (is_light_ui !== reduxState.screen.isLight)
+                this.setState({is_light_ui: reduxState.screen.isLight});
         }
     }
 
@@ -129,6 +136,11 @@ class PagingView extends React.Component<any, StateType> {
                         viewType={'detail'}/>;
                 case 'water_fountains':
                     return <WaterFountainsPanel
+                        things={things}
+                        layout={layout}
+                        viewType={'detail'}/>;
+                case 'curtains':
+                    return <CurtainsPanel
                         things={things}
                         layout={layout}
                         viewType={'detail'}/>;
@@ -171,7 +183,7 @@ class PagingView extends React.Component<any, StateType> {
     }
 
     render() {
-        const { panels } = this.state;
+        const { panels, is_light_ui } = this.state;
 
         var pages = [this._pages.settings];
         if (panels && panels.length > 0) {
@@ -182,7 +194,7 @@ class PagingView extends React.Component<any, StateType> {
         var page_icons = pages.map((page, i) =>
             <PageIcon key={"page-icon-"+page.name}
                 name={page.name}
-                iconName={(page.selectedIconName && this.state.currentPage == i) ? page.selectedIconName : page.iconName}
+                iconName={(page.selectedIconName && this.state.currentPage == i) ? page.selectedIconName : (is_light_ui && page.iconNameLight ? page.iconNameLight : page.iconName)}
                 selected={i == this.state.currentPage}
                 changePage={page.is_pressable ? this.changePage(i).bind(this) : null}
                 longPress={page.longPress}

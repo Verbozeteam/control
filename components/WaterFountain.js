@@ -14,6 +14,7 @@ const I18n = require('../i18n/i18n');
 
 type StateType = {
     intensity: number,
+    is_light_ui: boolean,
 };
 
 type PropsType = {
@@ -27,10 +28,12 @@ class WaterFountain extends React.Component<PropsType, StateType> {
 
     state: StateType = {
         intensity: 0,
+        is_light_ui: false,
     };
 
     _fountain_img_on = require('../assets/images/fountain_on.png');
     _fountain_img_off = require('../assets/images/fountain_off.png');
+    _fountain_img_light_off = require('../assets/images/light_ui/fountain_off.png');
 
     componentWillMount() {
         const { store } = this.context;
@@ -45,16 +48,18 @@ class WaterFountain extends React.Component<PropsType, StateType> {
     onReduxStateChanged() {
         const { store } = this.context;
         const reduxState = store.getState();
-        const { intensity } = this.state;
+        const { intensity, is_light_ui } = this.state;
         const { id } = this.props;
 
-        if (id) {
+        if (reduxState && reduxState.connection && reduxState.connection.thingStates, reduxState.screen) {
             var total_change = {};
-            if (reduxState && reduxState.connection && reduxState.connection.thingStates) {
+            if (id) {
                 const my_redux_state = reduxState.connection.thingStates[id];
                 if (my_redux_state && my_redux_state.intensity != undefined && my_redux_state.intensity != intensity)
                     total_change.intensity = my_redux_state.intensity;
             }
+            if (reduxState.screen.isLight !== is_light_ui)
+                total_change.is_light_ui = reduxState.screen.isLight;
             if (Object.keys(total_change).length > 0)
                 this.setState(total_change);
         }
@@ -72,7 +77,7 @@ class WaterFountain extends React.Component<PropsType, StateType> {
 
     render() {
         const { id, layout, viewType } = this.props;
-        var { intensity } = this.state;
+        var { intensity, is_light_ui } = this.state;
 
         var on_press = () => {};
         if (viewType === 'detail')
@@ -93,7 +98,7 @@ class WaterFountain extends React.Component<PropsType, StateType> {
                   <Image style={[layout, styles.fountain]}
                     fadeDuration={0}
                     resizeMode={'contain'}
-                    source={this._fountain_img_off}>
+                    source={is_light_ui ? this._fountain_img_light_off : this._fountain_img_off}>
                   </Image>
                 </View>
               </View>
