@@ -18,6 +18,7 @@ const Panel = require('./Panel');
 const LightsPanelContents = require('./LightsPanelContents');
 const HotelControlsPanelContents = require('./HotelControlsPanelContents');
 const CentralAC = require('./CentralAC');
+const WaterFountainsPanel = require('./WaterFountainsPanel');
 
 type StateType = {
     panels: Array<PanelType>,
@@ -26,8 +27,8 @@ type StateType = {
 
 type PageType = {
     name: string,
-    iconName?: string,
-    selectedIconName?: string,
+    iconName?: number,
+    selectedIconName?: number,
     longPress?: () => any,
     renderer: (number) => any,
     height: number
@@ -116,7 +117,7 @@ class PagingView extends React.Component<any, StateType> {
                         viewType={'detail'}
                         things={things}
                         layout={layout}
-                        presets={panel.presets}/>
+                        presets={panel.presets}/>;
                 case 'hotel_controls':
                     return <HotelControlsPanelContents
                         id={things[0].id}
@@ -124,6 +125,11 @@ class PagingView extends React.Component<any, StateType> {
                 case 'central_acs':
                     return <CentralAC
                         id={things[0].id}
+                        layout={layout}
+                        viewType={'detail'}/>;
+                case 'water_fountains':
+                    return <WaterFountainsPanel
+                        things={things}
                         layout={layout}
                         viewType={'detail'}/>;
             }
