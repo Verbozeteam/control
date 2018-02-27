@@ -92,7 +92,7 @@ export default class LightSwitch extends React.Component<PropsType, StateType> {
                 text={I18n.t(intensity > 0 ? "ON" : "OFF")}
                 onPressIn={on_press}
                 isOn={intensity > 0}
-                sideText={I18n.t(!id ? "ALL" : ConfigManager.thingMetas[id].name.toUpperCase())}
+                sideText={I18n.t(!id ? "ALL" : ConfigManager.thingMetas[id].name).toUpperCase()}
                 glowColor={'#BA3737'}
                 textColor={'#FFFFFF'}
                 />

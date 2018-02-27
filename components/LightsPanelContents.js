@@ -72,12 +72,12 @@ export default class LightsPanel extends React.Component<PropsType, StateType>  
     renderDimmer(dimmer: ThingMetadataType) {
         const { layout } = this.props;
 
-        var dimmer_name = I18n.t(dimmer.name);
+        var dimmer_name = I18n.t(dimmer.name).toUpperCase();
         var slider_width = layout.width / 2 - 40;
         var slider_height = 90;
 
         return <View key={dimmer.id+'-dimmer-container'} style={styles.dimmer_container}>
-            <Text style={styles.dimmer_name}>{I18n.t(dimmer.name).toUpperCase()}</Text>
+            <Text style={styles.dimmer_name}>{dimmer_name}</Text>
             <LightDimmer
                 id={dimmer.id}
                 width={slider_width}
