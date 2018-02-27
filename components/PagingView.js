@@ -65,7 +65,7 @@ class PagingView extends React.Component<any, StateType> {
         'curtains': require('../assets/images/curtain_back.jpg'),
         'hotel_controls': require('../assets/images/services_stack.jpg'),
         'central_acs': require('../assets/images/thermostat_stack.jpg'),
-        'settings': require('../assets/images/fituri.jpg'),
+        'settings': require('../assets/images/verboze_poster.jpg'),
     };
 
     componentWillMount() {

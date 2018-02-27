@@ -1,6 +1,16 @@
 
-import { SET_CONNECTION_STATUS, ADD_DISCOVERED_DEVICE, CLEAR_DISCOVERED_DEVICES, SET_CURRENT_DEVICE,
-         SET_CONFIG, SET_THING_STATE, SET_THINGS_STATES, SET_THING_PARTIAL_STATE, SET_THINGS_PARTIAL_STATES } from '../actions/connection';
+import {
+    SET_CONNECTION_STATUS,
+    ADD_DISCOVERED_DEVICE,
+    CLEAR_DISCOVERED_DEVICES,
+    SET_CURRENT_DEVICE,
+    SET_CONNECTION_QRCODE,
+    SET_CONFIG,
+    SET_THING_STATE,
+    SET_THINGS_STATES,
+    SET_THING_PARTIAL_STATE,
+    SET_THINGS_PARTIAL_STATES
+} from '../actions/connection';
 
 var default_ip = "192.168.10.1";
 var default_port = 7990;
@@ -19,6 +29,7 @@ let defaultState = {
         name: "QSTP Device",
     },
     discoveredDevices: [],
+    QRCodeAddress: "ws://192.168.10.1:7986/demo",
 
     config: null,
     thingStates: {},
@@ -52,6 +63,9 @@ module.exports = function (state=defaultState, action) {
             break;
         case SET_CURRENT_DEVICE:
             newState.currentDevice = action.device;
+            break;
+        case SET_CONNECTION_QRCODE:
+            newState.QRCodeAddress = action.code;
             break;
         case SET_CONFIG:
             newState.config = action.config;

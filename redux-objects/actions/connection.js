@@ -5,6 +5,7 @@ export const SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS';
 export const ADD_DISCOVERED_DEVICE = 'ADD_DISCOVERED_DEVICE';
 export const CLEAR_DISCOVERED_DEVICES = 'CLEAR_DISCOVERED_DEVICES';
 export const SET_CURRENT_DEVICE = 'SET_CURRENT_DEVICE';
+export const SET_CONNECTION_QRCODE = 'SET_CONNECTION_QRCODE';
 export const SET_CONFIG = 'SET_CONFIG';
 export const SET_THING_STATE = 'SET_THING_STATE';
 export const SET_THINGS_STATES = 'SET_THINGS_STATES';
@@ -35,6 +36,13 @@ export function set_current_device(device: DiscoveredDeviceType) {
     return {
         type: SET_CURRENT_DEVICE,
         device: device,
+    }
+}
+
+export function set_connection_qr_code(qr_code: string) {
+    return {
+        type: SET_CONNECTION_QRCODE,
+        code: qr_code,
     }
 }
 

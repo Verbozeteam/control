@@ -19,6 +19,7 @@
 		"react": "^16.1.1",
 		"react-native": "^0.50.3",
 		"react-native-linear-gradient": "^2.3.0",
+		"react-native-qrcode": "^0.2.6",
 		"react-native-storage": "^0.2.2",
 		"react-native-svg": "^5.5.1",
 		"react-native-system-setting": "^1.0.7",

@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
+import QRCode from 'react-native-qrcode';
 import { View, Text, StyleSheet, Picker } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -25,6 +26,7 @@ function mapStateToProps(state) {
     return {
         language: state.settings.language,
         devMode: state.settings.devMode,
+        qrCode: state.connection.QRCodeAddress,
     };
 }
 
@@ -93,6 +95,22 @@ class Settings extends React.Component<any> {
             );
         }
 
+        var qr_code_view = null;
+        if (this.props.qrCode && this.props.qrCode !== "") {
+            qr_code_view = (
+                <View style={styles.qrcode_container}>
+                    <View style={styles.qrcode_view}>
+                        <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze app")}</Text>
+                        <QRCode
+                            value={this.props.qrCode}
+                            size={200}
+                            bgColor='black'
+                            fgColor='white' />
+                    </View>
+                </View>
+            );
+        }
+
         return (
             <Panel layout={{}}
                 name={"Settings"}
@@ -101,6 +119,8 @@ class Settings extends React.Component<any> {
                 {settings_views}
 
                 {device_discovery}
+
+                {qr_code_view}
             </Panel>
         );
     }
@@ -127,6 +147,26 @@ const styles = StyleSheet.create({
         flex: 3,
         color: '#FFFFFF',
         width: 200,
+    },
+    qrcode_container: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+    },
+    qrcode_view: {
+        position: 'absolute',
+        right: 0,
+        bottom: 0,
+        width: 200,
+        height: 270,
+    },
+    qrcode_text: {
+        height: 70,
+        width: 200,
+        fontSize: 22,
+        textAlign: 'center',
+        fontFamily: 'HKNova-MediumR',
+        color: '#FFFFFF'
     }
 });
 
