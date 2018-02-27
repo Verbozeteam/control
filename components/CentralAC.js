@@ -122,7 +122,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
         roomTemperatureView = (
             <View style={tabStyles.roomTempContainer}>
                 <Text style={[tabStyles.roomTempText, {fontSize: 40}]}>{ac.temp.toFixed(1) + " °C"}</Text>
-                <Text style={tabStyles.roomTempText}>{"ROOM TEMPERATURE"}</Text>
+                <Text style={tabStyles.roomTempText}>{I18n.t("ROOM TEMPERATURE")}</Text>
             </View>
         );
 
@@ -152,7 +152,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                     <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 0}
-                                 text={"OFF"}
+                                 text={I18n.t("OFF")}
                                  textColor={"#ffffff"}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(0)}
@@ -162,7 +162,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                                  isOn={ac.fan === 1}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(1)}
-                                 text={"LO"}
+                                 text={I18n.t("LO")}
                                  textColor={"#ffffff"}
                                  extraStyle={fanButtonStyle} />
                     <MagicButton width={70}
@@ -170,7 +170,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                                  isOn={ac.fan === 2}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(2)}
-                                 text={"HI"}
+                                 text={I18n.t("HI")}
                                  textColor={"#ffffff"}
                                  extraStyle={fanButtonStyle} />
                 </View>

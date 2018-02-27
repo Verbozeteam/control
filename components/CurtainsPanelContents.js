@@ -99,7 +99,7 @@ export default class CurtainsPanelContents extends React.Component<PropsType, St
 
         return (
             <View key={"curtain-"+(curtain ? curtain.id : "all")} style={styles.curtainContainer}>
-                <Text style={styles.texts}>{text}</Text>
+                <Text style={styles.texts}>{I18n.t(text)}</Text>
                 <View style={styles.controlsContainer}>
                     <MagicButton
                                  width={70}
