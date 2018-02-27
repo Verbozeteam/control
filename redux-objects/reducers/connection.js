@@ -29,7 +29,7 @@ let defaultState = {
         name: "QSTP Device",
     },
     discoveredDevices: [],
-    QRCodeAddress: "ws://192.168.10.1:7986/demo",
+    QRCodeAddress: "ws://192.168.10.102:7986/",
 
     config: null,
     thingStates: {},
