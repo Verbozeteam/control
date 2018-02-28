@@ -115,12 +115,11 @@ class Settings extends React.Component<any> {
             <Panel layout={{}}
                 name={"Settings"}
                 viewType={'static'}>
+                {qr_code_view}
 
                 {settings_views}
 
                 {device_discovery}
-
-                {qr_code_view}
             </Panel>
         );
     }

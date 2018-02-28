@@ -48,7 +48,6 @@ class PagingView extends React.Component<any, StateType> {
             renderer: (index: number) => this.renderRoomView(index-1),
             getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
-            longPress: () => settingsActions.toggleDevMode(),
         },
         settings: {
             name: "Settings",
@@ -56,6 +55,7 @@ class PagingView extends React.Component<any, StateType> {
             renderer: this.renderSettingsView.bind(this),
             getBackground: (index: number) => this._backgrounds.settings,
             is_pressable: true,
+            longPress: () => this.context.store.dispatch(settingsActions.toggle_dev_mode()),
         },
     };
 
