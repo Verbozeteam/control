@@ -2,11 +2,11 @@
 import { SET_CONNECTION_STATUS, ADD_DISCOVERED_DEVICE, CLEAR_DISCOVERED_DEVICES, SET_CURRENT_DEVICE,
          SET_CONFIG, SET_THING_STATE, SET_THINGS_STATES, SET_THING_PARTIAL_STATE, SET_THINGS_PARTIAL_STATES } from '../actions/connection';
 
-var default_ip = "192.168.10.1";
+var default_ip = "10.10.10.11";
 var default_port = 7990;
 try {
     if (__DEV__) {
-        default_ip = "10.11.28.190";
+        default_ip = "172.20.10.7";
         default_port = 4567;
     }
 } catch (e) {}

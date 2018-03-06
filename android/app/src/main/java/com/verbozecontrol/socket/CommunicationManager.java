@@ -289,7 +289,7 @@ public class CommunicationManager implements Runnable {
                 byte[] byte_array = new byte[payload.size()];
                 for (int i = 0; i < payload.size(); i++)
                     byte_array[i] = payload.get(i);
-                String payload_string = new String(byte_array, StandardCharsets.UTF_8);
+                String payload_string = new String(byte_array);
 
                 for (int i = 0; i < 4 + payload_size; i++)
                     buffer.remove(0);
