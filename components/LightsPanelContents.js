@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     dimmers_container: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         flex: 1,
     },
 });
