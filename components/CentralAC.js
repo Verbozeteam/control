@@ -10,6 +10,8 @@ import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigMa
 import MagicThermostatSlider from '../react-components/MagicThermostatSlider';
 import MagicButton from '../react-components/MagicButton';
 
+import { TypeFaces } from '../constants/styles';
+
 const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
@@ -122,7 +124,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
         roomTemperatureView = (
             <View style={tabStyles.roomTempContainer}>
                 <Text style={[tabStyles.roomTempText, {fontSize: 40}]}>{ac.temp.toFixed(1) + " °C"}</Text>
-                <Text style={tabStyles.roomTempText}>{I18n.t("ROOM TEMPERATURE")}</Text>
+                <Text style={tabStyles.roomTempText}>{I18n.t("Room Temperature")}</Text>
             </View>
         );
 
@@ -144,6 +146,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                     </View>
                     <MagicThermostatSlider  width={Math.max(tabWidth/2-40, 185)}
                                             height={50}
+                                            margin={40}
                                             value={ac.set_pt}
                                             enabled={isEnabled}
                                             onChange={this.changeTemperature(true)} />
@@ -152,7 +155,8 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                     <MagicButton width={70}
                                  height={70}
                                  isOn={ac.fan === 0}
-                                 text={I18n.t("OFF")}
+                                 text={I18n.t("Off")}
+                                 textStyle={{...TypeFaces.light}}
                                  textColor={"#ffffff"}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(0)}
@@ -162,7 +166,9 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                                  isOn={ac.fan === 1}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(1)}
-                                 text={I18n.t("LO")}
+                                 text={I18n.t("Lo")}
+                                 // slightly smaller text to fit arabic word, original size is 23.333 (according to inspect element)
+                                 textStyle={I18n.t("Lo") === 'Lo' ? {...TypeFaces.light} : {...TypeFaces.light, fontSize: 22} }
                                  textColor={"#ffffff"}
                                  extraStyle={fanButtonStyle} />
                     <MagicButton width={70}
@@ -170,7 +176,8 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                                  isOn={ac.fan === 2}
                                  glowColor={this._accentColor}
                                  onPressIn={() => this.changeFan(2)}
-                                 text={I18n.t("HI")}
+                                 text={I18n.t("Hi")}
+                                 textStyle={{...TypeFaces.light}}
                                  textColor={"#ffffff"}
                                  extraStyle={fanButtonStyle} />
                 </View>
@@ -208,10 +215,10 @@ const tabStyles = {
         bottom: 0,
     },
     roomTempText: {
-        fontWeight: '100',
         color: '#ffffff',
         fontSize: 26,
         textAlign: 'left',
+        ...TypeFaces.light
     },
     settingsContainer: {
         flexDirection: 'column',
@@ -244,12 +251,12 @@ const tabStyles = {
         color: '#666666',
     },
     settingTempText: {
-        fontWeight: '100',
         color: '#ffffff',
         fontSize: 50,
         textAlign: 'center',
         height: 80,
         flex: 3,
+        ...TypeFaces.light
     },
     settingFanContainer: {
         display: 'flex',

@@ -9,6 +9,8 @@ import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigMa
 
 import MagicButton from '../react-components/MagicButton';
 
+import { TypeFaces } from '../constants/styles';
+
 const I18n = require('../js-api-utils/i18n/i18n');
 
 type PropsType = {
@@ -86,7 +88,10 @@ export default class HotelControlsPanelContents extends React.Component<PropsTyp
                             height={70}
                             onPressIn={this.toggleRoomService.bind(this)}
                             isOn={service_state == 1 ? true : false}
-                            sideText={I18n.t("HOUSEKEEPING")}
+                            text={service_state == 1 ? I18n.t("On") : I18n.t("Off")}
+                            textStyle={{...TypeFaces.light}}
+                            sideText={I18n.t("Housekeeping")}
+                            sideTextStyle={{...TypeFaces.light}}
                             glowColor={'#37BA37'}
                             textColor={'#FFFFFF'}
                             />
@@ -98,7 +103,10 @@ export default class HotelControlsPanelContents extends React.Component<PropsTyp
                             height={70}
                             onPressIn={this.toggleDoNotDisturb.bind(this)}
                             isOn={dnd_state == 1 ? true : false}
-                            sideText={I18n.t("DO NOT DISTURB")}
+                            text={dnd_state == 1 ? I18n.t("On") : I18n.t("Off")}
+                            textStyle={{...TypeFaces.light}}
+                            sideText={I18n.t("Do Not Disturb")}
+                            sideTextStyle={{...TypeFaces.light}}
                             glowColor={'#BA3737'}
                             textColor={'#FFFFFF'}
                             />

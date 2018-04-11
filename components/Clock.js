@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
+import { TypeFaces } from '../constants/styles';
+
 const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../js-api-utils/UserPreferences');
 
@@ -123,20 +125,20 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     time: {
-        fontFamily: 'HKNova-MediumR',
         fontSize: 120,
-        color: '#AAAAAA'
+        color: '#AAAAAA',
+        ...TypeFaces.regular
     },
     date: {
-        fontFamily: 'HKNova-MediumR',
         fontSize: 40,
-        color: '#AAAAAA'
+        color: '#AAAAAA',
+        ...TypeFaces.regular,
     },
     warning: {
         marginTop: 30,
-        fontFamily: 'HKNova-MediumR',
         fontSize: 40,
-        color: '#FF0000'
+        color: '#FF0000',
+        ...TypeFaces.regular
     },
 });
 

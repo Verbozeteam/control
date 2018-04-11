@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 
 import MagicSlider from '../react-components/MagicSlider';
 
+import { TypeFaces } from '../constants/styles';
+
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
@@ -64,6 +66,7 @@ export default class LightDimmer extends React.Component<PropsType, StateType> {
                 width={width}
                 height={height}
                 value={intensity}
+                extraStyle={{...TypeFaces.light}}
                 maxValue={100}
                 round={(value: number) => Math.round(value)}
                 onChange={this.changeIntensity.bind(this)}
