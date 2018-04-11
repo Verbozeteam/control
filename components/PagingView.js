@@ -45,7 +45,7 @@ class PagingView extends React.Component<any, StateType> {
     _pages : {[string]: PageType} = {
         group: {
             name: "Group",
-            renderer: (index: number) => this.renderRoomView(index-1),
+            renderer: (index: number) => this.renderRoomView(index),
             getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
         },
@@ -96,7 +96,8 @@ class PagingView extends React.Component<any, StateType> {
 
     getGroupBackground(index: number) {
         const { groups } = this.state;
-        const group = groups[index-1];
+        const group = groups[index];
+
         var things: Array<ThingMetadataType> = group.things.filter(t => t.category !== 'empty');
         if (things.length > 0)
             return this._backgrounds[things[0].category];
@@ -169,7 +170,8 @@ class PagingView extends React.Component<any, StateType> {
 
         var pages = [this._pages.settings];
         if (groups && groups.length > 0) {
-            pages = pages.concat(groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}}));
+            // concat pages to result of group map to put settings tab at the bottom
+            pages = (groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}})).concat(pages)
         }
 
         var numFlexedIcons = pages.map(p => p.height ? 0 : 1).reduce((a, b) => a+b);
@@ -185,7 +187,6 @@ class PagingView extends React.Component<any, StateType> {
                 height={page.height || (screenDimensions.height-totalPresetHeight) / numFlexedIcons}
             />
         );
-
         var bkg = pages[currentPage].getBackground(currentPage);
 
         return (
