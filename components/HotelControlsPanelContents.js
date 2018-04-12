@@ -134,7 +134,8 @@ const styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: 'column',
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        marginLeft: 200
     },
 });
