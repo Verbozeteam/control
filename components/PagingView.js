@@ -153,6 +153,8 @@ class PagingView extends React.Component<any, StateType> {
 
     changePage(index: number) {
         return (() => {
+            // to remove the discovery option incase it was open, when changing pages
+            this.context.store.dispatch(settingsActions.set_dev_mode(false));
             var reduxState = this.context.store.getState();
             // dont change the page if the index didn't change or if we are in pagingLock
             if (this.state.currentPage != index && (!reduxState || !reduxState.screen || !reduxState.screen.pagingLock))

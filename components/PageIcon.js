@@ -28,9 +28,7 @@ class PageIcon extends React.Component<PropsType> {
         const selected_style = (selected) ? styles.selected : null;
 
         if (I18n.t(name).length >= 15) {
-            console.log(I18n.t(name));
             var largeName = I18n.t(name).replace(/ /g, "\n");
-            console.log(largeName)
         }
 
         var title = iconName ?
