@@ -18,6 +18,8 @@ import HotelControlsPanelContents from './HotelControlsPanelContents';
 import CentralAC from './CentralAC';
 import CurtainsPanelContents from './CurtainsPanelContents';
 
+import FadeInView from './FadeInView';
+
 type StateType = {
     groups: Array<GroupType>,
     currentPage: number,
@@ -193,19 +195,28 @@ class PagingView extends React.Component<any, StateType> {
 
         return (
             <View style={styles.container}>
-                <Image
-                    source={bkg}
-                    style={[styles.content_container, screenDimensions]}
+                <FadeInView currentPage={currentPage}>
+                    <Image
+                        source={bkg}
+                        style={[styles.content_container, screenDimensions]}
                     />
+                </FadeInView>
+
                 <View style={styles.content_container}>
                     {pages[currentPage].renderer(currentPage)}
                 </View>
+
+
                 <View style={styles.sidebar_container}>
-                    <Image
-                        source={bkg}
-                        style={[styles.content_container, screenDimensions, {opacity: 0.8}]}
-                        blurRadius={3}
-                        />
+                    <View style={[styles.content_container, {paddingLeft: 0}]}>
+                        <FadeInView currentPage={currentPage}>
+                            <Image
+                                source={bkg}
+                                style={[screenDimensions, {opacity: 0.8}]}
+                                blurRadius={3}
+                                />
+                        </FadeInView>
+                    </View>
                     {page_icons}
                 </View>
             </View>
