@@ -168,7 +168,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                                  onPressIn={() => this.changeFan(1)}
                                  text={I18n.t("Lo")}
                                  // slightly smaller text to fit arabic word, original size is 23.333 (according to inspect element)
-                                 textStyle={I18n.t("Lo") === 'Lo' ? {...TypeFaces.light} : {...TypeFaces.light, fontSize: 22} }
+                                 textStyle={I18n.t("Lo") === 'Lo' ? {...TypeFaces.light} : {...TypeFaces.light, fontSize: 20} }
                                  textColor={"#ffffff"}
                                  extraStyle={fanButtonStyle} />
                     <MagicButton width={70}
