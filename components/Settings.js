@@ -104,11 +104,17 @@ class Settings extends React.Component<any> {
                 <View style={styles.qrcode_container}>
                     <View style={styles.qrcode_view}>
                         <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
-                        <QRCode
-                            value={this.props.qrCode}
-                            size={200}
-                            bgColor='black'
-                            fgColor='white' />
+                        <View style={styles.qrcode_background}>
+                            <View style={{flex: 1}} />
+                            <View style={{flex: 10}}>
+                                <QRCode
+                                    value={this.props.qrCode}
+                                    size={200}
+                                    bgColor='black'
+                                    fgColor='white' />
+                            </View>
+                            <View style={{flex: 1}} />
+                        </View>
                     </View>
                 </View>
             );
@@ -168,7 +174,15 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         width: 200,
+        height: 290,
+        alignItems: 'center',
+    },
+    qrcode_background: {
+        width: 235,
         height: 270,
+        backgroundColor: 'white',
+        alignItems:'center',
+        justifyContent: 'space-between'
     },
     qrcode_text: {
         height: 90,
