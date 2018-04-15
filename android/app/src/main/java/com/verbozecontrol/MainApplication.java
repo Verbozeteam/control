@@ -5,6 +5,7 @@ import com.verbozecontrol.socket.*;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import com.horcrux.svg.SvgPackage;
 import com.ninty.system.setting.SystemSettingPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
@@ -28,6 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
             return Arrays.<ReactPackage>asList(
                 new MainReactPackage(),
+            new SplashScreenReactPackage(),
             new SvgPackage(),
                 new SystemSettingPackage(),
                 new LinearGradientPackage(),

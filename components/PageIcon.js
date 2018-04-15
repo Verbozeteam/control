@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
+import { TypeFaces } from '../constants/styles';
+
 const I18n = require('../js-api-utils/i18n/i18n');
 
 type PropsType = {
@@ -24,6 +26,11 @@ class PageIcon extends React.Component<PropsType> {
         const { name, changePage, longPress, selected, iconName, height } = this.props;
 
         const selected_style = (selected) ? styles.selected : null;
+
+        if (I18n.t(name).length >= 15) {
+            var largeName = I18n.t(name).replace(/ /g, "\n");
+        }
+
         var title = iconName ?
                 <Image style={styles.icon}
                     resizeMode='contain'
@@ -31,7 +38,7 @@ class PageIcon extends React.Component<PropsType> {
                 </Image>
             :
                 <Text style={styles.header}>
-                    {I18n.t(name).toUpperCase()}
+                    {I18n.t(name).length >= 15 ? largeName : I18n.t(name)}
                 </Text>;
 
         var sizeStyle = height ? {height} : {flex: 1};
@@ -71,9 +78,8 @@ const styles = StyleSheet.create({
     header: {
         fontSize: 21,
         textAlign: 'right',
-        fontWeight: '100',
-
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        ...TypeFaces.regular,
     },
     icon: {
         flex: 1,
@@ -85,6 +91,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#BA3737',
         position: 'absolute',
         bottom: 0,
+        alignSelf: 'flex-end',
+        justifyContent: 'flex-end'
     }
 });
 

@@ -18,6 +18,8 @@ import HotelControlsPanelContents from './HotelControlsPanelContents';
 import CentralAC from './CentralAC';
 import CurtainsPanelContents from './CurtainsPanelContents';
 
+import FadeInView from './FadeInView';
+
 type StateType = {
     groups: Array<GroupType>,
     currentPage: number,
@@ -45,7 +47,7 @@ class PagingView extends React.Component<any, StateType> {
     _pages : {[string]: PageType} = {
         group: {
             name: "Group",
-            renderer: (index: number) => this.renderRoomView(index-1),
+            renderer: (index: number) => this.renderRoomView(index),
             getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
         },
@@ -96,7 +98,8 @@ class PagingView extends React.Component<any, StateType> {
 
     getGroupBackground(index: number) {
         const { groups } = this.state;
-        const group = groups[index-1];
+        const group = groups[index];
+
         var things: Array<ThingMetadataType> = group.things.filter(t => t.category !== 'empty');
         if (things.length > 0)
             return this._backgrounds[things[0].category];
@@ -152,6 +155,8 @@ class PagingView extends React.Component<any, StateType> {
 
     changePage(index: number) {
         return (() => {
+            // to remove the discovery option incase it was open, when changing pages
+            this.context.store.dispatch(settingsActions.set_dev_mode(false));
             var reduxState = this.context.store.getState();
             // dont change the page if the index didn't change or if we are in pagingLock
             if (this.state.currentPage != index && (!reduxState || !reduxState.screen || !reduxState.screen.pagingLock))
@@ -169,7 +174,8 @@ class PagingView extends React.Component<any, StateType> {
 
         var pages = [this._pages.settings];
         if (groups && groups.length > 0) {
-            pages = pages.concat(groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}}));
+            // concat pages to result of group map to put settings tab at the bottom
+            pages = (groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}})).concat(pages)
         }
 
         var numFlexedIcons = pages.map(p => p.height ? 0 : 1).reduce((a, b) => a+b);
@@ -185,24 +191,32 @@ class PagingView extends React.Component<any, StateType> {
                 height={page.height || (screenDimensions.height-totalPresetHeight) / numFlexedIcons}
             />
         );
-
         var bkg = pages[currentPage].getBackground(currentPage);
 
         return (
             <View style={styles.container}>
-                <Image
-                    source={bkg}
-                    style={[styles.content_container, screenDimensions]}
+                <FadeInView currentPage={currentPage}>
+                    <Image
+                        source={bkg}
+                        style={[styles.content_container, screenDimensions]}
                     />
+                </FadeInView>
+
                 <View style={styles.content_container}>
                     {pages[currentPage].renderer(currentPage)}
                 </View>
+
+
                 <View style={styles.sidebar_container}>
-                    <Image
-                        source={bkg}
-                        style={[styles.content_container, screenDimensions, {opacity: 0.8}]}
-                        blurRadius={3}
-                        />
+                    <View style={[styles.content_container, {paddingLeft: 0}]}>
+                        <FadeInView currentPage={currentPage}>
+                            <Image
+                                source={bkg}
+                                style={[screenDimensions, {opacity: 0.8}]}
+                                blurRadius={3}
+                                />
+                        </FadeInView>
+                    </View>
                     {page_icons}
                 </View>
             </View>

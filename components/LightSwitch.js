@@ -10,6 +10,8 @@ import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigMa
 
 import MagicButton from '../react-components/MagicButton';
 
+import { TypeFaces } from '../constants/styles';
+
 const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
@@ -89,10 +91,12 @@ export default class LightSwitch extends React.Component<PropsType, StateType> {
             <MagicButton
                 width={70}
                 height={70}
-                text={I18n.t(intensity > 0 ? "ON" : "OFF")}
+                text={I18n.t(intensity > 0 ? "On" : "Off")}
+                textStyle={{...TypeFaces.light}}
                 onPressIn={on_press}
                 isOn={intensity > 0}
-                sideText={I18n.t(!id ? "ALL" : ConfigManager.thingMetas[id].name).toUpperCase()}
+                sideText={I18n.t(!id ? "All" : ConfigManager.thingMetas[id].name)}
+                sideTextStyle={{...TypeFaces.light}}
                 glowColor={'#BA3737'}
                 textColor={'#FFFFFF'}
                 />

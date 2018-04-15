@@ -8,6 +8,8 @@ import PropTypes from 'prop-types';
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType, PresetType } from '../js-api-utils/ConfigManager';
 
+import { TypeFaces } from '../constants/styles';
+
 const Panel = require('./Panel');
 
 import LightSwitch from './LightSwitch';
@@ -72,7 +74,7 @@ export default class LightsPanel extends React.Component<PropsType, StateType>  
     renderDimmer(dimmer: ThingMetadataType) {
         const { layout } = this.props;
 
-        var dimmer_name = I18n.t(dimmer.name).toUpperCase();
+        var dimmer_name = I18n.t(dimmer.name);
         var slider_width = layout.width / 2 - 40;
         var slider_height = 90;
 
@@ -123,7 +125,7 @@ export default class LightsPanel extends React.Component<PropsType, StateType>  
                 // if (ConfigManager.thingMetas[things[i].id].has_switch)
                 //     dimmer_switches.push(this.renderLightSwitch(things[i]));
                 total_left_flex += 6;
-            } else {
+            } else if (things[i].category === 'light_switches') {
                 switches.push(this.renderLightSwitch(things[i]));
                 total_left_flex += 4;
             }
@@ -181,6 +183,7 @@ const styles = StyleSheet.create({
     dimmer_name: {
         color: '#FFFFFF',
         fontSize: 20,
+        ...TypeFaces.light
     },
     all_switch_container: {
         flex: 4,

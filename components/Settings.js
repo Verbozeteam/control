@@ -5,6 +5,7 @@ import QRCode from 'react-native-qrcode';
 import { View, Text, StyleSheet, Picker } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { TypeFaces } from '../constants/styles';
 
 const connectionActions = require ('../redux-objects/actions/connection');
 const settingsActions = require ('../redux-objects/actions/settings');
@@ -76,11 +77,13 @@ class Settings extends React.Component<any> {
                 </Text>
             ),
             value: (
-                <Picker selectedValue={this.props.language}
-                    onValueChange={this.changeLanguage.bind(this)}
-                    style={styles.picker}>
-                    {language_items}
-                </Picker>
+                <View style={styles.picker_view}>
+                    <Picker selectedValue={this.props.language}
+                        onValueChange={this.changeLanguage.bind(this)}
+                        style={styles.picker}>
+                        {language_items}
+                    </Picker>
+                </View>
             )
         });
 
@@ -100,7 +103,7 @@ class Settings extends React.Component<any> {
             qr_code_view = (
                 <View style={styles.qrcode_container}>
                     <View style={styles.qrcode_view}>
-                        <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze app")}</Text>
+                        <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
                         <QRCode
                             value={this.props.qrCode}
                             size={200}
@@ -139,13 +142,21 @@ const styles = StyleSheet.create({
     setting_header: {
         flex: 1,
         fontSize: 20,
-        fontFamily: 'HKNova-MediumR',
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        ...TypeFaces.regular,
+        height: 50,
+        marginTop: 10
     },
     picker: {
-        flex: 3,
         color: '#FFFFFF',
-        width: 200,
+    },
+    picker_view: {
+        flex: 1,
+        height: 50,
+        width: 150,
+        borderWidth: 1,
+        borderColor: 'grey',
+        justifyContent: 'flex-start'
     },
     qrcode_container: {
         position: 'absolute',
@@ -160,12 +171,12 @@ const styles = StyleSheet.create({
         height: 270,
     },
     qrcode_text: {
-        height: 70,
+        height: 90,
         width: 200,
         fontSize: 22,
         textAlign: 'center',
-        fontFamily: 'HKNova-MediumR',
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        ...TypeFaces.regular,
     }
 });
 

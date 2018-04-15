@@ -6,6 +6,8 @@ import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
 
+import SplashScreen from 'react-native-splash-screen';
+
 const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./js-api-utils/SocketCommunication');
@@ -110,6 +112,10 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._discovery_timeout = setInterval(() => {
             SocketCommunication.discoverDevices();
         }, 10000);
+    }
+
+    componentDidMount() {
+        SplashScreen.hide();
     }
 
     componentWillUnmount() {

@@ -92,7 +92,7 @@ export default class CurtainsPanelContents extends React.Component<PropsType, St
 
     renderCurtainView(curtain: ?ThingMetadataType) {
         var { things } = this.props;
-        var text = (!curtain ? "All" : curtain.name).toUpperCase();
+        var text = (!curtain ? "All" : curtain.name);
         var isOpening = curtain ? curtain.curtain === 1 : things.map(t => t.curtain === 1).reduce((a, b) => a && b);
         var isClosing = curtain ? curtain.curtain === 2 : things.map(t => t.curtain === 2).reduce((a, b) => a && b);
         var targetCurtains = curtain ? [curtain] : things;
