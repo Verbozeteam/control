@@ -124,6 +124,7 @@ export default class LightsPanel extends React.Component<PropsType, StateType>  
                 dimmers.push(this.renderDimmer(things[i]));
                 if (ConfigManager.thingMetas[things[i].id].has_switch)
                     dimmer_switches.push(this.renderLightSwitch(things[i]));
+                    total_left_flex += 4;
                 total_left_flex += 6;
             } else if (things[i].category === 'light_switches') {
                 switches.push(this.renderLightSwitch(things[i]));
@@ -131,14 +132,14 @@ export default class LightsPanel extends React.Component<PropsType, StateType>  
             }
         }
 
-        var filler = <View style={{flex: total_left_flex-4}}></View>
+        var filler = dimmers.length > 0 ? <View style={{flex: total_left_flex-3}}></View> : <View style={{flex: total_left_flex-4}}></View>;
 
         return (
             <View style={styles.container}>
                 <View style={styles.controls_container}>
                     {dimmers}
                     { dimmer_switches }
-                    { dimmers.length > 0 ? <View style={styles.separator_container}><View style={styles.separator}></View></View> : null}
+                    { dimmers.length > 0 ? <View style={styles.separator_container}><View style={styles.separator}></View></View> : null }
                     {switches}
                 </View>
                 <View style={styles.controls_container}>
