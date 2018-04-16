@@ -132,6 +132,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
         settingsView = (
             <View style={tabStyles.settingsContainer}>
                 <View style={tabStyles.settingTemp}>
+                    <Text style={tabStyles.settingTempTitle}>{I18n.t('Set Temperature')}</Text>
                     <View style={tabStyles.settingTempButtonsContainer}>
                         <TouchableWithoutFeedback
                             onPressIn={(() => {lowerTemp(); setHighlight(0);}).bind(this)}
@@ -257,6 +258,12 @@ const tabStyles = {
         textAlign: 'center',
         height: 80,
         flex: 3,
+        ...TypeFaces.light
+    },
+    settingTempTitle: {
+        color: '#ffffff',
+        textAlign: 'center',
+        fontSize: 22,
         ...TypeFaces.light
     },
     settingFanContainer: {
