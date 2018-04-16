@@ -116,6 +116,7 @@ class PagingView extends React.Component<any, StateType> {
                 case 'hotel_controls':
                     return <HotelControlsPanelContents id={things[0].id} layout={layout} />;
                 case 'central_acs':
+                case 'honeywell_thermostat_t7560':
                     return <CentralAC id={things[0].id} layout={layout} />;
                 case 'curtains':
                     return <CurtainsPanelContents things={things} layout={layout} />;
