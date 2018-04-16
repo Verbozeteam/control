@@ -79,6 +79,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
 
     changeTemperature(send_socket: boolean) {
         return ((new_set_pt: number) => {
+            new_set_pt = this.round(new_set_pt);
             ConfigManager.setThingState(this.props.id, {set_pt: new_set_pt}, send_socket);
         }).bind(this);
     }
