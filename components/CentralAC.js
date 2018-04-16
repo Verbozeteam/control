@@ -34,7 +34,7 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
         set_pt: 0,
         temp: 0,
         fan: 0,
-        fan_speeds: [],
+        fan_speeds: ['Off', 'Lo', 'Hi'],
         highlightButton: -1,
     };
 
@@ -100,6 +100,9 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
         var roomTemperatureView = null;
 
         var ac = ConfigManager.things[id];
+        if (!ac)
+            return null;
+
         var isEnabled = ac.fan !== 0;
 
         var minusStyle = tabStyles.signsButtonsContainer;
@@ -153,35 +156,22 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                                             enabled={isEnabled}
                                             onChange={this.changeTemperature(true)} />
                 </View>
-                <View style={tabStyles.settingFanContainer}>
-                    <MagicButton width={70}
-                                 height={70}
-                                 isOn={ac.fan === 0}
-                                 text={I18n.t("Off")}
-                                 textStyle={{...TypeFaces.light}}
-                                 textColor={"#ffffff"}
-                                 glowColor={this._accentColor}
-                                 onPressIn={() => this.changeFan(0)}
-                                 extraStyle={fanButtonStyle} />
-                    <MagicButton width={70}
-                                 height={70}
-                                 isOn={ac.fan === 1}
-                                 glowColor={this._accentColor}
-                                 onPressIn={() => this.changeFan(1)}
-                                 text={I18n.t("Lo")}
-                                 // slightly smaller text to fit arabic word, original size is 23.333 (according to inspect element)
-                                 textStyle={I18n.t("Lo") === 'Lo' ? {...TypeFaces.light} : {...TypeFaces.light, fontSize: 20} }
-                                 textColor={"#ffffff"}
-                                 extraStyle={fanButtonStyle} />
-                    <MagicButton width={70}
-                                 height={70}
-                                 isOn={ac.fan === 2}
-                                 glowColor={this._accentColor}
-                                 onPressIn={() => this.changeFan(2)}
-                                 text={I18n.t("Hi")}
-                                 textStyle={{...TypeFaces.light}}
-                                 textColor={"#ffffff"}
-                                 extraStyle={fanButtonStyle} />
+                <View style={[tabStyles.settingFanContainer, {width: fan_speeds.length*90}]}>
+
+                    { fan_speeds.map(
+                        (fs, i) => <MagicButton
+                                        key={'fan-speed-'+i}
+                                        width={70}
+                                        height={70}
+                                        isOn={ac.fan === i}
+                                        text={I18n.t(fs)}
+                                        textStyle={tabStyles.fanSpeedTextStyle}
+                                        textColor={"#ffffff"}
+                                        glowColor={this._accentColor}
+                                        onPressIn={() => this.changeFan(i)}
+                                        extraStyle={fanButtonStyle} />
+                        )
+                    }
                 </View>
             </View>
         );
@@ -272,6 +262,10 @@ const tabStyles = {
         width: 300,
         height: 80,
     },
+    fanSpeedTextStyle: {
+        fontSize: 20,
+        ...TypeFaces.light
+    }
 };
 
 const fanButtonStyle = {
