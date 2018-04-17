@@ -67,6 +67,7 @@ class PagingView extends React.Component<any, StateType> {
         'curtains': require('../assets/images/curtain_back.jpg'),
         'hotel_controls': require('../assets/images/services_stack.jpg'),
         'central_acs': require('../assets/images/thermostat_stack.jpg'),
+        'honeywell_thermostat_t7560': require('../assets/images/thermostat_stack.jpg'),
         'settings': require('../assets/images/verboze_poster.jpg'),
     };
 
@@ -112,14 +113,14 @@ class PagingView extends React.Component<any, StateType> {
             switch (things[0].category) {
                 case 'dimmers':
                 case 'light_switches':
-                    return  <LightsPanelContents things={things} layout={layout} presets={group.presets} />;
+                    return  <LightsPanelContents things={things.filter(t => t.category === 'dimmers' || t.category === 'light_switches')} layout={layout} presets={group.presets} />;
                 case 'hotel_controls':
-                    return <HotelControlsPanelContents id={things[0].id} layout={layout} />;
+                    return <HotelControlsPanelContents id={things.filter(t => t.category === 'hotel_controls')[0].id} layout={layout} />;
                 case 'central_acs':
                 case 'honeywell_thermostat_t7560':
-                    return <CentralAC id={things[0].id} layout={layout} />;
+                    return <CentralAC id={things.filter(t => t.category === 'central_acs' || t.category === 'honeywell_thermostat_t7560')[0].id} layout={layout} />;
                 case 'curtains':
-                    return <CurtainsPanelContents things={things} layout={layout} />;
+                    return <CurtainsPanelContents things={things.filter(t => t.category === 'curtains')} layout={layout} />;
             }
         }
         return null;
