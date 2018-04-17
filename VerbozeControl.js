@@ -1,3 +1,7 @@
+if (!__DEV__) {
+  console.log = () => {};
+}
+
 import * as React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
@@ -49,6 +53,8 @@ type StateType = {
 
 class VerbozeControl extends React.Component<{}, StateType> {
     _unsubscribe: () => any = () => null;
+    _unsubscribe_config_change: () => any = () => null;
+    _unsubscribe_hotel_change: () => any = () => null;
 
     state = {
         screenDimmed: false,
@@ -73,6 +79,11 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
         this.onReduxStateChanged();
+
+        /* Detect when config changes to find hotel_controls thing id */
+        this._unsubscribe_config_change = ConfigManager.registerConfigChangeCallback(this.onConfigChanged.bind(this));
+        if (ConfigManager.config)
+            this.onConfigChanged(ConfigManager.config);
 
         /** Load user preferences */
         UserPreferences.load((() => {
@@ -120,6 +131,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     componentWillUnmount() {
         this._unsubscribe();
+        this._unsubscribe_config_change();
+        this._unsubscribe_hotel_change();
         SocketCommunication.cleanup();
         clearTimeout(this._discovery_timeout);
     }
@@ -135,6 +148,26 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 this.setState({cardIn: hotel_thing.card});
             }
         }
+    }
+
+    onConfigChanged(config: ConfigType) {
+        var hotel_things = null;
+        for (var tid in ConfigManager.thingMetas) {
+            if (ConfigManager.thingMetas[tid].category === 'hotel_controls') {
+                if (tid !== this.state.hotelThingId) {
+                    this._unsubscribe_hotel_change();
+                    this._unsubscribe_hotel_change = ConfigManager.registerThingStateChangeCallback(tid, this.onHotelControlsChanged.bind(this));
+                    this.setState({hotelThingId: tid});
+                    if (tid in ConfigManager.things)
+                        this.onHotelControlsChanged(ConfigManager.thingMetas[tid], ConfigManager.things[tid]);
+                }
+            }
+        }
+    }
+
+    onHotelControlsChanged(meta: ThingMetadataType, hcState: ThingStateType) {
+        if (hcState.card !== this.state.cardIn)
+            this.setState({cardIn: hcState.card});
     }
 
     handleSocketConnected() {
@@ -154,30 +187,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
     handleDeviceDiscovered(device: DiscoveredDeviceType) {
         console.log('Found device: ', device.name, device.ip, ":", device.port);
         this.props.addDiscoveredDevice(device);
-    }
-
-    extractI18NFromConfigAndFindHotelThing(config: ConfigType) {
-        if (config.rooms) {
-            for (var i = 0; i < config.rooms.length; i++) {
-                const room = config.rooms[i];
-                I18n.addTranslations(room.name);
-                if ('grid' in room) {
-                    for (var j = 0; j < room.grid.length; j++) {
-                        const grid = room.grid[j];
-                        for (var k = 0; k < grid.panels.length; k++) {
-                            const panel = grid.panels[k];
-                            I18n.addTranslations(panel.name);
-                            for (var l = 0; l < panel.things.length; l++) {
-                                const thing = panel.things[l];
-                                if (thing.category === 'hotel_controls')
-                                    this.setState({hotelThingId: thing.id});
-                                I18n.addTranslations(thing.name);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     _resetScreenDim() {
