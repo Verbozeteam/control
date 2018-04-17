@@ -216,13 +216,13 @@ class VerbozeControl extends React.Component<{}, StateType> {
         const { screenDimmed, cardIn } = this.state;
 
         var inner_ui = null;
-        if (screenDimmed || !cardIn) {
+        if (screenDimmed || (!cardIn && connectionStatus)) {
             inner_ui = <Clock displayWarning={(cardIn || !connectionStatus) ? "" : "Please insert the room card to use."}/>;
         }
 
         return <View style={styles.container}
-            onTouchStart={cardIn ? this._wakeupScreen.bind(this) : null}
-            onTouchMove={cardIn ? this._wakeupScreen.bind(this) : null}>
+            onTouchStart={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}
+            onTouchMove={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}>
             <PagingView />
             {inner_ui}
             <ConnectionStatus />
