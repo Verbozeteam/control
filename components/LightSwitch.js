@@ -83,7 +83,7 @@ export default class LightSwitch extends React.Component<PropsType, StateType> {
         var my_category = 'light_switches';
         if (id && id in ConfigManager.thingMetas)
             var my_category = ConfigManager.thingMetas[id].category;
-        var intensity_after_switch = my_category === 'light_switches' ? (1 - intensity) : (intensity > 0 ? 0 : my_last_non_zero);
+        var intensity_after_switch = my_category === 'light_switches' ? (1 - intensity) : (intensity > 0 ? 0 : 100);
 
         var on_press = (() => this.changeIntensity(intensity_after_switch)).bind(this);
 
