@@ -63,7 +63,7 @@ class PagingView extends React.Component<any, StateType> {
 
     _backgrounds = {
         'dimmers': require('../assets/images/room-lights.png'),
-        'light_switches': require('../assets/images/bathroom-lights.png'),
+        'light_switches': require('../assets/images/bathroom-lights2.png'),
         'curtains': require('../assets/images/curtain_back.jpg'),
         'hotel_controls': require('../assets/images/services_stack.jpg'),
         'central_acs': require('../assets/images/thermostat_stack.jpg'),
