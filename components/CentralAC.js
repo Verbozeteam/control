@@ -108,8 +108,8 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
         var minusStyle = tabStyles.signsButtonsContainer;
         var plusStyle = tabStyles.signsButtonsContainer;
 
-        var lowerTemp = () => this.changeTemperature(true)(Math.max(16, ac.set_pt - 0.5));
-        var raiseTemp = () => this.changeTemperature(true)(Math.min(32, ac.set_pt + 0.5));
+        var lowerTemp = () => this.changeTemperature(true)(Math.max(this._min_temp, ac.set_pt - 0.5));
+        var raiseTemp = () => this.changeTemperature(true)(Math.min(this._max_temp, ac.set_pt + 0.5));
         var setHighlight = h => this.setState({highlightButton: h});
         if (!isEnabled) {
             lowerTemp = () => {};
@@ -152,6 +152,8 @@ export default class CentralAC extends React.Component<PropsType, StateType> {
                     <MagicThermostatSlider  width={Math.max(tabWidth/2-40, 185)}
                                             height={50}
                                             margin={40}
+                                            minTemp={this._min_temp}
+                                            maxTemp={this._max_temp}
                                             value={ac.set_pt}
                                             enabled={isEnabled}
                                             onChange={this.changeTemperature(true)} />

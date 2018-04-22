@@ -217,7 +217,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         var inner_ui = null;
         if (screenDimmed || (!cardIn && connectionStatus)) {
-            inner_ui = <Clock displayWarning={(cardIn || !connectionStatus) ? "" : "Please insert the room card to use."}/>;
+            inner_ui = <Clock displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
         }
 
         return <View style={styles.container}
