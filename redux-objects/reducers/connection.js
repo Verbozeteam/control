@@ -6,7 +6,7 @@ var default_ip = "10.10.10.11";
 var default_port = 7990;
 try {
     if (__DEV__) {
-        default_ip = "172.20.10.7";
+        default_ip = "10.11.28.190";
         default_port = 4567;
     }
 } catch (e) {}
