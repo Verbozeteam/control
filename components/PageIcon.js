@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
 
 import { TypeFaces } from '../constants/styles';
 
@@ -14,7 +15,18 @@ type PropsType = {
     changePage?: ?(() => any),
     longPress?: ?(() => any),
     height: number,
+    displayConfig: Object,
 };
+
+function mapStateToProps(state) {
+    return {
+        displayConfig: state.screen.displayConfig,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {};
+}
 
 class PageIcon extends React.Component<PropsType> {
     static defaultProps = {
@@ -23,11 +35,11 @@ class PageIcon extends React.Component<PropsType> {
     };
 
     render() {
-        const { name, changePage, longPress, selected, iconName, height } = this.props;
+        const { name, changePage, longPress, selected, iconName, height, displayConfig } = this.props;
 
-        const selected_style = (selected) ? styles.selected : null;
+        const selected_style = (selected) ? [styles.selected, {backgroundColor: displayConfig.sidebar.selectedColor}] : null;
 
-        if (I18n.t(name).length >= 15) {
+        if (name && I18n.t(name).length >= 15) {
             var largeName = I18n.t(name).replace(/ /g, "\n");
         }
 
@@ -37,7 +49,10 @@ class PageIcon extends React.Component<PropsType> {
                     source={iconName}>
                 </Image>
             :
-                <Text style={styles.header}>
+                <Text style={[
+                        (displayConfig.sidebar.pull == 'right' || I18n.r2l()) ? styles.headerRight : styles.headerLeft, // select left-to-right or right-to-left based on config and language
+                        {color: displayConfig.sidebar.textColor},
+                    ]}>
                     {I18n.t(name).length >= 15 ? largeName : I18n.t(name)}
                 </Text>;
 
@@ -49,10 +64,13 @@ class PageIcon extends React.Component<PropsType> {
                 delayLongPress={5000}
                 onLongPress={longPress}
                 style={[styles.container, selected_style, {height}]}>
-                <View style={styles.contentWrapper}>
-                    {title}
-                    <View style={styles.underline}></View>
-                </View>
+                {
+                    iconName ? title
+                    : <View style={(displayConfig.sidebar.pull == 'right' || I18n.r2l()) ? styles.contentRightWrapper : styles.contentLeftWrapper}>
+                        {title}
+                        {displayConfig.sidebar.underlineColor ? <View style={[styles.underline, {backgroundColor: displayConfig.sidebar.underlineColor}]}></View> : null}
+                    </View>
+                }
             </TouchableOpacity>
         );
     }
@@ -66,24 +84,37 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: '100%',
         paddingRight: 10,
+        paddingLeft: 10,
     },
-    contentWrapper: {
+    contentRightWrapper: {
         alignSelf: 'flex-end',
+        position: 'relative',
+        backgroundColor: '#00000000', // if you don't do this, underline extends to end... (???)
+    },
+    contentLeftWrapper: {
+        alignSelf: 'flex-start',
         position: 'relative',
         backgroundColor: '#00000000', // if you don't do this, underline extends to end... (???)
     },
     selected: {
         backgroundColor: '#FFFFFF22'
     },
-    header: {
+    headerRight: {
         fontSize: 21,
         textAlign: 'right',
+        color: '#FFFFFF',
+        ...TypeFaces.regular,
+    },
+    headerLeft: {
+        fontSize: 21,
+        textAlign: 'left',
         color: '#FFFFFF',
         ...TypeFaces.regular,
     },
     icon: {
         flex: 1,
         width: '100%',
+        height: '100%',
     },
     underline: {
         width: '100%',
@@ -96,4 +127,4 @@ const styles = StyleSheet.create({
     }
 });
 
-module.exports = PageIcon;
+module.exports = connect(mapStateToProps, mapDispatchToProps) (PageIcon);

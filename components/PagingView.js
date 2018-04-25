@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { View, Text, Dimensions, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { GroupType, ThingMetadataType, ConfigType } from '../js-api-utils/ConfigManager';
@@ -35,6 +36,16 @@ type PageType = {
     is_pressable?: boolean,
     getBackground: number => any,
 };
+
+function mapStateToProps(state) {
+    return {
+        displayConfig: state.screen.displayConfig,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {};
+}
 
 class PagingView extends React.Component<any, StateType> {
     _unsubscribe: () => any = () => null;
@@ -168,6 +179,7 @@ class PagingView extends React.Component<any, StateType> {
 
     render() {
         const { groups, currentPage } = this.state;
+        const { displayConfig } = this.props;
 
         const screenDimensions = {
             width: Dimensions.get('screen').width,
@@ -190,34 +202,60 @@ class PagingView extends React.Component<any, StateType> {
                 selected={i == currentPage}
                 changePage={page.is_pressable ? this.changePage(i).bind(this) : null}
                 longPress={page.longPress}
-                height={page.height || (screenDimensions.height-totalPresetHeight) / numFlexedIcons}
+                height={page.height || // if this page has a specified height, use it
+                        (displayConfig.sidebar.iconHeight || // otherwise, use the height in the display config
+                        ((screenDimensions.height-totalPresetHeight) / numFlexedIcons))} // if it doesn't exist, use page proportions (manual 'flex'ing)
             />
         );
         var bkg = pages[currentPage].getBackground(currentPage);
 
+        if (displayConfig.sidebar.topIcon && displayConfig.sidebar.topIconHeight) { // add top icon if requested
+            page_icons.splice(0, 0,
+                <PageIcon key={"page-icon-top"}
+                    iconName={displayConfig.sidebar.topIcon}
+                    selected={false}
+                    height={displayConfig.sidebar.topIconHeight}
+                />
+            );
+        }
+
+        if (displayConfig.sidebar.separator) { // add separator if requested
+            page_icons.splice(page_icons.length-1, 0,
+                <View key={"separator"} style={{marginTop: 4, marginBottom: 4, marginLeft: 20, width: 160, height: 1, backgroundColor: displayConfig.sidebar.textColor}}></View>);
+        }
+
         return (
-            <View style={styles.container}>
-                <FadeInView currentPage={currentPage}>
-                    <Image
-                        source={bkg}
-                        style={[styles.content_container, screenDimensions]}
-                    />
-                </FadeInView>
+            <View style={[styles.container, displayConfig.backgroundColor ? {backgroundColor: displayConfig.backgroundColor} : null]}>
+                {
+                    displayConfig.backgroundColor ? null : // dont display image background if background color is specified
+                    <FadeInView currentPage={currentPage}>
+                        <Image
+                            source={bkg}
+                            style={[styles.content_container, screenDimensions]}
+                        />
+                    </FadeInView>
+                }
 
                 <View style={styles.content_container}>
                     {pages[currentPage].renderer(currentPage)}
                 </View>
 
 
-                <View style={styles.sidebar_container}>
+                <View style={[styles.sidebar_container,
+                        displayConfig.sidebar.borderColor ? {borderRightColor: displayConfig.sidebar.borderColor, borderRightWidth: 1} : null]}>
                     <View style={[styles.content_container, {paddingLeft: 0}]}>
-                        <FadeInView currentPage={currentPage}>
-                            <Image
-                                source={bkg}
-                                style={[screenDimensions, {opacity: 0.8}]}
-                                blurRadius={3}
-                                />
-                        </FadeInView>
+                        { displayConfig.sidebar.color ? /* flat sidebar color */
+                            <View style={[screenDimensions, {backgroundColor: displayConfig.sidebar.color}]}>
+                            </View>
+                          :
+                            <FadeInView currentPage={currentPage}>
+                                <Image
+                                    source={bkg}
+                                    style={[screenDimensions, {opacity: 0.8}]}
+                                    blurRadius={3}
+                                    />
+                            </FadeInView>
+                        }
                     </View>
                     {page_icons}
                 </View>
@@ -242,8 +280,6 @@ const styles = StyleSheet.create({
         height: '100%',
         overflow: 'hidden',
         backgroundColor: '#000000',
-        borderRightWidth: 1,
-        borderRightColor: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
     },
@@ -257,4 +293,4 @@ const styles = StyleSheet.create({
     },
 });
 
-module.exports = PagingView;
+module.exports = connect(mapStateToProps, mapDispatchToProps) (PagingView);
