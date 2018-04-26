@@ -14,12 +14,17 @@ import {
 
 var default_ip = "192.168.10.1";
 var default_port = 7990;
+var default_ssid = "{{SSID}}";
+var default_passphrase = "{{PASSWORD}}";
 try {
     if (__DEV__) {
         default_ip = "10.11.28.190";
         default_port = 4567;
     }
 } catch (e) {}
+
+if (default_ssid === "{{SSID}}") default_ssid = "";
+if (default_passphrase === "{{PASSWORD}}") default_passphrase = "";
 
 let defaultState = {
     isConnected: false,
@@ -30,6 +35,8 @@ let defaultState = {
     },
     discoveredDevices: [],
     QRCodeAddress: "ws://192.168.10.102:7986/",
+    targetSSID: default_ssid,
+    targetPassphrase: default_passphrase,
 
     config: null,
     thingStates: {},

@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
+import wifi from 'react-native-android-wifi';
 
 import SplashScreen from 'react-native-splash-screen';
 
@@ -30,6 +31,8 @@ function mapStateToProps(state) {
     return {
         connectionStatus: state.connection.isConnected,
         language: state.settings.language,
+        targetSSID: state.connection.targetSSID,
+        targetPassphrase: state.connection.targetPassphrase,
     };
 }
 
@@ -67,6 +70,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
     _last_touch_time: number = 0;
 
     _discovery_timeout: any = undefined;
+    _wifi_timeout: any = undefined;
 
     componentWillMount() {
         /** Connect to the socket communication library */
@@ -123,6 +127,11 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._discovery_timeout = setInterval(() => {
             SocketCommunication.discoverDevices();
         }, 10000);
+
+        /** Periodic wifi connection */
+        wifi.setEnabled(true);
+        this.connectWifi();
+        this._wifi_timeout = setInterval(this.connectWifi.bind(this), 10000);
     }
 
     componentDidMount() {
@@ -135,6 +144,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._unsubscribe_hotel_change();
         SocketCommunication.cleanup();
         clearTimeout(this._discovery_timeout);
+        clearTimeout(this._wifi_timeout);
     }
 
     onReduxStateChanged() {
@@ -147,6 +157,15 @@ class VerbozeControl extends React.Component<{}, StateType> {
             if (hotel_thing && hotel_thing.card != this.state.cardIn) {
                 this.setState({cardIn: hotel_thing.card});
             }
+        }
+    }
+
+    connectWifi() {
+        if (this.props.targetSSID !== "") {
+            wifi.getSSID(((ssid) => {
+                if (ssid !== this.props.targetSSID)
+                    wifi.findAndConnect(this.props.targetSSID, this.props.targetPassphrase, () => null);
+            }).bind(this));
         }
     }
 
