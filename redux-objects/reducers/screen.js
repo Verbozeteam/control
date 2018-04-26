@@ -1,8 +1,9 @@
 
 import { DIM_SCREEN, UNDIM_SCREEN, SET_PAGING_LOCK } from '../actions/screen';
 
-// SIMPLE_UI | SIMPLE_LIGHT_UI | MODERN_UI
-const UI_STYLE = 'MODERN_UI';
+import {
+    defaultUIStyle,
+} from '../../deployment';
 
 var displayConfig ={
     SIMPLE_UI: {
@@ -60,7 +61,7 @@ let defaultState = {
     isDimmed: false,
     pagingLock: false,
 
-    displayConfig: displayConfig[UI_STYLE],
+    displayConfig: displayConfig[defaultUIStyle],
 };
 
 let cloneObject = function(obj) {

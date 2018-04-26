@@ -12,19 +12,12 @@ import {
     SET_THINGS_PARTIAL_STATES
 } from '../actions/connection';
 
-var default_ip = "192.168.10.1";
-var default_port = 7990;
-var default_ssid = "{{SSID}}";
-var default_passphrase = "{{PASSWORD}}";
-try {
-    if (__DEV__) {
-        default_ip = "10.11.28.190";
-        default_port = 4567;
-    }
-} catch (e) {}
-
-if (default_ssid === "{{SSID}}") default_ssid = "";
-if (default_passphrase === "{{PASSWORD}}") default_passphrase = "";
+import {
+    default_ip,
+    default_port,
+    default_ssid,
+    default_passphrase,
+} from '../../deployment';
 
 let defaultState = {
     isConnected: false,
