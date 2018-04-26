@@ -20,7 +20,10 @@ type LanguageType = 'en' | 'ar';
 
 const LanguageName = {
     'en': 'English',
-    'ar': 'Arabic',
+    'ar': 'العربية',
+    'ru': 'Pусский',
+    'de': 'Deutsch',
+    'zh': '中文'
 };
 
 function mapStateToProps(state) {
@@ -56,10 +59,12 @@ class Settings extends React.Component<any> {
     }
 
     render() {
-        var language_items = Object.keys(LanguageName).map((slang, i) =>
+
+        var language_items = I18n._supported_languages.map((abbreviation, i) =>
             <Picker.Item key={'language-option-' + i}
-                label={LanguageName[slang]}
-                value={slang} />
+                label={LanguageName[abbreviation]}
+                value={abbreviation}
+            />
         );
 
         var device_discovery = null;
