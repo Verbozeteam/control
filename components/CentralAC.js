@@ -163,6 +163,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                                 maxTemp={temp_range[1]}
                                 value={set_pt}
                                 enabled={isEnabled}
+                                round={this.round}
                                 onChange={this.changeTemperature(true)} />
                         </View>
                         <View style={[tabStyles.settingFanContainer, {width: (fan_speeds.length+1)*90}]}>
