@@ -16,7 +16,7 @@ const UserPreferences = require('../js-api-utils/UserPreferences');
 import Panel from './Panel';
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
 
-type LanguageType = 'en' | 'ar';
+type LanguageType = 'en' | 'ar' | 'ru' | 'de' | 'zh';
 
 const LanguageName = {
     'en': 'English',
