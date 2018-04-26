@@ -28,6 +28,7 @@ function mapStateToProps(state) {
         language: state.settings.language,
         devMode: state.settings.devMode,
         qrCode: state.connection.QRCodeAddress,
+        displayConfig: state.screen.displayConfig,
     };
 }
 
@@ -56,6 +57,8 @@ class Settings extends React.Component<any> {
     }
 
     render() {
+        const { language, devMode, qrCode, displayConfig } = this.props;
+
         var language_items = Object.keys(LanguageName).map((slang, i) =>
             <Picker.Item key={'language-option-' + i}
                 label={LanguageName[slang]}
@@ -63,7 +66,7 @@ class Settings extends React.Component<any> {
         );
 
         var device_discovery = null;
-        if (this.props.devMode) {
+        if (devMode) {
             device_discovery = <DeviceDiscoveryView />
         }
 
@@ -78,7 +81,7 @@ class Settings extends React.Component<any> {
             ),
             value: (
                 <View style={styles.picker_view}>
-                    <Picker selectedValue={this.props.language}
+                    <Picker selectedValue={language}
                         onValueChange={this.changeLanguage.bind(this)}
                         style={styles.picker}>
                         {language_items}
@@ -99,7 +102,7 @@ class Settings extends React.Component<any> {
         }
 
         var qr_code_view = null;
-        if (this.props.qrCode && this.props.qrCode !== "") {
+        if (displayConfig.displayQRCode && qrCode && qrCode !== "") {
             qr_code_view = (
                 <View style={styles.qrcode_container}>
                     <View style={styles.qrcode_view}>
@@ -108,7 +111,7 @@ class Settings extends React.Component<any> {
                             <View style={{flex: 1}} />
                             <View style={{flex: 10}}>
                                 <QRCode
-                                    value={this.props.qrCode}
+                                    value={qrCode}
                                     size={200}
                                     bgColor='black'
                                     fgColor='white' />

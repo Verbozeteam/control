@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 import MagicSlider from '../react-components/MagicSlider';
+const GenericSliderSimple = require('../react-components/GenericSliderSimple');
 
 import { TypeFaces } from '../constants/styles';
 
@@ -20,10 +22,21 @@ type PropsType = {
     height: number,
 };
 
-export default class LightDimmer extends React.Component<PropsType, StateType> {
+function mapStateToProps(state) {
+    return {
+        displayConfig: state.screen.displayConfig,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {};
+}
+
+class LightDimmer extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
 
-    _glowColor = '#BA3737';
+    _dimmer_icon = require('../assets/images/basic_ui/dimmer.png');
+    _dimmer_light_icon = require('../assets/images/basic_ui/light_ui/dimmer.png');
 
     state = {
         intensity: 0,
@@ -58,20 +71,39 @@ export default class LightDimmer extends React.Component<PropsType, StateType> {
     }
 
     render() {
-        const { width, height } = this.props;
+        const { width, height, displayConfig } = this.props;
         const { intensity } = this.state;
 
-        return (
-            <MagicSlider
-                width={width}
-                height={height}
-                value={intensity}
-                extraStyle={{...TypeFaces.light}}
-                maxValue={100}
-                round={(value: number) => Math.round(value)}
-                onChange={this.changeIntensity.bind(this)}
-                glowColor={this._glowColor} />
-        );
+        switch (displayConfig.UIStyle) {
+            case 'modern':
+                return (
+                    <MagicSlider
+                        width={width}
+                        height={height}
+                        value={intensity}
+                        extraStyle={{...TypeFaces.light}}
+                        maxValue={100}
+                        round={(value: number) => Math.round(value)}
+                        onChange={this.changeIntensity.bind(this)}
+                        glowColor={displayConfig.accentColor} />
+                );
+            case 'simple':
+                var layout = {width, height};
+                return (
+                    <GenericSliderSimple
+                        layout={layout}
+                        icon={displayConfig.lightUI ? this._dimmer_light_icon : this._dimmer_icon}
+                        value={intensity}
+                        orientation={'horizontal'}
+                        maximum={100}
+                        minimum={0}
+                        round={(value: number) => Math.round(value)}
+                        onMove={this.changeIntensity.bind(this)}
+                        onRelease={this.changeIntensity.bind(this)}
+                        knobColor={displayConfig.lightUI ? 'white' : 'black'} />
+                );
+        }
     }
 };
 
+module.exports = connect(mapStateToProps, mapDispatchToProps) (LightDimmer);

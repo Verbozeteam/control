@@ -4,6 +4,8 @@ import { DIM_SCREEN, UNDIM_SCREEN, SET_PAGING_LOCK } from '../actions/screen';
 
 var displayConfig ={
     SIMPLE_UI: {
+        UIStyle: 'simple',
+        accentColor: '#BA3737',
         sidebar: {
             iconHeight: 60,
             color: '#3B9FFF',
@@ -18,9 +20,12 @@ var displayConfig ={
         },
         backgroundColor: '#666666',
         lightUI: false,
+        displayQRCode: false,
     },
     SIMPLE_LIGHT_UI: { /* filled below... */ },
     MODERN_UI: {
+        UIStyle: 'modern',
+        accentColor: '#BA3737',
         sidebar: {
             iconHeight: null,
             color: null,
@@ -34,6 +39,7 @@ var displayConfig ={
         },
         backgroundColor: null,
         lightUI: false,
+        displayQRCode: true,
     }
 };
 displayConfig.SIMPLE_LIGHT_UI = {
