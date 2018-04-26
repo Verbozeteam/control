@@ -18,6 +18,7 @@ import LightsPanelContents from './LightsPanelContents';
 import HotelControlsPanelContents from './HotelControlsPanelContents';
 import CentralAC from './CentralAC';
 import CurtainsPanelContents from './CurtainsPanelContents';
+import WaterFountainsPanel from './WaterFountainsPanel';
 
 import FadeInView from './FadeInView';
 
@@ -132,6 +133,8 @@ class PagingView extends React.Component<any, StateType> {
                     return <CentralAC id={things.filter(t => t.category === 'central_acs' || t.category === 'honeywell_thermostat_t7560')[0].id} layout={layout} />;
                 case 'curtains':
                     return <CurtainsPanelContents things={things.filter(t => t.category === 'curtains')} layout={layout} />;
+                case 'water_fountains':
+                    return <WaterFountainsPanel things={things} layout={layout} />;
             }
         }
         return null;
