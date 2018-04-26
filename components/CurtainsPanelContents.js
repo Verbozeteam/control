@@ -2,7 +2,9 @@
 
 import * as React from 'react';
 import { View, Text, Image, TouchableWithoutFeedback, StyleSheet } from 'react-native';
+import Svg, { Rect, Polyline } from 'react-native-svg'
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
@@ -21,18 +23,29 @@ type StateType = {
     curtains: {[string]: Object},
 };
 
-export default class CurtainsPanelContents extends React.Component<PropsType, StateType> {
+function mapStateToProps(state) {
+    return {
+        displayConfig: state.screen.displayConfig,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {};
+}
+
+class CurtainsPanelContents extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
 
     state: StateType = {
         curtains: {},
     };
 
+    _icon: number = require('../assets/images/basic_ui/curtain.png');
+    _icon_light: number = require('../assets/images/basic_ui/light_ui/curtain.png');
+
     _openIcon: number = require('../assets/images/open_arrow.png');
     _closeIcon: number = require('../assets/images/close_arrow.png');
     _pauseIcon: number = require('../assets/images/stop_button.png');
-
-    _accentColor: string = "#BA3737";
 
     // curtain-id -> time it was clicked
     _curtainClickTimes : {[string]: number} = {};
@@ -91,44 +104,88 @@ export default class CurtainsPanelContents extends React.Component<PropsType, St
     }
 
     renderCurtainView(curtain: ?ThingMetadataType) {
-        var { things } = this.props;
+        var { things, displayConfig } = this.props;
         var text = (!curtain ? "All" : curtain.name);
-        var isOpening = curtain ? curtain.curtain === 1 : things.map(t => t.curtain === 1).reduce((a, b) => a && b);
-        var isClosing = curtain ? curtain.curtain === 2 : things.map(t => t.curtain === 2).reduce((a, b) => a && b);
+        var isOpening = curtain ? ConfigManager.things[curtain.id].curtain === 1 : things.map(t => ConfigManager.things[t.id].curtain === 1).reduce((a, b) => a && b);
+        var isClosing = curtain ? ConfigManager.things[curtain.id].curtain === 2 : things.map(t => ConfigManager.things[t.id].curtain === 2).reduce((a, b) => a && b);
         var targetCurtains = curtain ? [curtain] : things;
 
-        return (
-            <View key={"curtain-"+(curtain ? curtain.id : "all")} style={styles.curtainContainer}>
-                <Text style={styles.texts}>{I18n.t(text)}</Text>
-                <View style={styles.controlsContainer}>
-                    <MagicButton
-                                 width={70}
-                                 height={70}
-                                 extraStyle={{marginLeft: 0}}
-                                 isOn={isOpening}
-                                 glowColor={this._accentColor}
-                                 onPressIn={() => this.setCurtainValue(targetCurtains)(1)}
-                                 onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
-                                 icon={this._openIcon} />
-                    <MagicButton
-                                 width={70}
-                                 height={70}
-                                 extraStyle={{marginLeft: 20}}
-                                 glowColor={this._accentColor}
-                                 onPressIn={() => this.setCurtainValue(targetCurtains)(0)}
-                                 icon={this._pauseIcon} />
-                    <MagicButton
-                                 width={70}
-                                 height={70}
-                                 extraStyle={{marginLeft: 20}}
-                                 isOn={isClosing}
-                                 glowColor={this._accentColor}
-                                 onPressIn={() => this.setCurtainValue(targetCurtains)(2)}
-                                 onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
-                                 icon={this._closeIcon} />
-                </View>
-            </View>
-        );
+        switch (displayConfig.UIStyle) {
+            case 'modern':
+                return (
+                    <View key={"curtain-"+(curtain ? curtain.id : "all")} style={styles.curtainContainer}>
+                        <Text style={styles.texts}>{I18n.t(text)}</Text>
+                        <View style={styles.controlsContainer}>
+                            <MagicButton
+                                        width={70}
+                                        height={70}
+                                        extraStyle={{marginLeft: 0}}
+                                        isOn={isOpening}
+                                        glowColor={displayConfig.accentColor}
+                                        onPressIn={() => this.setCurtainValue(targetCurtains)(1)}
+                                        onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
+                                        icon={this._openIcon} />
+                            <MagicButton
+                                        width={70}
+                                        height={70}
+                                        extraStyle={{marginLeft: 20}}
+                                        glowColor={displayConfig.accentColor}
+                                        onPressIn={() => this.setCurtainValue(targetCurtains)(0)}
+                                        icon={this._pauseIcon} />
+                            <MagicButton
+                                        width={70}
+                                        height={70}
+                                        extraStyle={{marginLeft: 20}}
+                                        isOn={isClosing}
+                                        glowColor={displayConfig.accentColor}
+                                        onPressIn={() => this.setCurtainValue(targetCurtains)(2)}
+                                        onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
+                                        icon={this._closeIcon} />
+                        </View>
+                    </View>
+                );
+            case 'simple':
+                var up_color = isOpening ? displayConfig.accentColor : (displayConfig.lightUI ? 'white' : 'black');
+                var down_color = isClosing ? displayConfig.accentColor : (displayConfig.lightUI ? 'white' : 'black');
+
+                var up_arrow = (
+                    <Svg width={120} height={120}>
+                        <Rect x="0" y="0" width="120" height="120" fill={'rgba(0,0,0,0)'} strokeWidth="3" stroke={up_color} />
+                        <Polyline points="15,80 60,40 105,80" fill={'rgba(0,0,0,0)'} strokeWidth="2" stroke={up_color} />
+                    </Svg>
+                );
+
+                var down_arrow = (
+                    <Svg width={120} height={120}>
+                        <Rect x="0" y="0" width="120" height="120" fill={'rgba(0,0,0,0)'} strokeWidth="3" stroke={down_color} />
+                        <Polyline points="15,40 60,80 105,40" fill={'rgba(0,0,0,0)'} strokeWidth="2" stroke={down_color} />
+                    </Svg>
+                );
+                return (
+                    <View key={'curtain-'+(curtain ? curtain.id : "all")} style={simpleStyles.curtainContainer}>
+                        <View style={simpleStyles.curtainStack}>
+                            <Image style={simpleStyles.icon}
+                                fadeDuration={0}
+                                resizeMode={'contain'}
+                                source={displayConfig.lightUI ? this._icon_light : this._icon} />
+                        </View>
+                        <View style={simpleStyles.curtainStack}>
+                            <TouchableWithoutFeedback
+                                onPressIn={() => this.setCurtainValue(targetCurtains)(1)}
+                                onPressOut={() => this.setCurtainValue(targetCurtains)(0)}>
+                                    {up_arrow}
+                            </TouchableWithoutFeedback>
+                        </View>
+                        <View style={simpleStyles.curtainStack}>
+                            <TouchableWithoutFeedback
+                                onPressIn={() => this.setCurtainValue(targetCurtains)(2)}
+                                onPressOut={() => this.setCurtainValue(targetCurtains)(0)}>
+                                    {down_arrow}
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </View>
+                );
+        }
     }
 
     renderSeparator(index: number) {
@@ -140,12 +197,12 @@ export default class CurtainsPanelContents extends React.Component<PropsType, St
     }
 
     render() {
-        var { layout, things } = this.props;
+        var { layout, things, displayConfig } = this.props;
         var curtains = things.sort((a, b) => a.id < b.id ? -1 : (a.id === b.id ? 0 : 1));
         var numCurtains = curtains.length
 
         var allView = null;
-        if (numCurtains > 0) {
+        if (displayConfig.curtainsDisplayAllSwitch && numCurtains > 0) {
             allView = (
                 <View style={styles.allContainer}>
                     {this.renderCurtainView(null)}
@@ -157,18 +214,27 @@ export default class CurtainsPanelContents extends React.Component<PropsType, St
         if (numCurtains > 0) {
             for (var i = 0; i < numCurtains; i++) {
                 thingsView.push(this.renderCurtainView(curtains[i]));
-                if (i !== numCurtains - 1)
+                if (displayConfig.UIStyle === 'modern' && i !== numCurtains - 1)
                     thingsView.push(this.renderSeparator(i));
             }
         }
 
-        return (
-            <View style={[styles.container, {width: layout.width, height: layout.height}]}>
-                <View style={styles.tab}>{allView}</View>
-                <View style={{flex: 1}} />
-                <View style={[styles.tab]}>{thingsView}</View>
-            </View>
-        );
+        switch (displayConfig.UIStyle) {
+            case 'modern':
+                return (
+                    <View style={[styles.container, {width: layout.width, height: layout.height}]}>
+                        <View style={styles.tab}>{allView}</View>
+                        <View style={{flex: 1}} />
+                        <View style={[styles.tab]}>{thingsView}</View>
+                    </View>
+                );
+            case 'simple':
+                return (
+                    <View style={[styles.container, {width: layout.width, height: layout.height}]}>
+                        {thingsView}
+                    </View>
+                );
+        }
     }
 }
 
@@ -212,3 +278,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
 });
+
+const simpleStyles = StyleSheet.create({
+    curtainContainer: {
+        flexDirection: 'column',
+        height: '100%',
+        width: 150,
+    },
+    curtainStack: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    icon: {
+        width: 150,
+        height: 150,
+    },
+});
+
+module.exports = connect(mapStateToProps, mapDispatchToProps) (CurtainsPanelContents);
