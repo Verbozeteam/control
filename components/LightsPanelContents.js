@@ -93,7 +93,7 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
             case 'modern':
                 return (
                     <View key={dimmer.id+'-dimmer-container'} style={styles.dimmer_container}>
-                        <Text style={styles.dimmer_name}>{dimmer_name}</Text>
+                        <Text style={[styles.dimmer_name, {color: displayConfig.textColor}]}>{dimmer_name}</Text>
                         <LightDimmer
                             id={dimmer.id}
                             width={slider_width}
@@ -109,7 +109,7 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
                             width={slider_width - 130}
                             height={slider_height} />
                         <View style={{width: 130, marginLeft: 10, justifyContent: 'center', alignItems: 'center',}}>
-                            <Text style={[styles.dimmer_name, {color: displayConfig.lightUI ? 'white' : 'black', ...TypeFaces.regular}]}>{dimmer_name}</Text>
+                            <Text style={[styles.dimmer_name, {color: displayConfig.textColor, ...TypeFaces.regular}]}>{dimmer_name}</Text>
                         </View>
                     </View>
                 );
@@ -258,8 +258,6 @@ const simpleStyles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'row',
-        flex: 1,
     },
     dimmer_container: {
         flexDirection: 'row',

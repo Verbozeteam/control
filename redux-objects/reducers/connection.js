@@ -27,7 +27,7 @@ let defaultState = {
         name: "QSTP Device",
     },
     discoveredDevices: [],
-    QRCodeAddress: "ws://192.168.10.102:7986/",
+    QRCodeAddress: "ws://192.168.10.1:7986/",
     targetSSID: default_ssid,
     targetPassphrase: default_passphrase,
 

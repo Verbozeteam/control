@@ -223,14 +223,14 @@ class CentralAC extends React.Component<PropsType, StateType> {
                     <TouchableWithoutFeedback key={"fan-speed-"+i} onPressIn={() => this.changeFan(i+1)}>
                         <View style={simpleStyles.fan_speed_container}>
                             {toggle_dot[fan == (i+1) ? 0: 1]}
-                            <Text style={[simpleStyles.fan_speed_text, displayConfig.lightUI ? simpleStyles.light_ui_style : {}]}>{I18n.t(fs)}</Text>
+                            <Text style={[simpleStyles.fan_speed_text, {color: displayConfig.textColor}]}>{I18n.t(fs)}</Text>
                         </View>
                     </TouchableWithoutFeedback>
                 );
 
                 var toggles = (
                     <View style={simpleStyles.fan_controls_container}>
-                        <Text style={[simpleStyles.fan_speed_text, {fontSize: 30, flex: 1}, displayConfig.lightUI ? simpleStyles.light_ui_style : {}]}>{I18n.t('Fan')}</Text>
+                        <Text style={[simpleStyles.fan_speed_text, {fontSize: 30, flex: 1, color: displayConfig.textColor}]}>{I18n.t('Fan')}</Text>
                         {fan_speed_boxes}
                     </View>
                 );
@@ -238,7 +238,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                 var onoffButton = (
                     <TouchableWithoutFeedback onPressIn={() => this.changeFan(fan === 0 ? 1 : 0)}>
                         <View style={simpleStyles.button_container}>
-                            <Text style={[simpleStyles.fan_speed_text, {fontSize: 30, height: 68, paddingTop: 5}, displayConfig.lightUI ? simpleStyles.light_ui_style : {}]}>{I18n.t(fan === 0 ? 'Off' : 'On')}</Text>
+                            <Text style={[simpleStyles.fan_speed_text, {fontSize: 30, height: 68, paddingTop: 5, color: displayConfig.textColor}]}>{I18n.t(fan === 0 ? 'Off' : 'On')}</Text>
                             <View style={{height: fan === 0 ? 0 : 2, width: '100%', backgroundColor: displayConfig.accentColor, bottom: 0}}></View>
                         </View>
                     </TouchableWithoutFeedback>
@@ -255,7 +255,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
                             <View style={simpleStyles.center_text_container}>
                                 <Text style={[simpleStyles.center_text_main, {color: displayConfig.accentColor}, fan === 0 ? {opacity: 0.5} : {}]}>{center_text_main}</Text>
-                                <Text style={[simpleStyles.center_text_sub, displayConfig.lightUI ? simpleStyles.light_ui_style : {}]}>{center_text_sub}</Text>
+                                <Text style={[simpleStyles.center_text_sub, {color: displayConfig.textColor}]}>{center_text_sub}</Text>
                             </View>
                         </View>
                         <View style={simpleStyles.fans_container}>
@@ -382,7 +382,6 @@ const simpleStyles = StyleSheet.create({
     },
     fan_speed_text: {
         fontSize: 20,
-        color: '#000000',
         fontFamily: 'HKNova-MediumR',
     },
     toggle_dot_container: {

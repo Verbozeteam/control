@@ -19,6 +19,7 @@ import HotelControlsPanelContents from './HotelControlsPanelContents';
 import CentralAC from './CentralAC';
 import CurtainsPanelContents from './CurtainsPanelContents';
 import WaterFountainsPanel from './WaterFountainsPanel';
+import PenthouseDiscoPanel from './PenthouseDisco';
 
 import FadeInView from './FadeInView';
 
@@ -135,6 +136,8 @@ class PagingView extends React.Component<any, StateType> {
                     return <CurtainsPanelContents things={things.filter(t => t.category === 'curtains')} layout={layout} />;
                 case 'water_fountains':
                     return <WaterFountainsPanel things={things} layout={layout} />;
+                case 'penthouse_disco':
+                    return <PenthouseDiscoPanel id={things.filter(t => t.category === 'penthouse_disco')[0].id} layout={layout} />
             }
         }
         return null;
