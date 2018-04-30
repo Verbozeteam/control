@@ -114,7 +114,7 @@ class LightSwitch extends React.Component<PropsType, StateType> {
                         sideText={name}
                         sideTextStyle={{...TypeFaces.light}}
                         glowColor={displayConfig.accentColor}
-                        textColor={'#FFFFFF'}
+                        textColor={displayConfig.textColor}
                         />
                 );
             case 'simple':
@@ -136,7 +136,7 @@ class LightSwitch extends React.Component<PropsType, StateType> {
                                     source={displayConfig.lightUI ? this._light_bulb_light_img_off : this._light_bulb_img_off}>
                                 </Image>
                             </View>
-                            <Text style={[simpleStyles.text, {color: displayConfig.lightUI ? 'white' : 'black', ...TypeFaces.regular}]}>{name}</Text>
+                            <Text style={[simpleStyles.text, {color: displayConfig.textColor, ...TypeFaces.regular}]}>{name}</Text>
                         </View>
                     </TouchableWithoutFeedback>
                 );
