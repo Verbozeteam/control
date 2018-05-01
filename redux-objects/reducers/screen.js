@@ -72,6 +72,7 @@ let cloneObject = function(obj) {
 
 module.exports = function (state=defaultState, action) {
     var newState = cloneObject(state);
+
     switch(action.type) {
         case DIM_SCREEN:
             newState.isDimmed = true;
@@ -82,6 +83,8 @@ module.exports = function (state=defaultState, action) {
         case SET_PAGING_LOCK:
             newState.pagingLock = action.lock;
             break;
+        default:
+            return state;
     }
     return newState;
 };

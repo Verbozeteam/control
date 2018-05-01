@@ -17,6 +17,7 @@ import {
     default_port,
     default_ssid,
     default_passphrase,
+    default_QRCode,
 } from '../../deployment';
 
 let defaultState = {
@@ -27,7 +28,7 @@ let defaultState = {
         name: "QSTP Device",
     },
     discoveredDevices: [],
-    QRCodeAddress: "ws://192.168.10.1:7986/",
+    QRCodeAddress: default_QRCode,
     targetSSID: default_ssid,
     targetPassphrase: default_passphrase,
 
@@ -41,6 +42,7 @@ let cloneObject = function(obj) {
 
 module.exports = function (state=defaultState, action) {
     var newState = cloneObject(state);
+
     switch(action.type) {
         case SET_CONNECTION_STATUS:
             newState.isConnected = action.isConnected;
@@ -92,6 +94,8 @@ module.exports = function (state=defaultState, action) {
                     ...action.thingsToPartialStates[k],
                 };
             break;
+        default:
+            return state;
     }
     return newState;
 };
