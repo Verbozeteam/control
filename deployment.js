@@ -1,6 +1,6 @@
 
 // SIMPLE_UI | SIMPLE_LIGHT_UI | MODERN_UI
-const defaultUIStyle = 'SIMPLE_UI';
+const defaultUIStyle = 'SIMPLE_LIGHT_UI';
 
 var default_ip = "{{TARGET_IP}}";
 var default_port = "{{TARGET_PORT}}";
@@ -15,8 +15,8 @@ else if (typeof(default_port) === "string") default_port = parseInt(default_port
 
 try {
     if (__DEV__) {
-        default_ip = "10.11.28.190";
-        default_port = 4567;
+        default_ip = "192.168.10.1";
+        default_port = 7990;
     }
 } catch (e) {}
 

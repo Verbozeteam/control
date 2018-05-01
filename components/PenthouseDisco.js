@@ -21,9 +21,11 @@ const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
     lights: number,
+    exhaust: number,
     fog: number,
     motor: number,
     has_fog: boolean,
+    has_exhaust: boolean,
     has_lights: boolean,
 };
 
@@ -50,6 +52,10 @@ class PenthouseDiscoPanel extends React.Component<PropsType, StateType>  {
     _fog_off_light_img: number = require('../assets/images/basic_ui/light_ui/fog_off.png');
     _fog_on_img: number = require('../assets/images/basic_ui/fog_on.png');
     _fog_on_light_img: number = this._fog_on_img;
+    _exhaust_off_img: number = require('../assets/images/basic_ui/fan_off.png');
+    _exhaust_off_light_img: number = require('../assets/images/basic_ui/light_ui/fan_off.png');
+    _exhaust_on_img: number = require('../assets/images/basic_ui/fan_on.png');
+    _exhaust_on_light_img: number = this._exhaust_on_img;
     _light_off_img: number = require('../assets/images/basic_ui/lightoff.png');
     _light_on_img: number = require('../assets/images/basic_ui/lighton.png');
     _light_off_light_img: number = require('../assets/images/basic_ui/light_ui/lightoff.png');
@@ -58,8 +64,10 @@ class PenthouseDiscoPanel extends React.Component<PropsType, StateType>  {
     state = {
         motor: 0,
         fog: 0,
+        exhaust: 0,
         lights: 0,
         has_fog: false,
+        has_exhaust: false,
         has_lights: false,
     };
 
@@ -79,22 +87,29 @@ class PenthouseDiscoPanel extends React.Component<PropsType, StateType>  {
     }
 
     onDiscoChanged(meta: ThingMetadataType, dState: ThingStateType) {
-        const { motor, fog, lights, has_fog, has_lights } = this.state;
+        const { motor, fog, exhaust, lights, has_fog, has_exhaust, has_lights } = this.state;
 
         if (has_fog !== (meta.has_fog || false) ||
+            has_exhaust !== (meta.has_exhaust || false) ||
             has_lights !== (meta.has_lights || false) ||
-            motor !== dState.motor || fog !== dState.fog || lights !== dState.lights)
+            motor !== dState.motor || exhaust !== dState.exhaust || fog !== dState.fog || lights !== dState.lights)
             this.setState({
                 fog: dState.fog,
+                exhaust: dState.exhaust,
                 lights: dState.lights,
                 motor: dState.motor,
                 has_fog: meta.has_fog || false,
+                has_exhaust: meta.has_exhaust || false,
                 has_lights: meta.has_lights || false,
             });
     }
 
     setFog(state: number) {
         ConfigManager.setThingState(this.props.id, {fog: state}, true);
+    }
+
+    setExhaust(state: number) {
+        ConfigManager.setThingState(this.props.id, {exhaust: state}, true);
     }
 
     setLights(state: number) {
@@ -106,7 +121,7 @@ class PenthouseDiscoPanel extends React.Component<PropsType, StateType>  {
     }
 
     render() {
-        const { motor, fog, lights, has_fog, has_lights } = this.state;
+        const { motor, fog, exhaust, lights, has_fog, has_exhaust, has_lights } = this.state;
         const { displayConfig } = this.props;
 
         var openColor = motor === 1 ? displayConfig.accentColor : (displayConfig.lightUI ? '#FFFFFF' : '#000000');
@@ -156,6 +171,27 @@ class PenthouseDiscoPanel extends React.Component<PropsType, StateType>  {
                                 </View>
                             </View>
                             <Text style={[styles.text, {color: displayConfig.textColor}]}>{I18n.t('Fog')}</Text>
+                        </View>
+                    </TouchableWithoutFeedback> : null}
+                    {has_exhaust ? <TouchableWithoutFeedback onPressIn={() => this.setExhaust(exhaust ? 0 : 1)}>
+                        <View style={styles.quadrant}>
+                            <View style={{width: 180, height: 180}}>
+                                <View style={[styles.img_container, {opacity: exhaust === 0 ? 0 : 1}]}>
+                                    <Image style={styles.image}
+                                        fadeDuration={0}
+                                        resizeMode={'contain'}
+                                        source={displayConfig.lightUI ? this._exhaust_on_light_img : this._exhaust_on_img}>
+                                    </Image>
+                                </View>
+                                <View style={[styles.img_container, {opacity: exhaust === 0 ? 1 : 0}]}>
+                                    <Image style={styles.image}
+                                        fadeDuration={0}
+                                        resizeMode={'contain'}
+                                        source={displayConfig.lightUI ? this._exhaust_off_light_img : this._exhaust_off_img}>
+                                    </Image>
+                                </View>
+                            </View>
+                            <Text style={[styles.text, {color: displayConfig.textColor}]}>{I18n.t('Exhaust')}</Text>
                         </View>
                     </TouchableWithoutFeedback> : null}
                     {has_lights ? <TouchableWithoutFeedback onPressIn={() => this.setLights(lights ? 0 : 1)}>
