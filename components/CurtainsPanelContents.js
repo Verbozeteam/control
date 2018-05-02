@@ -49,6 +49,7 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
 
     // curtain-id -> time it was clicked
     _curtainClickTimes : {[string]: number} = {};
+    _canCancelCurtain: {[string]: boolean} = {};
 
     componentWillMount() {
         this._unsubscribe = ConfigManager.registerCategoryChangeCallback('curtains', this.onCurtainChanged.bind(this));
@@ -80,8 +81,13 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
             var curTime = (new Date()).getTime();
             for (var i = 0; i < curtains.length; i++) {
                 if (value !== 0) { // first click, record the time
-                    this._curtainClickTimes[curtains[i].id] = curTime;
+                    if (ConfigManager.things[curtains[i].id].curtain === value && this._canCancelCurtain[curtains[i].id]) // if the curtain was already moving, stop it
+                        value = 0;
+                    else // otherwise record time and do logic for holding/tapping
+                        this._curtainClickTimes[curtains[i].id] = curTime;
+                    this._canCancelCurtain[curtains[i].id] = false;
                 } else { // ending the click, if too short, then let the curtain auto move
+                    this._canCancelCurtain[curtains[i].id] = true;
                     if (curTime - this._curtainClickTimes[curtains[i].id] < 500) {
                         const c = curtains[i];
                         const v = value;

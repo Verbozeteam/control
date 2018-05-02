@@ -12,6 +12,7 @@ let cloneObject = function(obj) {
 
 module.exports = function (state=defaultState, action) {
     var newState = cloneObject(state);
+
     switch(action.type) {
         case SET_LANGUAGE:
             newState.language = action.language;
@@ -22,6 +23,8 @@ module.exports = function (state=defaultState, action) {
         case TOGGLE_DEV_MODE:
             newState.devMode = !newState.devMode;
             break;
+        default:
+            return state;
     }
     return newState;
 };

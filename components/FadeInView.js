@@ -8,7 +8,7 @@ type PropsType = {
 }
 
 type StateType = {
-    opacityLevel: number
+    opacityLevel: any
 };
 
 export default class FadeInView extends React.Component<StateType, PropsType> {
@@ -28,15 +28,18 @@ export default class FadeInView extends React.Component<StateType, PropsType> {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.state.opacityLevel = new Animated.Value(0);
+        // only fade in when the "currentPage" actually changes
+        if (nextProps.currentPage !== this.props.currentPage) {
+            this.state.opacityLevel = new Animated.Value(0);
 
-        Animated.timing(
-            this.state.opacityLevel,
-            {
-                toValue: 1,     // final value to reach it 1 opacity (fully shown)
-                duration: 1000, // how long to take to reach to that value
-            }
-        ).start();
+            Animated.timing(
+                this.state.opacityLevel,
+                {
+                    toValue: 1,     // final value to reach it 1 opacity (fully shown)
+                    duration: 1000, // how long to take to reach to that value
+                }
+            ).start();
+        }
     }
 
 

@@ -5,6 +5,7 @@ import android.view.KeyEvent;
 import android.content.Intent;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.PowerManager;
 import java.lang.Thread;
 import org.devio.rn.splashscreen.SplashScreen;
@@ -38,6 +39,7 @@ public class MainActivity extends ReactActivity {
             PowerManager.ACQUIRE_CAUSES_WAKEUP, "VerbozeControl");
         mWakeLock.acquire();
 
+        KillSystemUI();
 
         final Thread.UncaughtExceptionHandler oldHandler =
             Thread.getDefaultUncaughtExceptionHandler();
@@ -102,5 +104,28 @@ public class MainActivity extends ReactActivity {
             }
         }
         return true;
+    }
+
+    private void KillSystemUI() {
+        Process proc = null;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            String ProcID = "79"; //HONEYCOMB AND OLDER
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+                ProcID = "42"; //ICS AND NEWER
+
+            try {
+                proc = Runtime.getRuntime().exec(new String[]{"su", "-c", "service call activity " + ProcID + " s16 com.android.systemui"});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                proc.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            // EDIT Build.prop file and add qemu.hw.mainkeys=1
+        }
     }
 }
