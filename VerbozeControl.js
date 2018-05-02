@@ -17,7 +17,7 @@ const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./js-api-utils/SocketCommunication');
 const UserPreferences = require('./js-api-utils/UserPreferences');
-const Clock = require('./components/Clock');
+const DigitalClock = require('./components/DigitalClock');
 const PagingView = require('./components/PagingView');
 const ConnectionStatus = require('./components/ConnectionStatus');
 
@@ -236,7 +236,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         var inner_ui = null;
         if (screenDimmed || (!cardIn && connectionStatus)) {
-            inner_ui = <Clock displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
+            inner_ui = <DigitalClock displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
         }
 
         return <View style={styles.container}
