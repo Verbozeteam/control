@@ -65,12 +65,14 @@ class PagingView extends React.Component<any, StateType> {
             getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
         },
+        /* TEMP CODE FOR DEVELOPMENT */
         alarms: {
             name: "Alarms",
             renderer: this.renderAlarmsView.bind(this),
             getBackground: () => {},
             is_pressable: true
         },
+        /* ************************ */
         settings: {
             name: "Settings",
             height: 60,
@@ -179,9 +181,11 @@ class PagingView extends React.Component<any, StateType> {
         return <Settings />;
     }
 
+    /* TEMP CODE FOR DEVELOPMENT */
     renderAlarmsView(index: number) {
         return <AlarmsPanel />;
     }
+    /* ************************* */
 
     changePage(index: number) {
         return (() => {

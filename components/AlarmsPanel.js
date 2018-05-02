@@ -13,7 +13,17 @@ export default class AlarmsPanel extends React.Component<PropsType> {
   render() {
     return (
       <View style={styles.container}>
-        {/* <AnalogClock /> */}
+        <View style={styles.analog_clock_container}>
+          <Text>
+            ANALOG CLOCK
+          </Text>
+          {/* <AnalogClock /> */}
+        </View>
+        <View style={styles.alarms_container}>
+          <Text>
+            ALARMS
+          </Text>
+        </View>
       </View>
     );
   }
@@ -22,5 +32,14 @@ export default class AlarmsPanel extends React.Component<PropsType> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'row',
+  },
+  analog_clock_container: {
+    flex: 2,
+    backgroundColor: 'red'
+  },
+  alarms_container: {
+    flex: 1,
+    backgroundColor: 'green'
   }
 });
