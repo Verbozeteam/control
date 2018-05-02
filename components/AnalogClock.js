@@ -65,7 +65,8 @@ export default class AnalogClock extends React.Component<PropsType> {
 
   renderHoursHand(datetime: Object) {
     const { radius, hoursHandThickness } = this.props;
-    const angle = datetime.getHours() / 12 * Math.PI * 2 - (Math.PI / 2);
+    const angle = (datetime.getHours() / 12
+      + datetime.getMinutes() / 720 ) * Math.PI * 2 - (Math.PI / 2);
 
     const x1 = radius + 15 * Math.cos(angle + Math.PI);
     const y1 = radius + 15 * Math.sin(angle + Math.PI);
@@ -82,7 +83,8 @@ export default class AnalogClock extends React.Component<PropsType> {
 
   renderMinutesHand(datetime: Object) {
     const { radius, minutesHandThickness } = this.props;
-    const angle = datetime.getMinutes() / 60 * Math.PI * 2 - (Math.PI / 2);
+    const angle = (datetime.getMinutes() / 60
+      + datetime.getSeconds() / 3600) * Math.PI * 2 - (Math.PI / 2);
 
     const x1 = radius + 15 * Math.cos(angle + Math.PI);
     const y1 = radius + 15 * Math.sin(angle + Math.PI);
