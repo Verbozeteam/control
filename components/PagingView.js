@@ -20,6 +20,7 @@ import CentralAC from './CentralAC';
 import CurtainsPanelContents from './CurtainsPanelContents';
 import WaterFountainsPanel from './WaterFountainsPanel';
 import PenthouseDiscoPanel from './PenthouseDisco';
+import AlarmsPanel from './AlarmsPanel';
 
 import FadeInView from './FadeInView';
 
@@ -63,6 +64,12 @@ class PagingView extends React.Component<any, StateType> {
             renderer: (index: number) => this.renderRoomView(index),
             getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
+        },
+        alarms: {
+            name: "Alarms",
+            renderer: this.renderAlarmsView.bind(this),
+            getBackground: () => {},
+            is_pressable: true
         },
         settings: {
             name: "Settings",
@@ -172,6 +179,10 @@ class PagingView extends React.Component<any, StateType> {
         return <Settings />;
     }
 
+    renderAlarmsView(index: number) {
+        return <AlarmsPanel />;
+    }
+
     changePage(index: number) {
         return (() => {
             // to remove the discovery option incase it was open, when changing pages
@@ -192,7 +203,7 @@ class PagingView extends React.Component<any, StateType> {
             height: Dimensions.get('screen').height
         };
 
-        var pages = [this._pages.settings];
+        var pages = [this._pages.alarms, this._pages.settings];
         if (groups && groups.length > 0) {
             // concat pages to result of group map to put settings tab at the bottom
             pages = (groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}})).concat(pages)
