@@ -125,7 +125,6 @@ export default class AnalogClock extends React.Component<PropsType> {
       <View style={styles.container}>
         <Svg width={radius * 2}
           height={radius * 2}>
-
           {this.renderClockPerimeter(12, hourTicksLength, hourTicksThickness)}
           {this.renderClockPerimeter (60, minuteTicksLength, minuteTicksThickness)}
 
@@ -134,9 +133,7 @@ export default class AnalogClock extends React.Component<PropsType> {
           <Circle cx={radius} cy={radius} r={radius * 0.06} fill={Colors.white} />
           {this.renderSecondsHand(datetime)}
           <Circle cx={radius} cy={radius} r={radius * 0.04} fill={Colors.red} />
-
         </Svg>
-        <Text style={{color: 'white'}}>{datetime.toString()}</Text>
       </View>
     );
   }
