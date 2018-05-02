@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-// import AnalogClock from './AnalogClock';
+import AnalogClock from './AnalogClock';
 
 type PropsType = {};
 type StateType = {};
@@ -14,10 +14,7 @@ export default class AlarmsPanel extends React.Component<PropsType> {
     return (
       <View style={styles.container}>
         <View style={styles.analog_clock_container}>
-          <Text>
-            ANALOG CLOCK
-          </Text>
-          {/* <AnalogClock /> */}
+            <AnalogClock />
         </View>
         <View style={styles.alarms_container}>
           <Text>

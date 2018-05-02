@@ -37,7 +37,7 @@ type PropsType = {
     displayWarning: string,
 };
 
-class Clock extends React.Component<PropsType> {
+class DigitalClock extends React.Component<PropsType> {
 
     _update_time_timeout;
 
@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
     },
 });
 
-module.exports = Clock;
+module.exports = DigitalClock;
