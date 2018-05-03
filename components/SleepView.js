@@ -21,20 +21,16 @@ export default class SleepView extends React.Component<PropsType, StateType> {
 
   render() {
     const { displayWarning } = this.props;
-    console.log(displayWarning);
 
     return (
       <View style={styles.container}>
-        <View style={styles.clock_container}>
-          <DigitalClock fontColor={Colors.light_gray}
-            clockFontSize={120} dateFontSize={40} />
-        </View>
+        <DigitalClock fontColor={Colors.light_gray}
+            clockFontSize={120}
+            dateFontSize={40} />
         {(displayWarning) ?
-          <View style={styles.warning_container}>
-            <Text style={styles.warning}>
-              {displayWarning}
-            </Text>
-          </View> : null}
+          <Text style={styles.warning}>
+            {displayWarning}
+          </Text> : null}
       </View>
     );
   }
@@ -45,18 +41,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: '100%',
     width: '100%',
-    backgroundColor: Colors.black
-  },
-  clock_container: {
-    flex: 3,
-  },
-  warning_container: {
-    flex: 1,
+    backgroundColor: Colors.black,
     alignItems: 'center',
-    justifyContent: 'flex-start'
+    justifyContent: 'space-around'
   },
   warning: {
-    marginTop: 30,
     fontSize: 40,
     color: Colors.red,
     ...TypeFaces.regular,
