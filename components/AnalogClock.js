@@ -36,18 +36,12 @@ export default class AnalogClock extends React.Component<PropsType> {
 
   should_update_clock: boolean = true;
 
-  // _update_time_interval;
-
-  // _fps: number = 24;
-
   componentDidMount() {
-    console.log('analog clock mounted');
     this.should_update_clock = true;
     this.updateClock()
   }
 
   componentWillUnmount() {
-    console.log('analog clock unmounted');
     this.should_update_clock = false;
   }
 
