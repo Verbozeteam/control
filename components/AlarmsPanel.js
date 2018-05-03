@@ -3,7 +3,10 @@
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
+import { Colors } from '../constants/styles';
+
 import AnalogClock from './AnalogClock';
+import DigitalClock from './DigitalClock';
 
 type PropsType = {};
 type StateType = {};
@@ -13,8 +16,11 @@ export default class AlarmsPanel extends React.Component<PropsType> {
   render() {
     return (
       <View style={styles.container}>
-        <View style={styles.analog_clock_container}>
+        <View style={styles.clocks_container}>
             <AnalogClock />
+            <DigitalClock fontColor={Colors.white}
+              clockFontSize={64}
+              dateFontSize={36}/>
         </View>
         <View style={styles.alarms_container}>
           <Text>
@@ -31,12 +37,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
-  analog_clock_container: {
+  clocks_container: {
     flex: 2,
-    backgroundColor: 'red'
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingVertical: 10
   },
   alarms_container: {
     flex: 1,
-    backgroundColor: 'green'
   }
 });

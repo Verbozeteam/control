@@ -17,7 +17,7 @@ const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./js-api-utils/SocketCommunication');
 const UserPreferences = require('./js-api-utils/UserPreferences');
-const DigitalClock = require('./components/DigitalClock');
+import SleepView from './components/SleepView';
 const PagingView = require('./components/PagingView');
 const ConnectionStatus = require('./components/ConnectionStatus');
 
@@ -66,7 +66,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
     };
 
     _screen_dim_timeout: number;
-    _screen_dim_timeout_duration: number = __DEV__ ? 60000 : 30000;
+    _screen_dim_timeout_duration: number = __DEV__ ? 600000 : 30000;
     _last_touch_time: number = 0;
 
     _discovery_timeout: any = undefined;
@@ -236,7 +236,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         var inner_ui = null;
         if (screenDimmed || (!cardIn && connectionStatus)) {
-            inner_ui = <DigitalClock displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
+            inner_ui = <SleepView displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
         }
 
         return <View style={styles.container}

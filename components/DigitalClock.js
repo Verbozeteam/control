@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-import { TypeFaces } from '../constants/styles';
+import { Colors, TypeFaces } from '../constants/styles';
 
 const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../js-api-utils/UserPreferences');
@@ -34,112 +34,116 @@ const MonthsOfYear: Array<string> = [
 ];
 
 type PropsType = {
-    displayWarning: string,
+  fontColor?: string,
+  clockFontSize?: number,
+  dateFontSize?: number,
+  showDate?: boolean,
+  providedDateTime?: Object
 };
 
-class DigitalClock extends React.Component<PropsType> {
+type StateType = {};
 
-    _update_time_timeout;
+export default class DigitalClock extends React.Component<PropsType, StateType> {
 
-    componentWillMount() {
-        this._update();
+  static defaultProps = {
+    fontColor: Colors.light_gray,
+    clockFontSize: 36,
+    dateFontSize: 22,
+    showDate: true,
+  };
+
+  /* timeout for updating clock */
+  _update_time_timeout: Object = null;
+
+  componentWillMount() {
+    this.updateClock();
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._update_time_timeout);
+  }
+
+  componentWillReceiveProps(nextProps: PropsType) {
+    const { providedDateTime } = this.props;
+
+    if (providedDateTime) {
+      clearTimeout(this._update_time_timeout);
+    }
+  }
+
+  updateClock() {
+    const { providedDateTime } = this.props;
+
+    if (providedDateTime) {
+      return;
     }
 
-    componentWillUnmount() {
-        clearTimeout(this._update_time_timeout);
+    const datetime = new Date();
+
+    this._update_time_timeout = setTimeout(
+      () => this.updateClock(), 60000 - (datetime.getSeconds() * 1000) -
+        datetime.getMilliseconds());
+
+    this.forceUpdate();
+  }
+
+  formatDateTime(datetime: object) {
+    /* format minutes to have 2 digits */
+    var minutes = String(datetime.getMinutes());
+    if (minutes.length < 2) {
+      minutes = '0' + minutes;
     }
 
-    _update() {
-        const datetime = new Date();
-
-        this._update_time_timeout = setTimeout(function() {
-            this._update();
-        }.bind(this), 60000 - datetime.getSeconds() * 1000);
-
-        this.forceUpdate();
+    /* make time 12 hour based from 24 hours */
+    var am_pm = 'AM';
+    var hours = datetime.getHours();
+    if (hours >= 12) {
+      am_pm = 'PM';
+      if (hours > 12) {
+        hours -= 12;
+      }
+    } else if (hours === 0) {
+      hours = 12;
     }
 
-    _formateDateTime(datetime: Object) {
-        // const l = UserPreferences.get('language');
+    /* create date string */
+    const date = I18n.t(DaysOfWeek[datetime.getDay()]) + I18n.t(', ') +
+      datetime.getDate() + ' ' + I18n.t(MonthsOfYear[datetime.getMonth()])
+      + ' ' + datetime.getFullYear();
 
-        //format minutes to have 2 digits
-        var minutes = String(datetime.getMinutes());
-        if (minutes.length < 2) {
-            minutes = '0' + minutes
-        }
+    /* create time string */
+    const time = hours + ':' + minutes + ' ' + am_pm;
 
-        // make time 12 hour based from 24 hour
-        var am_pm = 'AM';
-        var hours = datetime.getHours();
-        if (hours >= 12) {
-            am_pm = 'PM';
-            if (hours > 12) {
-                hours -= 12;
-            }
-        } else if (hours === 0) {
-            hours = 12
-        }
+    return { date, time };
+  }
 
-        // create date string
-        // const date = DaysOfWeek[datetime.getDay()][l] + ', ' +
-        //     datetime.getDate() + ' ' + MonthsOfYear[datetime.getMonth()]
-        //     + ' ' + datetime.getFullYear();
-        const date = I18n.t(DaysOfWeek[datetime.getDay()]) + I18n.t(', ') +
-            datetime.getDate() + ' ' + I18n.t(MonthsOfYear[datetime.getMonth()])
-            + ' ' + datetime.getFullYear();
+  render() {
+    const { fontColor, clockFontSize, dateFontSize, showDate,
+      providedDateTime } = this.props;
 
-        // create time string
-        const time = hours + ':' + minutes + ' ' + am_pm;
+    const { date, time } = this.formatDateTime(providedDateTime || new Date());
 
-        return { date, time };
-    }
-
-    render() {
-        const { displayWarning } = this.props;
-        const { date, time } = this._formateDateTime(new Date());
-
-        return (
-            <View style={styles.container}>
-                <Text style={styles.time}>
-                    {time}
-                </Text>
-                <Text style={styles.date}>
-                    {date}
-                </Text>
-                <Text style={styles.warning}>
-                    {displayWarning}
-                </Text>
-            </View>
-        );
-    }
+    return (
+      <View>
+        <Text style={[styles.time, {color: fontColor, fontSize: clockFontSize}]}>
+          {time}
+        </Text>
+        {(showDate) ?
+          <Text style={[styles.date, {color: fontColor, fontSize: dateFontSize}]}>
+            {date}
+          </Text> : null}
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#000000',
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    time: {
-        fontSize: 120,
-        color: '#AAAAAA',
-        ...TypeFaces.regular
-    },
-    date: {
-        fontSize: 40,
-        color: '#AAAAAA',
-        ...TypeFaces.regular,
-    },
-    warning: {
-        marginTop: 30,
-        fontSize: 40,
-        color: '#FF0000',
-        ...TypeFaces.regular
-    },
+  time: {
+    textAlign: 'center',
+    ...TypeFaces.regular
+  },
+  date: {
+    textAlign: 'center',
+    ...TypeFaces.regular
+  }
 });
-
-module.exports = DigitalClock;

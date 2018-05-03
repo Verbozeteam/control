@@ -124,7 +124,7 @@ export default class AnalogClock extends React.Component<PropsType> {
     const datetime = new Date();
 
     return (
-      <View style={styles.container}>
+      <View style={{height: radius * 2, width: radius * 2}}>
         <Svg width={radius * 2}
           height={radius * 2}>
           {this.renderClockPerimeter(12, hourTicksLength, hourTicksThickness)}
@@ -140,9 +140,3 @@ export default class AnalogClock extends React.Component<PropsType> {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  }
-});
