@@ -38,7 +38,9 @@ type PropsType = {
   clockFontSize?: number,
   dateFontSize?: number,
   showDate?: boolean,
-  providedDateTime?: Object
+  providedDateTime?: Object,
+  extraTimeStyle?: Object | number,
+  extraDateStyle?: Object | number,
 };
 
 type StateType = {};
@@ -119,17 +121,17 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
 
   render() {
     const { fontColor, clockFontSize, dateFontSize, showDate,
-      providedDateTime } = this.props;
+      providedDateTime, extraTimeStyle, extraDateStyle } = this.props;
 
     const { date, time } = this.formatDateTime(providedDateTime || new Date());
 
     return (
       <View>
-        <Text style={[styles.time, {color: fontColor, fontSize: clockFontSize}]}>
+        <Text style={[styles.time, {color: fontColor, fontSize: clockFontSize}, extraTimeStyle]}>
           {time}
         </Text>
         {(showDate) ?
-          <Text style={[styles.date, {color: fontColor, fontSize: dateFontSize}]}>
+          <Text style={[styles.date, {color: fontColor, fontSize: dateFontSize}, extraDateStyle]}>
             {date}
           </Text> : null}
       </View>
