@@ -18,6 +18,7 @@ import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./js-api-utils/SocketCommunication');
 const UserPreferences = require('./js-api-utils/UserPreferences');
 import SleepView from './components/SleepView';
+import AlarmsHelper from './components/AlarmsHelper';
 const PagingView = require('./components/PagingView');
 const ConnectionStatus = require('./components/ConnectionStatus');
 
@@ -52,6 +53,9 @@ type StateType = {
     screenDimmed: boolean,
     hotelThingId: string,
     cardIn: boolean,
+
+    // TODO: remove this, temporary
+    alarms: Array<Object>
 };
 
 class VerbozeControl extends React.Component<{}, StateType> {
@@ -63,10 +67,14 @@ class VerbozeControl extends React.Component<{}, StateType> {
         screenDimmed: false,
         hotelThingId: "",
         cardIn: true,
+
+        alarms: [
+          {id: 1, time: new Date(2018, 4, 3, 16, 30, 0, 0)}
+        ]
     };
 
     _screen_dim_timeout: number;
-    _screen_dim_timeout_duration: number = __DEV__ ? 600000 : 30000;
+    _screen_dim_timeout_duration: number = __DEV__ ? 30000 : 30000;
     _last_touch_time: number = 0;
 
     _discovery_timeout: any = undefined;
@@ -230,6 +238,21 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._resetScreenDim();
     }
 
+    removeAlarm(id: number) {
+      const { alarms } = this.state;
+
+      const new_alarms = [];
+      for (var i = 0; i < alarms.length; i++) {
+        if (alarms[i].id !== id) {
+          new_alarms.push(alarms[i]);
+        }
+      }
+
+      this.setState({
+        alarms: new_alarms
+      });
+    }
+
     render() {
         const { connectionStatus } = this.props;
         const { screenDimmed, cardIn } = this.state;
@@ -245,6 +268,9 @@ class VerbozeControl extends React.Component<{}, StateType> {
             <PagingView />
             {inner_ui}
             <ConnectionStatus />
+            <AlarmsHelper alarms={this.state.alarms}
+              removeAlarm={this.removeAlarm.bind(this)}
+              addAlarm={() => {}} />
         </View>
     }
 }

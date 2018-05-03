@@ -20,7 +20,7 @@ type PropsType = {
 
 type StateType = {};
 
-export default class AnalogClock extends React.Component<PropsType> {
+export default class AnalogClock extends React.Component<PropsType, StateType> {
 
   static defaultProps = {
     radius: 160,

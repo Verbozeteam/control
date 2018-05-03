@@ -18,9 +18,7 @@ export default class AlarmsPanel extends React.Component<PropsType> {
       <View style={styles.container}>
         <View style={styles.clocks_container}>
             <AnalogClock />
-            <DigitalClock fontColor={Colors.white}
-              clockFontSize={64}
-              dateFontSize={36}/>
+            
         </View>
         <View style={styles.alarms_container}>
           <Text>

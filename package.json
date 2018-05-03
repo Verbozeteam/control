@@ -21,6 +21,7 @@
 		"react-native-android-wifi": "0.0.25",
 		"react-native-linear-gradient": "^2.4.0",
 		"react-native-qrcode": "^0.2.6",
+		"react-native-sound": "^0.10.9",
 		"react-native-splash-screen": "^3.0.6",
 		"react-native-storage": "^0.2.2",
 		"react-native-svg": "^5.5.1",
