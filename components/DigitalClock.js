@@ -82,11 +82,11 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
 
     const datetime = new Date();
 
-    // this._update_time_timeout = setTimeout(
-    //   () => this.updateClock(), 60000 - (datetime.getSeconds() * 1000) -
-    //     datetime.getMilliseconds());
-    //
-    // this.forceUpdate();
+    this._update_time_timeout = setTimeout(
+      () => this.updateClock(), 60000 - (datetime.getSeconds() * 1000) -
+        datetime.getMilliseconds());
+
+    this.forceUpdate();
   }
 
   formatDateTime(datetime: object) {

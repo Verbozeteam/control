@@ -69,7 +69,7 @@ class PagingView extends React.Component<any, StateType> {
         alarms: {
             name: "Alarms",
             renderer: this.renderAlarmsView.bind(this),
-            getBackground: () => {},
+            getBackground: (index: number) => this._backgrounds.alarms,
             is_pressable: true
         },
         /* ************************ */
@@ -90,6 +90,7 @@ class PagingView extends React.Component<any, StateType> {
         'hotel_controls': require('../assets/images/services_stack.jpg'),
         'central_acs': require('../assets/images/thermostat_stack.jpg'),
         'honeywell_thermostat_t7560': require('../assets/images/thermostat_stack.jpg'),
+        'alarms': require('../assets/images/alarms_background.jpg'),
         'settings': require('../assets/images/verboze_poster.jpg'),
     };
 
@@ -183,7 +184,9 @@ class PagingView extends React.Component<any, StateType> {
 
     /* TEMP CODE FOR DEVELOPMENT */
     renderAlarmsView(index: number) {
-        return <AlarmsPanel />;
+        return <AlarmsPanel alarms={this.props.alarms}
+          addAlarm={this.props.addAlarm}
+          removeAlarm={this.props.removeAlarm} />;
     }
     /* ************************* */
 

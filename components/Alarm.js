@@ -11,9 +11,12 @@ import DigitalClock from './DigitalClock';
 const I18n = require('../js-api-utils/i18n/i18n');
 
 type PropsType = {
-  addAlarm: boolean,
-  setTime?: Object
+  alarmId?: number,
+  setTime?: Object,
+  addAlarm?: () => {} | false,
+  removeAlarm?: () => {}
 };
+
 type StateType = {};
 
 export default class Alarm extends React.Component<PropsType> {
@@ -24,20 +27,31 @@ export default class Alarm extends React.Component<PropsType> {
     addAlarm: false,
   }
 
-  async showTimePicker() {
+  minutesDifference(t1: Object, t2: Object) {
+    return Math.floor(t1.getTime() / 60000) - Math.floor(t2.getTime() / 60000);
+  }
+
+  async showTimePicker(addAlarm: () => {}) {
     try {
       const {action, hour, minute} = await TimePickerAndroid.open({
         is24Hour: false,
         mode: ('spinner'),
       });
+
       if (action !== TimePickerAndroid.dismissedAction) {
-        console.log(action);
-        console.log(hour); // (0-23)
-        console.log(minute); // (0-59)
+        /* set alarm time */
+        const alarmTime = new Date();
+        alarmTime.setHours(hour, minute, 0);
+
+        if (this.minutesDifference(alarmTime, new Date()) <= 0) {
+          /* alarm time already passed today - set alarm to be tomorrow */
+          alarmTime.setDate(alarmTime.getDate() + 1);
+        }
 
         /* handle add new alarm with middleware
         /* ...
          */
+        addAlarm(alarmTime);
       }
     } catch ({code, message}) {
       console.warn('Cannot open time picker', message);
@@ -45,13 +59,14 @@ export default class Alarm extends React.Component<PropsType> {
   }
 
   renderAddAlarmButton() {
+    const { addAlarm } = this.props;
 
     return (
       <MagicButton
         width={70}
         height={70}
         textStyle={{...TypeFaces.light}}
-        onPressIn={this.showTimePicker}
+        onPressIn={() => this.showTimePicker(addAlarm)}
         sideText={I18n.t("Add Alarm")}
         sideTextStyle={{...TypeFaces.light}}
         textColor={Colors.white}
@@ -74,10 +89,12 @@ export default class Alarm extends React.Component<PropsType> {
     return dateTimeNow.getDate() === setTime.getDate() ? "Today" : "Tomorrow";
   }
 
-  renderAlarm(setTime) {
+  renderAlarm() {
+    const { alarmId, setTime, removeAlarm } = this.props;
 
     var todayOrTomorrow = this.determineTodayOrTomorrow(setTime);
-    var alarmTime = <DigitalClock showDate={false} providedDateTime={setTime} extraTimeStyle={{textAlign: 'left'}} />;
+    var alarmTime = <DigitalClock showDate={false} providedDateTime={setTime}
+      extraTimeStyle={{textAlign: 'left'}} />;
 
     return (
       <View style={styles.alarm_container}>
@@ -92,7 +109,7 @@ export default class Alarm extends React.Component<PropsType> {
             width={70}
             height={70}
             textStyle={{...TypeFaces.light}}
-            onPressIn={this.removeAlarm()}
+            onPressIn={() => removeAlarm(alarmId)}
             textColor={Colors.white}
             icon={this._add_icon}
             iconStyle={{transform: [{ rotate: '45deg'}], width: 30, height: 30}}
@@ -105,10 +122,11 @@ export default class Alarm extends React.Component<PropsType> {
   }
 
   render(){
-    const { addAlarm, setTime } = this.props;
+    const { addAlarm } = this.props;
+
     return (
       <View style={styles.container}>
-        { addAlarm ? this.renderAddAlarmButton() : this.renderAlarm(setTime) }
+        { addAlarm ? this.renderAddAlarmButton() : this.renderAlarm() }
       </View>
     );
   }

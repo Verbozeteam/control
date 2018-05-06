@@ -11,40 +11,54 @@ import Alarm from './Alarm';
 
 import SeparatorLine from './SeparatorLine';
 
-type PropsType = {};
+type AlarmType = {
+  id: number,
+  time: Object
+};
+
+type PropsType = {
+  alarms: Array<AlarmType>,
+  removeAlarm: () => {},
+  addAlarm: () => {}
+};
+
 type StateType = {};
 
 export default class AlarmsPanel extends React.Component<PropsType> {
 
-  _temp_alarm_date_time = new Date(2018, 4, 4, 8, 0);
-  _temp_alarm_date_time2 = new Date(2018, 4, 3, 15, 0);
+  static defaultProps = {
+    alarms: []
+  };
 
-  _set_alarms = [this._temp_alarm_date_time, this._temp_alarm_date_time2];
-
-  renderAlarms(set_alarms) {
-    set_alarms = set_alarms.filter(alarm => alarm > new Date());
+  renderAlarms() {
+    const { alarms, removeAlarm } = this.props;
 
     return (
-      set_alarms.map((alarm_time, i) =>
-        <View key={"alarm-" + i}>
-          <Alarm setTime={alarm_time} />
+      alarms.map((alarm) =>
+        <View key={"alarm-" + alarm.id}>
+          <Alarm alarmId={alarm.id}
+            setTime={alarm.time}
+            removeAlarm={removeAlarm}/>
           <SeparatorLine />
         </View>
       )
-    )
+    );
   }
 
   render() {
+    const { addAlarm } = this.props;
+
     return (
       <View style={styles.container}>
         <View style={styles.clocks_container}>
             <AnalogClock />
-            
+            <DigitalClock clockFontSize={64}
+              dateFontSize={36} />
         </View>
         <View style={styles.alarms_container}>
           <ScrollView style={styles.scroll_view_container}>
-            { this.renderAlarms(this._set_alarms) }
-            <Alarm addAlarm={true} />
+            {this.renderAlarms()}
+            <Alarm addAlarm={addAlarm} />
           </ScrollView>
         </View>
       </View>

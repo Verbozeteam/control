@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
 import wifi from 'react-native-android-wifi';
+import Immersive from 'react-native-immersive';
 
 import SplashScreen from 'react-native-splash-screen';
 
@@ -49,13 +50,18 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
+type AlarmType = {
+    id: number,
+    time: Object
+};
+
 type StateType = {
     screenDimmed: boolean,
     hotelThingId: string,
     cardIn: boolean,
 
     // TODO: remove this, temporary
-    alarms: Array<Object>
+    alarms: Array<AlarmType>
 };
 
 class VerbozeControl extends React.Component<{}, StateType> {
@@ -69,7 +75,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         cardIn: true,
 
         alarms: [
-          {id: 1, time: new Date(2018, 4, 3, 16, 30, 0, 0)}
+          // {id: 1, time: new Date(2018, 4, 3, 17, 0, 0, 0)}
         ]
     };
 
@@ -140,6 +146,12 @@ class VerbozeControl extends React.Component<{}, StateType> {
         wifi.setEnabled(true);
         this.connectWifi();
         this._wifi_timeout = setInterval(this.connectWifi.bind(this), 10000);
+
+
+        // if (__DEV__) {
+          Immersive.on();
+          Immersive.setImmersive(true);
+        // }
     }
 
     componentDidMount() {
@@ -238,18 +250,33 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._resetScreenDim();
     }
 
+    // TODO: rewrite this
     removeAlarm(id: number) {
       const { alarms } = this.state;
 
-      const new_alarms = [];
+      const modified_alarms = [];
       for (var i = 0; i < alarms.length; i++) {
         if (alarms[i].id !== id) {
-          new_alarms.push(alarms[i]);
+          modified_alarms.push(alarms[i]);
         }
       }
 
       this.setState({
-        alarms: new_alarms
+        alarms: modified_alarms
+      });
+    }
+
+    // TODO: rewrite this
+    addAlarm(datetime: Object) {
+      const { alarms } = this.state;
+
+      alarms.push({
+        id: Math.random(),
+        time: datetime
+      });
+
+      this.setState({
+        alarms
       });
     }
 
@@ -265,12 +292,15 @@ class VerbozeControl extends React.Component<{}, StateType> {
         return <View style={styles.container}
             onTouchStart={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}
             onTouchMove={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}>
-            <PagingView />
+            <PagingView
+              removeAlarm={this.removeAlarm.bind(this)}
+              addAlarm={this.addAlarm.bind(this)}
+              alarms={this.state.alarms} />
             {inner_ui}
             <ConnectionStatus />
             <AlarmsHelper alarms={this.state.alarms}
               removeAlarm={this.removeAlarm.bind(this)}
-              addAlarm={() => {}} />
+              addAlarm={this.addAlarm.bind(this)} />
         </View>
     }
 }
