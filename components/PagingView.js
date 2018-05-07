@@ -43,6 +43,7 @@ type PageType = {
 function mapStateToProps(state) {
     return {
         displayConfig: state.screen.displayConfig,
+        language: state.settings.language
     };
 }
 

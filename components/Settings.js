@@ -62,7 +62,7 @@ class Settings extends React.Component<any> {
     render() {
         const { language, devMode, qrCode, displayConfig } = this.props;
 
-        var language_items = I18n._supported_languages.map((abbreviation, i) =>
+        var language_items = Object.keys(I18n._supported_languages).map((abbreviation, i) =>
             <Picker.Item key={'language-option-' + i}
                 label={LanguageName[abbreviation]}
                 value={abbreviation}
@@ -86,7 +86,7 @@ class Settings extends React.Component<any> {
             value: (
                 <View style={styles.picker_view}>
                     <Picker selectedValue={language}
-                        onValueChange={this.changeLanguage.bind(this)}
+                        onValueChange={(itemValue, itemIndex) => this.changeLanguage(itemValue, itemIndex)}
                         style={styles.picker}>
                         {language_items}
                     </Picker>
