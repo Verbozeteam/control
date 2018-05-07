@@ -65,14 +65,6 @@ class PagingView extends React.Component<any, StateType> {
             getBackground: this.getGroupBackground.bind(this),
             is_pressable: true,
         },
-        /* TEMP CODE FOR DEVELOPMENT */
-        alarms: {
-            name: "Alarms",
-            renderer: this.renderAlarmsView.bind(this),
-            getBackground: (index: number) => this._backgrounds.alarms,
-            is_pressable: true
-        },
-        /* ************************ */
         settings: {
             name: "Settings",
             height: 60,
@@ -90,7 +82,7 @@ class PagingView extends React.Component<any, StateType> {
         'hotel_controls': require('../assets/images/services_stack.jpg'),
         'central_acs': require('../assets/images/thermostat_stack.jpg'),
         'honeywell_thermostat_t7560': require('../assets/images/thermostat_stack.jpg'),
-        'alarms': require('../assets/images/alarms_background.jpg'),
+        'alarm_system': require('../assets/images/alarms_background.jpg'),
         'settings': require('../assets/images/verboze_poster.jpg'),
     };
 
@@ -148,6 +140,8 @@ class PagingView extends React.Component<any, StateType> {
                     return <WaterFountainsPanel things={things} layout={layout} />;
                 case 'penthouse_disco':
                     return <PenthouseDiscoPanel id={things.filter(t => t.category === 'penthouse_disco')[0].id} layout={layout} />
+                case 'alarm_system':
+                    return <AlarmsPanel id={things.filter(t => t.category === 'alarm_system')[0].id} layout={layout} />;
             }
         }
         return null;
@@ -182,14 +176,6 @@ class PagingView extends React.Component<any, StateType> {
         return <Settings />;
     }
 
-    /* TEMP CODE FOR DEVELOPMENT */
-    renderAlarmsView(index: number) {
-        return <AlarmsPanel alarms={this.props.alarms}
-          addAlarm={this.props.addAlarm}
-          removeAlarm={this.props.removeAlarm} />;
-    }
-    /* ************************* */
-
     changePage(index: number) {
         return (() => {
             // to remove the discovery option incase it was open, when changing pages
@@ -210,7 +196,7 @@ class PagingView extends React.Component<any, StateType> {
             height: Dimensions.get('screen').height
         };
 
-        var pages = [this._pages.alarms, this._pages.settings];
+        var pages = [this._pages.settings];
         if (groups && groups.length > 0) {
             // concat pages to result of group map to put settings tab at the bottom
             pages = (groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}})).concat(pages)

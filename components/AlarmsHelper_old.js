@@ -7,9 +7,6 @@ import { connect } from 'react-redux';
 
 const Sound = require('react-native-sound');
 
-import { minutesDifference, addAlarm, removeAlarm, snoozeAlarm }
-  from '../js-api-utils/AlarmUtils';
-
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
 import Seperatorine from './SeparatorLine';
@@ -23,10 +20,12 @@ type AlarmType = {
     time: Object
 };
 
-type PropsType = {};
+type PropsType = {
+    alarms?: Array<AlarmType>,
+};
+
 type StateType = {
-  alarms: Array<AlarmType>,
-  alarm_ring: AlarmType
+    alarm_ring: Object | null
 };
 
 function mapStateToProps(state) {
@@ -42,76 +41,61 @@ function mapDispatchToProps(dispatch) {
 class AlarmsHelper extends React.Component<PropsType, StateType> {
   _unsubscribe: () => any = () => null;
 
-  state = {
-    alarms: [],
-    alarm_ring: null
-  };
+    static defaultProps = {
+        alarms: []
+    };
 
-  _snooze_duration = 5 * 60000; /* minutes * 60000 milliseconds */
-  _check_alarms_timeout: Object = null;
-  _alarm_audio = null;
+    state = {
+        alarm_ring: null,
+    };
 
-  componentWillMount() {
-    this.componentWillReceiveProps(this.props);
-  }
+    _snooze_duration = 5 * 60000; /* minutes * 60000 */
 
-  componentWillReceiveProps(newProps: PropsType) {
-    this._unsubscribe();
-    this._unsubscribe = ConfigManager.registerThingStateChangeCallback(
-      newProps.id, this.onAlarmsChange.bind(this));
-    if (newProps.id in ConfigManager.things) {
-      this.onAlarmsChange(ConfigManager.thingMetas[newProps.id],
-        ConfigManager.things[newProps.id]);
-    }
-  }
+    _check_alarms_timeout: Object = null;
 
-  componentDidMount() {
-    Sound.setCategory('Playback');
+    _alarm_audio = null;
 
-    /* load sound file */
-    this._alarm_audio = new Sound('alarm.ogg',
-      Sound.MAIN_BUNDLE);
-    this._alarm_audio.setVolume(1);
-    this._alarm_audio.setNumberOfLoops(-1);
 
-    /* set check alarm timeout */
-  }
+    componentDidMount() {
+        Sound.setCategory('Playback');
 
-  componentWillUnmount() {
-    this._unsubscribe();
-    clearTimeout(this._check_alarms_timeout);
-  }
-
-  onAlarmsChange(meta: ThingMetadataType, alarmsState: ThingStateType) {
-    const { alarms } = this.state;
-
-    if (JSON.stringify(alarms) !== JSON.stringify(alarmsState.alarms)) {
-      this.setState({
-        alarms: alarmsState.alarms
-      });
-    }
-  }
-
-  checkAlarms() {
-    const { alarms } = this.state;
-
-    const datetime = new Date();
-    for (var i = 0; i < alarms.length; i++) {
-      if (minutesDifference(alarms[i].time, datetime) <= 0) {
-        this.setState({
-          alarm_ring: alarms[i]
+        /* load sound file */
+        this._alarm_audio = new Sound('alarm.ogg', Sound.MAIN_BUNDLE, (error) => {
+            if (error) {
+                console.log('Could not load sound file');
+            }
         });
 
-        this.startAlarm();
-      }
+        this._alarm_audio.setVolume(1);
+        this._alarm_audio.setNumberOfLoops(-1);
     }
 
-    /* update check alarm timeout */
-    this._check_alarms_timeout = setTimeout(
-      () => this.checkAlarms(),
-      60000 - (datetime.getSeconds() * 1000) - datetime.getMilliseconds()
-    );
-  }
+    componentWillUnmount() {
+        clearTimeout(this._check_alarms_timeout);
+    }
+
+    minutesDifference(t1: Object, t2: Object) {
+        return Math.floor(t1.getTime() / 60000) - Math.floor(t2.getTime() / 60000);
+    }
+
+    checkAlarms() {
+        const { alarms, removeAlarm } = this.props;
+        const datetime = new Date();
+
+        console.log('checking alarms');
+        for (var i = 0; i < alarms.length; i++) {
+            if (this.minutesDifference(alarms[i].time, datetime) <= 0) {
+                this.setState({
+                    alarm_ring: alarms[i]
+                });
+
+                this.startAlarm();
+            }
+        }
+
+        this._check_alarms_timeout = setTimeout(() => this.checkAlarms(),
+            60000 - (datetime.getSeconds() * 1000) - datetime.getMilliseconds());
+    }
 
   startAlarm() {
     if (this._alarm_audio) {
@@ -120,13 +104,29 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
   }
 
   stopAlarm() {
-    if (this._alarm_audio) {
-      this._alarm_audio.stop();
-    }
+    // const { removeAlarm } = this.props;
+    // const { alarm_ring } = this.state;
+    //
+    // if (this._alarm_audio) {
+    //   this._alarm_audio.stop();
+    // }
+    //
+    // removeAlarm(alarm_ring.id);
+    //
+    // this.setState({
+    //   alarm_ring: null
+    //   });
   }
 
   snoozeAlarm() {
-
+    // const { alarm_ring } = this.state;
+    //
+    // if (this._alarm_audio) {
+    //   this._alarm_audio.stop();
+    // }
+    //
+    // const snoozeAlarmTime = new Date();
+    // snoozeAlarmTime.setTime(snoozeAlarmTime.getTime() + this._snooze_duration);
   }
 
   render() {
@@ -136,6 +136,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     if (!alarm_ring) {
       return null;
     }
+
 
     return (
       <View style={styles.container}>
