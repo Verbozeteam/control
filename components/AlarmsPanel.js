@@ -3,11 +3,12 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
-import { Colors } from '../constants/styles';
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
-import Alarm from './Alarm';
+import AlarmItem from './AlarmItem';
 
 import SeparatorLine from './SeparatorLine';
 
@@ -17,28 +18,63 @@ type AlarmType = {
 };
 
 type PropsType = {
-  alarms: Array<AlarmType>,
-  removeAlarm: () => {},
-  addAlarm: () => {}
+  id: string,
+  layout: Object,
 };
 
-type StateType = {};
+type StateType = {
+  alarms: Array<AlarmType>,
+};
 
 export default class AlarmsPanel extends React.Component<PropsType> {
+  _unsubscribe: () => any = () => null;
 
-  static defaultProps = {
-    alarms: []
+  state: StateType = {
+    alarms: [],
   };
 
+  componentWillMount() {
+      this.componentWillReceiveProps(this.props);
+  }
+
+  componentWillReceiveProps(newProps: PropsType) {
+      this._unsubscribe();
+      this._unsubscribe = ConfigManager.registerThingStateChangeCallback(newProps.id, this.onAlarmsChange.bind(this));
+      if (newProps.id in ConfigManager.things)
+          this.onAlarmsChange(ConfigManager.thingMetas[newProps.id], ConfigManager.things[newProps.id]);
+  }
+
+  componentWillUnmount() {
+      this._unsubscribe();
+  }
+
+  onAlarmsChange(meta: ThingMetadataType, alarmsState: ThingStateType) {
+      const { alarms } = this.state;
+
+      if (JSON.stringify(alarms) !== JSON.stringify(alarmsState.alarms))
+          this.setState({
+            alarms: alarmsState.alarms,
+          });
+  }
+
+  addAlarm(alarm: AlarmType) {
+    ConfigManager.setThingState(this.props.id, {add_alarm: alarm}, true, false);
+  }
+
+  removeAlarm(alarm: AlarmType) {
+    console.log(alarm);
+    ConfigManager.setThingState(this.props.id, {remove_alarms: [alarm.id]}, true, false);
+  }
+
   renderAlarms() {
-    const { alarms, removeAlarm } = this.props;
+    const { alarms } = this.state;
 
     return (
-      alarms.map((alarm) =>
+      alarms.map(alarm =>
         <View key={"alarm-" + alarm.id}>
-          <Alarm alarmId={alarm.id}
-            setTime={alarm.time}
-            removeAlarm={removeAlarm}/>
+          <AlarmItem alarmDef={alarm}
+            setTime={new Date(alarm.time)}
+            removeAlarm={this.removeAlarm.bind(this)}/>
           <SeparatorLine />
         </View>
       )
@@ -46,8 +82,6 @@ export default class AlarmsPanel extends React.Component<PropsType> {
   }
 
   render() {
-    const { addAlarm } = this.props;
-
     return (
       <View style={styles.container}>
         <View style={styles.clocks_container}>
@@ -58,7 +92,7 @@ export default class AlarmsPanel extends React.Component<PropsType> {
         <View style={styles.alarms_container}>
           <ScrollView style={styles.scroll_view_container}>
             {this.renderAlarms()}
-            <Alarm addAlarm={addAlarm} />
+            <AlarmItem addAlarm={this.addAlarm.bind(this)} />
           </ScrollView>
         </View>
       </View>
@@ -82,6 +116,5 @@ const styles = StyleSheet.create({
   },
   alarms_container: {
     flex: 1,
-    // backgroundColor: 'green'
   }
 });

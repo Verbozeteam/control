@@ -10,16 +10,21 @@ import DigitalClock from './DigitalClock';
 
 const I18n = require('../js-api-utils/i18n/i18n');
 
+type AlarmType = {
+  id: number,
+  time: Object
+};
+
 type PropsType = {
-  alarmId?: number,
+  alarmDef?: AlarmType,
   setTime?: Object,
-  addAlarm?: () => {} | false,
-  removeAlarm?: () => {}
+  addAlarm?: AlarmType => {} | false,
+  removeAlarm?: AlarmType => {} | false,
 };
 
 type StateType = {};
 
-export default class Alarm extends React.Component<PropsType> {
+export default class AlarmItem extends React.Component<PropsType> {
 
   _add_icon = require('../assets/images/plus.png');
 
@@ -51,7 +56,7 @@ export default class Alarm extends React.Component<PropsType> {
         /* handle add new alarm with middleware
         /* ...
          */
-        addAlarm(alarmTime);
+        addAlarm({time: alarmTime});
       }
     } catch ({code, message}) {
       console.warn('Cannot open time picker', message);
@@ -76,10 +81,6 @@ export default class Alarm extends React.Component<PropsType> {
     );
   }
 
-  removeAlarm() {
-    // needs to be implemented
-  }
-
   /* ASSUMPTION: Since we only allow user to select a time
    * The time will be at most 24hrs ahead, since the date is
    * determined through code after time was selected by user
@@ -90,7 +91,7 @@ export default class Alarm extends React.Component<PropsType> {
   }
 
   renderAlarm() {
-    const { alarmId, setTime, removeAlarm } = this.props;
+    const { alarmDef, setTime, removeAlarm } = this.props;
 
     var todayOrTomorrow = this.determineTodayOrTomorrow(setTime);
     var alarmTime = <DigitalClock showDate={false} providedDateTime={setTime}
@@ -109,7 +110,7 @@ export default class Alarm extends React.Component<PropsType> {
             width={70}
             height={70}
             textStyle={{...TypeFaces.light}}
-            onPressIn={() => removeAlarm(alarmId)}
+            onPressIn={() => removeAlarm(alarmDef)}
             textColor={Colors.white}
             icon={this._add_icon}
             iconStyle={{transform: [{ rotate: '45deg'}], width: 30, height: 30}}

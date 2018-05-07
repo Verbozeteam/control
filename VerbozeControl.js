@@ -50,18 +50,10 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-type AlarmType = {
-    id: number,
-    time: Object
-};
-
 type StateType = {
     screenDimmed: boolean,
     hotelThingId: string,
     cardIn: boolean,
-
-    // TODO: remove this, temporary
-    alarms: Array<AlarmType>
 };
 
 class VerbozeControl extends React.Component<{}, StateType> {
@@ -247,44 +239,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._resetScreenDim();
     }
 
-    // TODO: rewrite this
-    removeAlarm(id: number) {
-      const { alarms } = this.state;
-
-      const modified_alarms = [];
-      for (var i = 0; i < alarms.length; i++) {
-        if (alarms[i].id !== id) {
-          modified_alarms.push(alarms[i]);
-        }
-      }
-
-      this.setState({
-        alarms: modified_alarms
-      });
-    }
-
-    // TODO: rewrite this
-    addAlarm(datetime: Object) {
-      const { alarms } = this.state;
-
-      /* if alarm with same time already exists don't add a new one */
-      for (var i = 0; i < alarms.length; i++) {
-        console.log(alarms[i].time.getTime(), datetime.getTime());
-        if (alarms[i].time.getTime() == datetime.getTime()) {
-          return;
-        }
-      }
-
-      alarms.push({
-        id: Math.random(),
-        time: datetime
-      });
-
-      this.setState({
-        alarms
-      });
-    }
-
     render() {
         const { connectionStatus } = this.props;
         const { screenDimmed, cardIn } = this.state;
@@ -297,15 +251,10 @@ class VerbozeControl extends React.Component<{}, StateType> {
         return <View style={styles.container}
             onTouchStart={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}
             onTouchMove={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}>
-            <PagingView
-              removeAlarm={this.removeAlarm.bind(this)}
-              addAlarm={this.addAlarm.bind(this)}
-              alarms={this.state.alarms} />
+            <PagingView />
             {inner_ui}
             <ConnectionStatus />
-            <AlarmsHelper alarms={this.state.alarms}
-              removeAlarm={this.removeAlarm.bind(this)}
-              addAlarm={this.addAlarm.bind(this)} />
+            <AlarmsHelper />
         </View>
     }
 }

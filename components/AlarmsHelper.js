@@ -19,8 +19,6 @@ type AlarmType = {
 
 type PropsType = {
   alarms?: Array<AlarmType>,
-  removeAlarm: () => {},
-  addAlarm: () => {}
 };
 
 type StateType = {
@@ -34,10 +32,7 @@ export default class AlarmsHelper extends React.Component<PropsType, StateType> 
   };
 
   state = {
-    alarm_ring: {
-      id: 0,
-      time: new Date()
-    }
+    alarm_ring: null,
   };
 
   _snooze_duration = 5 * 60000; /* minutes * 60000 */
