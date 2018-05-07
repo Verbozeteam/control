@@ -41,7 +41,7 @@ export default class Alarm extends React.Component<PropsType> {
       if (action !== TimePickerAndroid.dismissedAction) {
         /* set alarm time */
         const alarmTime = new Date();
-        alarmTime.setHours(hour, minute, 0);
+        alarmTime.setHours(hour, minute, 0, 0);
 
         if (this.minutesDifference(alarmTime, new Date()) <= 0) {
           /* alarm time already passed today - set alarm to be tomorrow */

@@ -73,10 +73,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         screenDimmed: false,
         hotelThingId: "",
         cardIn: true,
-
-        alarms: [
-          // {id: 1, time: new Date(2018, 4, 3, 17, 0, 0, 0)}
-        ]
+        alarms: []
     };
 
     _screen_dim_timeout: number;
@@ -269,6 +266,14 @@ class VerbozeControl extends React.Component<{}, StateType> {
     // TODO: rewrite this
     addAlarm(datetime: Object) {
       const { alarms } = this.state;
+
+      /* if alarm with same time already exists don't add a new one */
+      for (var i = 0; i < alarms.length; i++) {
+        console.log(alarms[i].time.getTime(), datetime.getTime());
+        if (alarms[i].time.getTime() == datetime.getTime()) {
+          return;
+        }
+      }
 
       alarms.push({
         id: Math.random(),
