@@ -2,11 +2,14 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 const Sound = require('react-native-sound');
 
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
+import Seperatorine from './SeparatorLine';
 
 import MagicButton from '../react-components/MagicButton';
 
@@ -27,7 +30,18 @@ type StateType = {
   alarm_ring: Object | null
 };
 
-export default class AlarmsHelper extends React.Component<PropsType, StateType> {
+function mapStateToProps(state) {
+  return {
+    displayConfig: state.screen.displayConfig
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {};
+}
+
+class AlarmsHelper extends React.Component<PropsType, StateType> {
+  _unsubscribe: () => any = () => null;
 
   static defaultProps = {
     alarms: []
@@ -50,7 +64,7 @@ export default class AlarmsHelper extends React.Component<PropsType, StateType> 
     Sound.setCategory('Playback');
 
     /* load sound file */
-    this._alarm_audio = new Sound('alarm.mp3', Sound.MAIN_BUNDLE, (error) => {
+    this._alarm_audio = new Sound('alarm.ogg', Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.log('Could not load sound file');
       }
@@ -64,6 +78,7 @@ export default class AlarmsHelper extends React.Component<PropsType, StateType> 
 
   componentWillUnmount() {
     clearTimeout(this._check_alarms_timeout);
+    this._unsubscribe();
   }
 
   minutesDifference(t1: Object, t2: Object) {
@@ -130,6 +145,7 @@ export default class AlarmsHelper extends React.Component<PropsType, StateType> 
   }
 
   render() {
+    const { displayConfig } = this.props;
     const { alarm_ring } = this.state;
 
     if (!alarm_ring) {
@@ -141,24 +157,33 @@ export default class AlarmsHelper extends React.Component<PropsType, StateType> 
         <View style={styles.analog_clock_container}>
           <AnalogClock />
         </View>
-        <View style={styles.alarm_info_container}>
-          <Text style={styles.alarm_info}>Alarm</Text>
-          <DigitalClock showDate={false}
-            providedDateTime={alarm_ring.time}
-            extraTimeStyle={styles.alarm_info} />
-          <View style={styles.alarm_actions}>
+        <View style={styles.alarm_container}>
+          <View style={styles.alarm_info_container}>
+            <Text style={styles.alarm_info}>
+              Alarm
+            </Text>
+            <DigitalClock showDate={false}
+              providedDateTime={alarm_ring.time}
+              extraTimeStyle={styles.alarm_info} />
+          </View>
+          <Seperatorine />
+          <View style={styles.alarm_actions_container}>
+            <MagicButton height={70}
+              width={250}
+              text={'Snooze 5 Minutes'}
+              textStyle={{...TypeFaces.light}}
+              textColor={Colors.white}
+              extraStyle={{marginRight: 20}}
+              onPressIn={this.snoozeAlarm.bind(this)}
+              glowColor={displayConfig.accentColor} />
             <MagicButton height={70}
               width={200}
               text={'Stop Alarm'}
               textStyle={{...TypeFaces.light}}
-              textColor={Colors.white}
-              onPressIn={this.stopAlarm.bind(this)} />
-            <MagicButton height={70}
-              width={200}
-              text={'Snooze Alarm'}
-              textStyle={{...TypeFaces.light}}
-              textColor={Colors.white}
-              onPressIn={this.snoozeAlarm.bind(this)} />
+              textColor={displayConfig.textColor}
+              onPressIn={this.stopAlarm.bind(this)}
+              offColor={displayConfig.accentColor}
+              glowColor={displayConfig.accentColor}/>
           </View>
         </View>
       </View>
@@ -171,28 +196,37 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     backgroundColor: Colors.black,
-    alignItems: 'center',
-    justifyContent: 'center',
     flexDirection: 'row'
   },
   analog_clock_container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
-  alarm_info_container: {
+  alarm_container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+  },
+  alarm_info_container: {
+    flex: 2,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
   },
   alarm_info: {
     width: '100%',
     color: Colors.white,
-    fontSize: 48,
-    textAlign: 'center',
+    fontSize: 64,
+    textAlign: 'left',
     ...TypeFaces.medium
   },
-  alarm_actions: {
-    flex: 1
-  }
+  alarm_actions_container: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+
 });
+
+module.exports = connect(mapStateToProps, mapDispatchToProps) (AlarmsHelper);

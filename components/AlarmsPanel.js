@@ -51,9 +51,9 @@ export default class AlarmsPanel extends React.Component<PropsType> {
     return (
       <View style={styles.container}>
         <View style={styles.clocks_container}>
-            <AnalogClock />
-            <DigitalClock clockFontSize={64}
-              dateFontSize={36} />
+          <AnalogClock />
+          <DigitalClock clockFontSize={64}
+            dateFontSize={36} />
         </View>
         <View style={styles.alarms_container}>
           <ScrollView style={styles.scroll_view_container}>
