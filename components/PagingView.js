@@ -22,6 +22,8 @@ import WaterFountainsPanel from './WaterFountainsPanel';
 import PenthouseDiscoPanel from './PenthouseDisco';
 import AlarmsPanel from './AlarmsPanel';
 
+import KitchenPanel from './KitchenPanel';
+
 import FadeInView from './FadeInView';
 
 type StateType = {
@@ -42,6 +44,7 @@ type PageType = {
 
 function mapStateToProps(state) {
     return {
+        discoveredDevices: state.connection.discoveredDevices,
         displayConfig: state.screen.displayConfig,
         language: state.settings.language
     };
@@ -74,6 +77,14 @@ class PagingView extends React.Component<any, StateType> {
             is_pressable: true,
             longPress: () => this.context.store.dispatch(settingsActions.toggle_dev_mode()),
         },
+
+        /** Custom device pages */
+        external_device: {
+            name: "External Device",
+            renderer: this.renderExternalDevice.bind(this),
+            is_pressable: true,
+            getBackground: (index: number) => this._backgrounds.settings,
+        },
     };
 
     _backgrounds = {
@@ -86,6 +97,8 @@ class PagingView extends React.Component<any, StateType> {
         'alarm_system': require('../assets/images/alarms_background.jpg'),
         'settings': require('../assets/images/verboze_poster.jpg'),
     };
+
+    _supportedExternalDeviceTypes: Array<number> = [6]; // 6 is kitchen
 
     componentWillMount() {
         this._unsubscribe = ConfigManager.registerConfigChangeCallback(this.onConfigChanged.bind(this));
@@ -148,7 +161,7 @@ class PagingView extends React.Component<any, StateType> {
         return null;
     }
 
-    renderRoomView(index: number) {
+    renderRoomView(index: number, pageDesc: Object) {
         const { groups } = this.state;
         const group = groups[index];
         var layout = {
@@ -173,7 +186,21 @@ class PagingView extends React.Component<any, StateType> {
         );
     }
 
-    renderSettingsView(index: number) {
+    renderExternalDevice(index: number, pageDesc: Object) {
+        const { discoveredDevices } = this.props;
+        try {
+            var device = discoveredDevices.filter(d => d.name === pageDesc.name)[0];
+        } catch(e) { return null; }
+
+        switch (device.type) {
+            case 6: // kicthen
+                return <KitchenPanel device={device} />
+        }
+
+        return null;
+    }
+
+    renderSettingsView(index: number, pageDesc: Object) {
         return <Settings />;
     }
 
@@ -190,18 +217,34 @@ class PagingView extends React.Component<any, StateType> {
 
     render() {
         const { groups, currentPage } = this.state;
-        const { displayConfig } = this.props;
+        const { displayConfig, discoveredDevices } = this.props;
 
         const screenDimensions = {
             width: Dimensions.get('screen').width,
             height: Dimensions.get('screen').height
         };
 
-        var pages = [this._pages.settings];
-        if (groups && groups.length > 0) {
-            // concat pages to result of group map to put settings tab at the bottom
-            pages = (groups.map(group => {return {...this._pages.group, ...{name: I18n.t(group.name)}}})).concat(pages)
-        }
+        var externalDevices = discoveredDevices.filter(d => this._supportedExternalDeviceTypes.indexOf(d.type) >= 0);
+
+        // concat pages to result of group map to put settings tab at the bottom
+        // [room tabs]
+        // [   ...   ]
+        // [external devices tabs]
+        // [settings]
+        var pages =
+            ((groups||[]).map(group => {
+                return {
+                    ...this._pages.group,
+                    ...{name: I18n.t(group.name)}
+                };
+            }))
+            .concat(externalDevices.map(dev => {
+                return {
+                    ...this._pages.external_device,
+                    ...{name: dev.name},
+                };
+            }))
+            .concat([this._pages.settings]);
 
         var numFlexedIcons = pages.map(p => p.height ? 0 : 1).reduce((a, b) => a+b);
         var totalPresetHeight = pages.map(p => p.height || 0).reduce((a, b) => a+b);
@@ -248,7 +291,7 @@ class PagingView extends React.Component<any, StateType> {
                 }
 
                 <View style={styles.content_container}>
-                    {pages[currentPage].renderer(currentPage)}
+                    {pages[currentPage].renderer(currentPage, pages[currentPage])}
                 </View>
 
 

@@ -41,7 +41,7 @@ class DeviceDiscoveryView extends React.Component<any> {
     }
 
     _keyExtractor(device: DiscoveredDeviceType, index: number): string {
-        return device.ip + ':' + device.port;
+        return device.name + ':' + device.ip + ':' + device.port;
     }
 
     onDeviceClicked(dev: DiscoveredDeviceType) {
