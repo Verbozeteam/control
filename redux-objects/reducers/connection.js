@@ -56,11 +56,15 @@ module.exports = function (state=defaultState, action) {
                 newState.discoveredDevices.push(action.device);
             else {
                 newState.discoveredDevices[index] = action.device;
+                if (JSON.stringify(newState.discoveredDevices) === JSON.stringify(state.discoveredDevices))
+                    return state;
                 if (newState.currentDevice && newState.currentDevice.name == action.device.name)
                     newState.currentDevice = action.device;
             }
             break;
         case CLEAR_DISCOVERED_DEVICES:
+            if (newState.discoveredDevices.length === 0)
+                return state;
             newState.discoveredDevices = [];
             break;
         case SET_CURRENT_DEVICE:
