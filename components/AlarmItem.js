@@ -70,7 +70,7 @@ export default class AlarmItem extends React.Component<PropsType> {
                 textStyle={{...TypeFaces.light}}
                 onPressIn={() => this.showTimePicker(addAlarm)}
                 sideText={I18n.t("Add Alarm")}
-                sideTextStyle={{...TypeFaces.light}}
+                sideTextStyle={{lineHeight: 25, flexShrink: 1, ...TypeFaces.light}}
                 textColor={Colors.white}
                 icon={this._add_icon}
                 glowColor={Colors.red}

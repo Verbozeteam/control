@@ -74,6 +74,7 @@ export default class AlarmsPanel extends React.Component<PropsType, StateType> {
           <AlarmItem alarmDef={alarm}
             setTime={new Date(alarm.time)}
             removeAlarm={(alarm) => removeAlarm(id, ConfigManager, alarm)} />
+            <SeparatorLine />
         </View>
       )
     );
