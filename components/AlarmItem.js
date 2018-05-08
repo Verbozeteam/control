@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, TimePickerAndroid } from 'react-native';
 
+import { minutesDifference } from '../js-api-utils/AlarmUtils';
+
 import { TypeFaces, Colors } from '../constants/styles';
 import MagicButton from '../react-components/MagicButton';
 
@@ -32,13 +34,9 @@ export default class AlarmItem extends React.Component<PropsType> {
         addAlarm: false,
     }
 
-    minutesDifference(t1: Object, t2: Object) {
-        return Math.floor(t1.getTime() / 60000) - Math.floor(t2.getTime() / 60000);
-    }
-
     async showTimePicker(addAlarm: () => {}) {
         try {
-            const {action, hour, minute} = await TimePickerAndroid.open({
+            const { action, hour, minute } = await TimePickerAndroid.open({
                 is24Hour: false,
                 mode: ('spinner'),
             });
@@ -48,17 +46,16 @@ export default class AlarmItem extends React.Component<PropsType> {
                 const alarmTime = new Date();
                 alarmTime.setHours(hour, minute, 0, 0);
 
-                if (this.minutesDifference(alarmTime, new Date()) <= 0) {
-                    /* alarm time already passed today - set alarm to be tomorrow */
+                if (minutesDifference(alarmTime, new Date()) <= 0) {
+                    /* alarm time already passed today - set alarm to tomorrow */
                     alarmTime.setDate(alarmTime.getDate() + 1);
                 }
 
-                /* handle add new alarm with middleware
-                /* ...
-                 */
                 addAlarm({time: alarmTime});
             }
-        } catch ({code, message}) {
+        }
+
+        catch ({code, message}) {
             console.warn('Cannot open time picker', message);
         }
     }
