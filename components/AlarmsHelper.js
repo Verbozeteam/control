@@ -12,7 +12,7 @@ const Sound = require('react-native-sound');
 
 import { minutesDifference, removeAlarm, snoozeAlarm }
   from '../js-api-utils/AlarmUtils';
-const { MinuteTicker } = require('../js-api-utils/MinuteTicker');
+import MinuteTicker from '../js-api-utils/MinuteTicker';
 
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
@@ -21,6 +21,8 @@ import Seperatorine from './SeparatorLine';
 import MagicButton from '../react-components/MagicButton';
 
 import { Colors, TypeFaces } from '../constants/styles';
+
+const I18n = require('../js-api-utils/i18n/i18n');
 
 type AlarmType = {
     id: number,
@@ -64,7 +66,12 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
   _snooze_duration = 5 * 60000; /* minutes * 60000 milliseconds */
   _alarm_audio = null;
 
+  /* MinuteTicker class used to check when to ring alarms */
+  _minuteTicker: Object = null;
+
   componentWillMount() {
+    this._minuteTicker = new MinuteTicker();
+
     this.componentWillReceiveProps(this.props);
   }
 
@@ -90,7 +97,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
 
   componentWillUnmount() {
     this._unsubscribe();
-    MinuteTicker.stop();
+    this._minuteTicker.stop();
   }
 
   onAlarmsChange(meta: ThingMetadataType, alarmsState: ThingStateType) {
@@ -99,11 +106,11 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     if (JSON.stringify(alarms) !== JSON.stringify(alarmsState.alarms)) {
       /* check if should start MinuteTicker or should stop */
       if (alarms.length === 0 && alarmsState.alarms.length > 0) {
-        MinuteTicker.start(this.checkAlarms.bind(this));
+        this._minuteTicker.start(this.checkAlarms.bind(this));
       }
 
       else if (alarms.length > 0 && alarmsState.alarms.length === 0) {
-        MinuteTicker.stop();
+        this._minuteTicker.stop();
       }
 
       this.setState({
@@ -170,7 +177,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     const { alarm_ring } = this.state;
 
     this.stopAlarmAudio();
-    removeAlarm(id, ConfigManager, alarm_ring, this._snooze_duration);
+    snoozeAlarm(id, ConfigManager, alarm_ring, this._snooze_duration);
 
     this.setState({
       alarm_ring: null
@@ -193,7 +200,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
         <View style={styles.alarm_container}>
           <View style={styles.alarm_info_container}>
             <Text style={styles.alarm_info}>
-              Alarm
+              {I18n.t("Alarm")}
             </Text>
             <DigitalClock showDate={false}
               providedDateTime={new Date(alarm_ring.time)}
@@ -203,7 +210,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
           <View style={styles.alarm_actions_container}>
             <MagicButton height={70}
               width={250}
-              text={'Snooze 5 Minutes'}
+              text={I18n.t("Snooze 5 Minutes")}
               textStyle={{...TypeFaces.light}}
               textColor={Colors.white}
               extraStyle={{marginRight: 20}}
@@ -211,7 +218,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
               glowColor={displayConfig.accentColor} />
             <MagicButton height={70}
               width={200}
-              text={'Stop Alarm'}
+              text={I18n.t("Stop Alarm")}
               textStyle={{...TypeFaces.medium}}
               textColor={displayConfig.textColor}
               onPressIn={this.stopAlarm.bind(this)}

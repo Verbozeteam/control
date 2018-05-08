@@ -108,19 +108,15 @@ class Settings extends React.Component<any> {
         var qr_code_view = null;
         if (displayConfig.displayQRCode && qrCode && qrCode !== "") {
             qr_code_view = (
-                <View style={styles.qrcode_container}>
-                    <View style={styles.qrcode_view}>
-                        <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
-                        <View style={styles.qrcode_background}>
-                            <View style={{flex: 1}} />
-                            <View style={{flex: 10}}>
-                                <QRCode
-                                    value={qrCode}
-                                    size={200}
-                                    bgColor='black'
-                                    fgColor='white' />
-                            </View>
-                            <View style={{flex: 1}} />
+                <View>
+                    <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
+                    <View style={styles.qrcode_background}>
+                        <View style={styles.qrcode_component}>
+                            <QRCode
+                                value={qrCode}
+                                size={200}
+                                bgColor='black'
+                                fgColor='white' />
                         </View>
                     </View>
                 </View>
@@ -131,11 +127,15 @@ class Settings extends React.Component<any> {
             <Panel layout={{}}
                 name={"Settings"}
                 viewType={'static'}>
-                {qr_code_view}
-
-                {settings_views}
-
-                {device_discovery}
+                <View style={{ flex: 1, flexDirection: 'row' }}>
+                    <View style={{ flex: 5 }}>
+                        {settings_views}
+                        {device_discovery}
+                    </View>
+                    <View style={{ flex: 3, justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+                        {qr_code_view}
+                    </View>
+                </View>
             </Panel>
         );
     }
@@ -171,29 +171,19 @@ const styles = StyleSheet.create({
         borderColor: 'grey',
         justifyContent: 'flex-start'
     },
-    qrcode_container: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    qrcode_view: {
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
-        width: 200,
-        height: 290,
-        alignItems: 'center',
-    },
     qrcode_background: {
         width: 235,
-        height: 270,
+        height: 235,
         backgroundColor: 'white',
         alignItems:'center',
         justifyContent: 'space-between'
     },
+    qrcode_component: {
+        flex: 1,
+        justifyContent: 'center',
+    },
     qrcode_text: {
-        height: 90,
-        width: 200,
+        width: 235,
         fontSize: 22,
         textAlign: 'center',
         color: '#FFFFFF',

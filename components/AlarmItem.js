@@ -84,7 +84,7 @@ export default class AlarmItem extends React.Component<PropsType> {
      */
     determineTodayOrTomorrow(setTime) {
         var dateTimeNow = new Date();
-        return dateTimeNow.getDate() === setTime.getDate() ? "Today" : "Tomorrow";
+        return dateTimeNow.getDate() === setTime.getDate() ? I18n.t("Today") : I18n.t("Tomorrow");
     }
 
     renderAlarm() {
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     today_or_tomorrow_text_container: {
         color: Colors.white,
         fontSize: 20,
+        textAlign: 'left',
         ...TypeFaces.light,
     }
 });
