@@ -5,7 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import { Colors, TypeFaces } from '../constants/styles';
 
-const { MinuteTicker } = require('../js-api-utils/MinuteTicker');
+import MinuteTicker from '../js-api-utils/MinuteTicker';
 const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../js-api-utils/UserPreferences');
 
@@ -55,27 +55,32 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
     showDate: true,
   };
 
+  /* MinuteTicker class used to update clock */
+  _minuteTicker: Object = null;
+
   componentWillMount() {
     const { providedDateTime } = this.props;
 
+    this._minuteTicker = new MinuteTicker();
+
     if (!providedDateTime) {
-      MinuteTicker.start(this.updateClock.bind(this));
+      this._minuteTicker.start(this.updateClock.bind(this));
     }
   }
 
   componentWillUnmount() {
-    MinuteTicker.stop();
+    this._minuteTicker.stop();
   }
 
   componentWillReceiveProps(nextProps: PropsType) {
     const { providedDateTime } = this.props;
 
     if (!providedDateTime && nextProps.providedDateTime) {
-      MinuteTicker.stop();
+      this._minuteTicker.stop();
     }
 
     else if (providedDateTime && !nextProps.providedDateTime) {
-      MinuteTicker.start(this.updateClock.bind(this));
+      this._minuteTicker.start(this.updateClock.bind(this));
     }
   }
 

@@ -12,7 +12,7 @@ const Sound = require('react-native-sound');
 
 import { minutesDifference, removeAlarm, snoozeAlarm }
   from '../js-api-utils/AlarmUtils';
-const { MinuteTicker } = require('../js-api-utils/MinuteTicker');
+import MinuteTicker from '../js-api-utils/MinuteTicker';
 
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
@@ -64,7 +64,12 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
   _snooze_duration = 5 * 60000; /* minutes * 60000 milliseconds */
   _alarm_audio = null;
 
+  /* MinuteTicker class used to check when to ring alarms */
+  _minuteTicker: Object = null;
+
   componentWillMount() {
+    this._minuteTicker = new MinuteTicker();
+
     this.componentWillReceiveProps(this.props);
   }
 
@@ -90,7 +95,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
 
   componentWillUnmount() {
     this._unsubscribe();
-    MinuteTicker.stop();
+    this._minuteTicker.stop();
   }
 
   onAlarmsChange(meta: ThingMetadataType, alarmsState: ThingStateType) {
@@ -99,11 +104,11 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     if (JSON.stringify(alarms) !== JSON.stringify(alarmsState.alarms)) {
       /* check if should start MinuteTicker or should stop */
       if (alarms.length === 0 && alarmsState.alarms.length > 0) {
-        MinuteTicker.start(this.checkAlarms.bind(this));
+        this._minuteTicker.start(this.checkAlarms.bind(this));
       }
 
       else if (alarms.length > 0 && alarmsState.alarms.length === 0) {
-        MinuteTicker.stop();
+        this._minuteTicker.stop();
       }
 
       this.setState({
@@ -170,7 +175,7 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     const { alarm_ring } = this.state;
 
     this.stopAlarmAudio();
-    removeAlarm(id, ConfigManager, alarm_ring, this._snooze_duration);
+    snoozeAlarm(id, ConfigManager, alarm_ring, this._snooze_duration);
 
     this.setState({
       alarm_ring: null
