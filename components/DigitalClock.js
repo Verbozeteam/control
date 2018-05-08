@@ -5,6 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import { Colors, TypeFaces } from '../constants/styles';
 
+const { MinuteTicker } = require('../js-api-utils/MinuteTicker');
 const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../js-api-utils/UserPreferences');
 
@@ -54,38 +55,31 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
     showDate: true,
   };
 
-  /* timeout for updating clock */
-  _update_time_timeout: Object = null;
-
   componentWillMount() {
-    this.updateClock();
+    const { providedDateTime } = this.props;
+
+    if (!providedDateTime) {
+      MinuteTicker.start(this.updateClock.bind(this));
+    }
   }
 
   componentWillUnmount() {
-    clearTimeout(this._update_time_timeout);
+    MinuteTicker.stop();
   }
 
   componentWillReceiveProps(nextProps: PropsType) {
     const { providedDateTime } = this.props;
 
-    if (providedDateTime) {
-      clearTimeout(this._update_time_timeout);
+    if (!providedDateTime && nextProps.providedDateTime) {
+      MinuteTicker.stop();
+    }
+
+    else if (providedDateTime && !nextProps.providedDateTime) {
+      MinuteTicker.start(this.updateClock.bind(this));
     }
   }
 
   updateClock() {
-    const { providedDateTime } = this.props;
-
-    if (providedDateTime) {
-      return;
-    }
-
-    const datetime = new Date();
-
-    this._update_time_timeout = setTimeout(
-      () => this.updateClock(), 60000 - (datetime.getSeconds() * 1000) -
-        datetime.getMilliseconds());
-
     this.forceUpdate();
   }
 
