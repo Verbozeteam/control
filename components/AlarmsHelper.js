@@ -12,6 +12,8 @@ import MagicButton from '../react-components/MagicButton';
 
 import { Colors, TypeFaces } from '../constants/styles';
 
+const I18n = require('../js-api-utils/i18n/i18n');
+
 type AlarmType = {
     id: number,
     time: Object
@@ -136,20 +138,20 @@ export default class AlarmsHelper extends React.Component<PropsType, StateType> 
                     <AnalogClock />
                 </View>
                 <View style={styles.alarm_info_container}>
-                    <Text style={styles.alarm_info}>Alarm</Text>
+                    <Text style={styles.alarm_info}>{I18n.t('Alarm')}</Text>
                     <DigitalClock showDate={false}
                         providedDateTime={alarm_ring.time}
                         extraTimeStyle={styles.alarm_info} />
                     <View style={styles.alarm_actions}>
                         <MagicButton height={70}
                             width={200}
-                            text={'Stop Alarm'}
+                            text={I18n.t('Stop Alarm')}
                             textStyle={{...TypeFaces.light}}
                             textColor={Colors.white}
                             onPressIn={this.stopAlarm.bind(this)} />
                         <MagicButton height={70}
                             width={200}
-                            text={'Snooze Alarm'}
+                            text={I18n.t('Snooze Alarm')}
                             textStyle={{...TypeFaces.light}}
                             textColor={Colors.white}
                             onPressIn={this.snoozeAlarm.bind(this)} />
