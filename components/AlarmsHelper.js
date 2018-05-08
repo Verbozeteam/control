@@ -2,11 +2,21 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+
+import { ConfigManager } from '../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
 const Sound = require('react-native-sound');
 
+import { minutesDifference, removeAlarm, snoozeAlarm }
+  from '../js-api-utils/AlarmUtils';
+import MinuteTicker from '../js-api-utils/MinuteTicker';
+
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
+import Seperatorine from './SeparatorLine';
 
 import MagicButton from '../react-components/MagicButton';
 
@@ -20,175 +30,243 @@ type AlarmType = {
 };
 
 type PropsType = {
-    alarms?: Array<AlarmType>,
+  id: string,
+  displayConfig: Object,
+  wakeupScreen?: () => {}
 };
 
 type StateType = {
-    alarm_ring: Object | null
+  alarms: Array<AlarmType>,
+  alarm_ring: AlarmType
 };
 
-export default class AlarmsHelper extends React.Component<PropsType, StateType> {
+function mapStateToProps(state) {
+  return {
+    displayConfig: state.screen.displayConfig
+  };
+}
 
-    static defaultProps = {
-        alarms: []
-    };
+function mapDispatchToProps(dispatch) {
+  return {};
+}
 
-    state = {
-        alarm_ring: null,
-    };
+class AlarmsHelper extends React.Component<PropsType, StateType> {
+  _unsubscribe: () => any = () => null;
 
-    _snooze_duration = 5 * 60000; /* minutes * 60000 */
+  static defaultProps = {
+    displayConfig: {},
+    wakeupScreen: () => {}
+  };
 
-    _check_alarms_timeout: Object = null;
+  state = {
+    alarms: [],
+    alarm_ring: null
+  };
 
-    _alarm_audio = null;
+  _snooze_duration = 5 * 60000; /* minutes * 60000 milliseconds */
+  _alarm_audio = null;
 
-    componentDidMount() {
-        Sound.setCategory('Playback');
+  /* MinuteTicker class used to check when to ring alarms */
+  _minuteTicker: Object = null;
 
-        /* load sound file */
-        this._alarm_audio = new Sound('alarm.mp3', Sound.MAIN_BUNDLE, (error) => {
-            if (error) {
-                console.log('Could not load sound file');
-            }
-        });
+  componentWillMount() {
+    this._minuteTicker = new MinuteTicker();
 
-        this._alarm_audio.setVolume(1);
-        this._alarm_audio.setNumberOfLoops(-1);
+    this.componentWillReceiveProps(this.props);
+  }
 
-        this.checkAlarms();
+  componentWillReceiveProps(newProps: PropsType) {
+    this._unsubscribe();
+    this._unsubscribe = ConfigManager.registerThingStateChangeCallback(
+      newProps.id, this.onAlarmsChange.bind(this));
+    if (newProps.id in ConfigManager.things) {
+      this.onAlarmsChange(ConfigManager.thingMetas[newProps.id],
+        ConfigManager.things[newProps.id]);
     }
+  }
 
-    componentWillUnmount() {
-        clearTimeout(this._check_alarms_timeout);
-    }
+  componentDidMount() {
+    Sound.setCategory('Playback');
 
-    minutesDifference(t1: Object, t2: Object) {
-        return Math.floor(t1.getTime() / 60000) - Math.floor(t2.getTime() / 60000);
-    }
+    /* load sound file */
+    this._alarm_audio = new Sound('alarm.ogg',
+      Sound.MAIN_BUNDLE);
+    this._alarm_audio.setVolume(1);
+    this._alarm_audio.setNumberOfLoops(-1);
+  }
 
-    checkAlarms() {
-        const { alarms, removeAlarm } = this.props;
-        const datetime = new Date();
+  componentWillUnmount() {
+    this._unsubscribe();
+    this._minuteTicker.stop();
+  }
 
-        console.log('checking alarms');
-        for (var i = 0; i < alarms.length; i++) {
-            if (this.minutesDifference(alarms[i].time, datetime) <= 0) {
-                this.setState({
-                    alarm_ring: alarms[i]
-                });
+  onAlarmsChange(meta: ThingMetadataType, alarmsState: ThingStateType) {
+    const { alarms, alarm_ring } = this.state;
 
-                this.startAlarm();
-            }
-        }
+    if (JSON.stringify(alarms) !== JSON.stringify(alarmsState.alarms)) {
+      /* check if should start MinuteTicker or should stop */
+      if (alarms.length === 0 && alarmsState.alarms.length > 0) {
+        this._minuteTicker.start(this.checkAlarms.bind(this));
+      }
 
-        this._check_alarms_timeout = setTimeout(() => this.checkAlarms(),
-            60000 - (datetime.getSeconds() * 1000) - datetime.getMilliseconds());
-    }
+      else if (alarms.length > 0 && alarmsState.alarms.length === 0) {
+        this._minuteTicker.stop();
+      }
 
-    startAlarm() {
-        if (this._alarm_audio) {
-            this._alarm_audio.play();
-        }
-    }
+      this.setState({
+        alarms: alarmsState.alarms
+      });
 
-    stopAlarm() {
-        const { removeAlarm } = this.props;
-        const { alarm_ring } = this.state;
+      /* check if alarm_ring still in array of alarms */
+      if (alarm_ring &&
+        !(alarmsState.alarms.find((alarm) => alarm_ring.id === alarm.id))) {
 
-        if (this._alarm_audio) {
-            this._alarm_audio.stop();
-        }
-
-        removeAlarm(alarm_ring.id);
-
-        this.setState({
+          this.setState({
             alarm_ring: null
-        });
+          });
+
+          this.stopAlarmAudio();
+      }
     }
+  }
 
-    snoozeAlarm() {
-        const { alarm_ring } = this.state;
+  checkAlarms() {
+    const { alarms } = this.state;
 
-        if (this._alarm_audio) {
-            this._alarm_audio.stop();
-        }
-
-        const snoozeAlarmTime = new Date();
-        snoozeAlarmTime.setTime(snoozeAlarmTime.getTime() + this._snooze_duration);
-
-        this.addAlarm(snoozeAlarmTime);
-        this.removeAlarm(alarm_ring.id);
-
+    const datetime = new Date();
+    for (var i = 0; i < alarms.length; i++) {
+      if (minutesDifference(new Date(alarms[i].time), datetime) <= 0) {
         this.setState({
-            alarm_ring: null
+          alarm_ring: alarms[i]
         });
+
+        this.startAlarmAudio();
+      }
+    }
+  }
+
+  startAlarmAudio() {
+    const { wakeupScreen } = this.props;
+
+    if (this._alarm_audio) {
+      this._alarm_audio.play();
+      wakeupScreen();
+    }
+  }
+
+  stopAlarmAudio() {
+    if (this._alarm_audio) {
+      this._alarm_audio.stop();
+    }
+  }
+
+  stopAlarm() {
+    const { id } = this.props;
+    const { alarm_ring } = this.state;
+
+    this.stopAlarmAudio();
+    removeAlarm(id, ConfigManager, alarm_ring);
+
+    this.setState({
+      alarm_ring: null
+    });
+  }
+
+  snoozeAlarm() {
+    const { id } = this.props;
+    const { alarm_ring } = this.state;
+
+    this.stopAlarmAudio();
+    snoozeAlarm(id, ConfigManager, alarm_ring, this._snooze_duration);
+
+    this.setState({
+      alarm_ring: null
+    });
+  }
+
+  render() {
+    const { id, displayConfig } = this.props;
+    const { alarm_ring } = this.state;
+
+    if (!alarm_ring) {
+      return null;
     }
 
-    render() {
-        const { alarm_ring } = this.state;
-
-        if (!alarm_ring) {
-            return null;
-        }
-
-        return (
-            <View style={styles.container}>
-                <View style={styles.analog_clock_container}>
-                    <AnalogClock />
-                </View>
-                <View style={styles.alarm_info_container}>
-                    <Text style={styles.alarm_info}>{I18n.t('Alarm')}</Text>
-                    <DigitalClock showDate={false}
-                        providedDateTime={alarm_ring.time}
-                        extraTimeStyle={styles.alarm_info} />
-                    <View style={styles.alarm_actions}>
-                        <MagicButton height={70}
-                            width={200}
-                            text={I18n.t('Stop Alarm')}
-                            textStyle={{...TypeFaces.light}}
-                            textColor={Colors.white}
-                            onPressIn={this.stopAlarm.bind(this)} />
-                        <MagicButton height={70}
-                            width={200}
-                            text={I18n.t('Snooze Alarm')}
-                            textStyle={{...TypeFaces.light}}
-                            textColor={Colors.white}
-                            onPressIn={this.snoozeAlarm.bind(this)} />
-                    </View>
-                </View>
-            </View>
-        );
-    }
+    return (
+      <View style={styles.container}>
+        <View style={styles.analog_clock_container}>
+          <AnalogClock />
+        </View>
+        <View style={styles.alarm_container}>
+          <View style={styles.alarm_info_container}>
+            <Text style={styles.alarm_info}>
+              {I18n.t("Alarm")}
+            </Text>
+            <DigitalClock showDate={false}
+              providedDateTime={new Date(alarm_ring.time)}
+              extraTimeStyle={styles.alarm_info} />
+          </View>
+          <Seperatorine />
+          <View style={styles.alarm_actions_container}>
+            <MagicButton height={70}
+              width={250}
+              text={I18n.t("Snooze 5 Minutes")}
+              textStyle={{...TypeFaces.light}}
+              textColor={Colors.white}
+              extraStyle={{marginRight: 20}}
+              onPressIn={this.snoozeAlarm.bind(this)}
+              glowColor={displayConfig.accentColor} />
+            <MagicButton height={70}
+              width={200}
+              text={I18n.t("Stop Alarm")}
+              textStyle={{...TypeFaces.medium}}
+              textColor={displayConfig.textColor}
+              onPressIn={this.stopAlarm.bind(this)}
+              offColor={displayConfig.accentColor}
+              glowColor={displayConfig.accentColor}/>
+          </View>
+        </View>
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
-    container: {
-        height: '100%',
-        width: '100%',
-        backgroundColor: Colors.black,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row'
-    },
-    analog_clock_container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    alarm_info_container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    alarm_info: {
-        width: '100%',
-        color: Colors.white,
-        fontSize: 48,
-        textAlign: 'center',
-        ...TypeFaces.medium
-    },
-    alarm_actions: {
-        flex: 1
-    }
+  container: {
+    height: '100%',
+    width: '100%',
+    backgroundColor: Colors.black,
+    flexDirection: 'row'
+  },
+  analog_clock_container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alarm_container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alarm_info_container: {
+    flex: 2,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+  },
+  alarm_info: {
+    width: '100%',
+    color: Colors.white,
+    fontSize: 64,
+    textAlign: 'left',
+    ...TypeFaces.medium
+  },
+  alarm_actions_container: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+
 });
+
+module.exports = connect(mapStateToProps, mapDispatchToProps) (AlarmsHelper);
