@@ -16,6 +16,8 @@ const Panel = require('./Panel');
 import LightSwitch from './LightSwitch';
 import LightDimmer from './LightDimmer';
 
+import SeparatorLine from './SeparatorLine';
+
 const I18n = require('../js-api-utils/i18n/i18n');
 
 type StateType = {
@@ -168,7 +170,7 @@ class LightsPanel extends React.Component<PropsType, StateType>  {
                         <View style={styles.controls_container}>
                             {dimmers}
                             {dimmer_switches}
-                            {dimmers.length > 0 ? <View style={styles.separator_container}><View style={styles.separator}></View></View> : null}
+                            {dimmers.length > 0 ? <SeparatorLine /> : null}
                             {switches}
                         </View>
                         <View style={styles.controls_container}>
@@ -211,17 +213,6 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'flex-start',
         justifyContent: 'center',
-    },
-    separator_container: {
-        width: '100%',
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    separator: {
-        width: '80%',
-        height: 1,
-        backgroundColor: '#666666',
     },
     switch_container: {
         flex: 4,

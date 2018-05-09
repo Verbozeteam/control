@@ -1,13 +1,13 @@
 
 // SIMPLE_UI | SIMPLE_LIGHT_UI | MODERN_UI
-const defaultUIStyle = 'MODERN_UI';
-
+var defaultUIStyle = '{{UI_STYLE}}';
 var default_ip = "{{TARGET_IP}}";
 var default_port = "{{TARGET_PORT}}";
 var default_ssid = "{{SSID}}";
 var default_passphrase = "{{PASSWORD}}";
 var default_QRCode = "{{QR_CODE}}";
 
+if (defaultUIStyle === ("{"+"{UI_STYLE}}")) defaultUIStyle = "SIMPLE_LIGHT_UI";
 if (default_ssid === ("{"+"{SSID}}")) default_ssid = "";
 if (default_passphrase === ("{"+"{PASSWORD}}")) default_passphrase = "";
 if (default_ip === ("{"+"{TARGET_IP}}")) default_ip = "192.168.10.1";

@@ -170,8 +170,8 @@ class CentralAC extends React.Component<PropsType, StateType> {
                             {['Off'].concat(fan_speeds).map((fs, i) =>
                                 <MagicButton
                                     key={'fan-speed-'+i}
-                                    width={70}
-                                    height={70}
+                                    width={80}
+                                    height={80}
                                     isOn={fan === i}
                                     text={I18n.t(fs)}
                                     textStyle={tabStyles.fanSpeedTextStyle}
@@ -345,7 +345,7 @@ const tabStyles = {
         height: 80,
     },
     fanSpeedTextStyle: {
-        fontSize: 20,
+        fontSize: 18,
         ...TypeFaces.light
     }
 };

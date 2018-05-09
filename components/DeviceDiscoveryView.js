@@ -41,7 +41,7 @@ class DeviceDiscoveryView extends React.Component<any> {
     }
 
     _keyExtractor(device: DiscoveredDeviceType, index: number): string {
-        return device.ip + ':' + device.port;
+        return device.name + ':' + device.ip + ':' + device.port;
     }
 
     onDeviceClicked(dev: DiscoveredDeviceType) {
@@ -118,7 +118,7 @@ class DeviceListItem extends React.Component<DeviceListItemPropsType> {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flex: 2,
     },
     button_container: {
         flexDirection: 'row',

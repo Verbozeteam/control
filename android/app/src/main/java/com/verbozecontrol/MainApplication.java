@@ -5,6 +5,8 @@ import com.verbozecontrol.socket.*;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.rnimmersive.RNImmersivePackage;
+import com.zmxv.RNSound.RNSoundPackage;
 import com.devstepbcn.wifi.AndroidWifiPackage;
 import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import com.horcrux.svg.SvgPackage;
@@ -30,6 +32,8 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
             return Arrays.<ReactPackage>asList(
                 new MainReactPackage(),
+            new RNImmersivePackage(),
+            new RNSoundPackage(),
             new AndroidWifiPackage(),
             new SplashScreenReactPackage(),
             new SvgPackage(),

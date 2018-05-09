@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
 import wifi from 'react-native-android-wifi';
+import Immersive from 'react-native-immersive';
 
 import SplashScreen from 'react-native-splash-screen';
 
@@ -17,7 +18,8 @@ const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 const SocketCommunication = require('./js-api-utils/SocketCommunication');
 const UserPreferences = require('./js-api-utils/UserPreferences');
-const Clock = require('./components/Clock');
+import SleepView from './components/SleepView';
+import AlarmsHelper from './components/AlarmsHelper';
 const PagingView = require('./components/PagingView');
 const ConnectionStatus = require('./components/ConnectionStatus');
 
@@ -51,6 +53,7 @@ function mapDispatchToProps(dispatch) {
 type StateType = {
     screenDimmed: boolean,
     hotelThingId: string,
+    alarmThingId: string,
     cardIn: boolean,
 };
 
@@ -62,11 +65,12 @@ class VerbozeControl extends React.Component<{}, StateType> {
     state = {
         screenDimmed: false,
         hotelThingId: "",
+        alarmThingId: "",
         cardIn: true,
     };
 
     _screen_dim_timeout: number;
-    _screen_dim_timeout_duration: number = __DEV__ ? 60000 : 30000;
+    _screen_dim_timeout_duration: number = __DEV__ ? 30000 : 30000;
     _last_touch_time: number = 0;
 
     _discovery_timeout: any = undefined;
@@ -132,6 +136,9 @@ class VerbozeControl extends React.Component<{}, StateType> {
         wifi.setEnabled(true);
         this.connectWifi();
         this._wifi_timeout = setInterval(this.connectWifi.bind(this), 10000);
+
+        Immersive.on();
+        Immersive.setImmersive(true);
     }
 
     componentDidMount() {
@@ -181,6 +188,9 @@ class VerbozeControl extends React.Component<{}, StateType> {
                         this.onHotelControlsChanged(ConfigManager.thingMetas[tid], ConfigManager.things[tid]);
                 }
             }
+            if (ConfigManager.thingMetas[tid].category === 'alarm_system') {
+                this.setState({alarmThingId: tid});
+            }
         }
     }
 
@@ -220,7 +230,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         }).bind(this), this._screen_dim_timeout_duration);
     }
 
-    _wakeupScreen() {
+    wakeupScreen() {
         if (this.state.screenDimmed) {
             this.setState({
                 screenDimmed: false,
@@ -232,18 +242,21 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     render() {
         const { connectionStatus } = this.props;
-        const { screenDimmed, cardIn } = this.state;
+        const { screenDimmed, alarmThingId, cardIn } = this.state;
 
         var inner_ui = null;
         if (screenDimmed || (!cardIn && connectionStatus)) {
-            inner_ui = <Clock displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
+            inner_ui = <SleepView displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
         }
 
         return <View style={styles.container}
-            onTouchStart={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}
-            onTouchMove={(cardIn || !connectionStatus) ? this._wakeupScreen.bind(this) : null}>
+            onTouchStart={(cardIn || !connectionStatus) ? this.wakeupScreen.bind(this) : null}
+            onTouchMove={(cardIn || !connectionStatus) ? this.wakeupScreen.bind(this) : null}>
             <PagingView />
             {inner_ui}
+            {(alarmThingId) ?
+              <AlarmsHelper id={alarmThingId}
+                wakeupScreen={this.wakeupScreen.bind(this)}/> : null}
             <ConnectionStatus />
         </View>
     }
