@@ -107,8 +107,6 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                                     height={70}
                                     onPressIn={this.toggleRoomService.bind(this)}
                                     isOn={service_state == 1 ? true : false}
-                                    text={service_state == 1 ? I18n.t("On") : I18n.t("Off")}
-                                    textStyle={{...TypeFaces.light}}
                                     sideText={I18n.t("Housekeeping")}
                                     sideTextStyle={{...TypeFaces.light}}
                                     glowColor={'#37BA37'}
@@ -122,8 +120,6 @@ class HotelControlsPanelContents extends React.Component<PropsType, StateType> {
                                     height={70}
                                     onPressIn={this.toggleDoNotDisturb.bind(this)}
                                     isOn={dnd_state == 1 ? true : false}
-                                    text={dnd_state == 1 ? I18n.t("On") : I18n.t("Off")}
-                                    textStyle={{...TypeFaces.light}}
                                     sideText={I18n.t("Do Not Disturb")}
                                     sideTextStyle={{...TypeFaces.light}}
                                     glowColor={'#BA3737'}
