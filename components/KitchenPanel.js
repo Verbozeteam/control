@@ -281,10 +281,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
                 </View>
                 <View style={styles.menu_container}>
                     <ScrollView style={styles.scroll_view_container}>
-                        <Text style={styles.header}>Menu</Text>
-                        <ScrollView style={styles.scroll_view_container}>
-                            {menu_items}
-                        </ScrollView>
+                        {menu_items}
                     </ScrollView>
                 </View>
                 <View style={styles.new_order_container}>
