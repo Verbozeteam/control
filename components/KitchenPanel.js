@@ -41,7 +41,7 @@ type StateType = {
     menu: Array<MenuItemType>,
     orders: Array<OrderType>,
     cart: {[string]: number},
-    should_show_new_order: boolean
+    show_orders: boolean
 };
 
 function mapStateToProps(state) {
@@ -63,7 +63,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
         menu: [],
         orders: [],
         cart: {},
-        should_show_new_order: false
+        show_orders: false
     };
 
     KitchenSocketCommunication = null;
@@ -170,12 +170,13 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             });
         }
 
-        this.KitchenConfigManager.setThingState('kitchen', {order, 'placed_by_name': currentDevice.name}, true, false);
+        this.KitchenConfigManager.setThingState('kitchen',
+            {order, 'placed_by_name': currentDevice.name}, true, false);
 
         /* empty cart */
         this.setState({
             cart: {},
-            should_show_new_order: true
+            show_orders: true
         });
     }
 
@@ -190,11 +191,15 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
                 <View style={styles.menu_item_actions}>
                     <TouchableWithoutFeedback
                         onPressIn={() => this.incrementMenuItemQuantity(item.name)}>
-                        <View><Text style={styles.menu_item_action}>Add +</Text></View>
+                        <View style={[styles.button, {marginRight: 20}]}>
+                            <Text style={styles.button_text}>Add +</Text>
+                        </View>
                     </TouchableWithoutFeedback>
                     <TouchableWithoutFeedback
                         onPressIn={() => this.decrementMenuItemQuantity(item.name)}>
-                        <View><Text style={styles.menu_item_action}>Remove -</Text></View>
+                        <View style={styles.button}>
+                            <Text style={styles.button_text}>Remove -</Text>
+                        </View>
                     </TouchableWithoutFeedback>
                 </View>
             </View>
@@ -204,42 +209,51 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     renderCartItem(item: string, index: number) {
         const { cart } = this.state;
 
+        /* give name title case */
+        const name = item.split(' ').map(
+            x => x[0].toUpperCase() + x.slice(1)).join(' ');
+
         return (
             <View key={'cart-item-' + index} style={styles.menu_item}>
-                <Text style={styles.menu_item_text}>{item}</Text>
+                <Text style={styles.menu_item_text}>{name}</Text>
                 <Text style={styles.menu_item_text}>{cart[item]}x</Text>
             </View>
         );
     }
 
     renderOrderItem(item: OrderItemType, index: number) {
-
         var status = '';
         switch (item.status) {
             case -1:
-                status = 'Placed'
+                status = '?'
                 break;
             case 1:
-                status = 'Accepted'
+                status = '✓'
                 break;
             case 0:
-                status = 'Rejected'
+                status = '╳'
                 break;
         }
 
+        /* give name title case */
+        const name = item.name.split(' ').map(
+            x => x[0].toUpperCase() + x.slice(1)).join(' ');
+
         return (
             <View style={styles.order_item}>
-                <Text>{item.name} {item.quantity}x {status}</Text>
+                <Text style={[styles.button_text,
+                    {flex: 2, textAlign: 'left', paddingVertical: 10}]}>{name}</Text>
+                <Text style={[styles.button_text,
+                    {flex: 1, paddingVertical: 10}]}>{item.quantity}x</Text>
+                <Text style={[styles.button_text,
+                    {flex: 1, textAlign: 'right', paddingVertical: 10}]}>{status}</Text>
             </View>
         );
     }
 
     renderOrder(order: OrderType, index: number) {
-        console.log('order', order);
-
         return (
             <View key={'order-' + order.id} style={styles.order_container}>
-                <Text>Order {order.id}</Text>
                 {order.items.map(this.renderOrderItem.bind(this))}
             </View>
         )
@@ -252,46 +266,50 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             <View style={styles.container}>
                 <View style={styles.navbar}>
                     <Text style={styles.header}>Orders</Text>
-                    <TouchableWithoutFeedback style={styles.dismiss}
-                        onPressIn={() => this.setState({should_show_new_order: false})}>
-                        <View>
-                            <Text>Dismiss</Text>
+                    <TouchableWithoutFeedback
+                        onPressIn={() => this.setState({show_orders: false})}>
+                        <View style={styles.button}>
+                            <Text style={styles.button_text}>Dismiss</Text>
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
                 <ScrollView style={styles.scroll_view_container}>
-
+                    {orders.map(this.renderOrder.bind(this))}
                 </ScrollView>
             </View>
         );
     }
 
     renderMenuView() {
-        const { menu, cart } = this.state;
-
-        const menu_items = menu.map(this.renderMenuItem.bind(this));
-        const cart_items = Object.keys(cart).map(this.renderCartItem.bind(this));
+        const { menu, cart, orders } = this.state;
 
         return (
             <View style={styles.container}>
                 <View style={styles.navbar}>
                     <Text style={styles.header}>Menu</Text>
+                    {(orders.length > 0) ?
+                        <TouchableWithoutFeedback
+                            onPressIn={() => this.setState({show_orders: true})}>
+                            <View style={styles.button}>
+                                <Text style={styles.button_text}>Show Pending Orders</Text>
+                            </View>
+                        </TouchableWithoutFeedback> : null}
                 </View>
-                <View style={styles.menu_container}>
-                    <ScrollView style={styles.scroll_view_container}>
-                        {menu_items}
+                <View style={styles.menu_view_container}>
+                    <ScrollView style={styles.menu_container}>
+                        {menu.map(this.renderMenuItem.bind(this))}
                     </ScrollView>
-                </View>
-                <View style={styles.new_order_container}>
-                    <ScrollView style={styles.scroll_view_container}>
-                        {cart_items}
-                    </ScrollView>
-                    <TouchableWithoutFeedback
-                        onPressIn={this.submitNewOrder.bind(this)}>
-                        <View style={styles.submit_new_order}>
-                            <Text>Submit Order</Text>
-                        </View>
-                    </TouchableWithoutFeedback>
+                    <View style={styles.new_order_container}>
+                        <ScrollView style={styles.scroll_view_container}>
+                            {Object.keys(cart).map(this.renderCartItem.bind(this))}
+                        </ScrollView>
+                        <TouchableWithoutFeedback
+                            onPressIn={this.submitNewOrder.bind(this)}>
+                            <View style={styles.button}>
+                                <Text style={styles.button_text}>Submit Order</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
                 </View>
             </View>
         );
@@ -299,13 +317,13 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
 
     render() {
         const { displayConfig } = this.props;
-        const { orders, should_show_new_order } = this.state;
+        const { orders, show_orders } = this.state;
 
         if (displayConfig.UIStyle !== 'simple') {
             return null;
         }
 
-        if (should_show_new_order && orders.length > 0) {
+        if (show_orders && orders.length > 0) {
             return this.renderOrdersView();
         } else {
             return this.renderMenuView();
@@ -316,18 +334,23 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: 'row',
+        padding: 20,
     },
     navbar: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+    },
+    menu_view_container: {
+        flex: 1,
+        flexDirection: 'row'
     },
     menu_container: {
-        flex: 3,
         borderRightColor: Colors.white,
         borderRightWidth: 1,
+        paddingRight: 20,
     },
     new_order_container: {
+        paddingLeft: 20,
         flex: 2
     },
     orders_container: {
@@ -337,6 +360,17 @@ const styles = StyleSheet.create({
         color: Colors.white,
         fontSize: 32,
         ...TypeFaces.medium
+    },
+    button: {
+        borderWidth: 1,
+        borderColor: Colors.white,
+        padding: 10
+    },
+    button_text: {
+        color: Colors.white,
+        textAlign: 'center',
+        fontSize: 17,
+        ...TypeFaces.regular
     },
     submit_new_order: {
         width: '100%',
@@ -365,19 +399,15 @@ const styles = StyleSheet.create({
     menu_item_actions: {
         flexDirection: 'row'
     },
-    menu_item_action: {
-        color: Colors.white,
-        fontSize: 20,
-        ...TypeFaces.medium,
-        padding: 10,
-        marginHorizontal: 10,
-        borderWidth: 1,
-        borderColor: Colors.white
-    },
     order_container: {
         borderWidth: 1,
         borderColor: Colors.white,
-        paddingVertical: 20,
+        padding: 20,
+        marginVertical: 20
+    },
+    order_item: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     }
 });
 
