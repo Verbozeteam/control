@@ -21,7 +21,6 @@ const I18n = require('../js-api-utils/i18n/i18n');
 type MenuItemType = string;
 
 type OrderType = {
-    id: string,
     timeout: number,
     placed_by_name: string,
     items: Array<{
@@ -155,7 +154,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     submitNewOrder() {
-        const { id, currentDevice } = this.props;
+        const { currentDevice } = this.props;
         const { cart } = this.state;
 
         if (Object.keys(cart).length <= 0) {
@@ -171,7 +170,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             });
         }
 
-        this.KitchenConfigManager.setThingState(id, {order, 'placed_by_name': currentDevice.name}, true, false);
+        this.KitchenConfigManager.setThingState('kitchen', {order, 'placed_by_name': currentDevice.name}, true, false);
 
         /* empty cart */
         this.setState({
@@ -289,7 +288,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
                     </ScrollView>
                     <TouchableWithoutFeedback
                         onPressIn={this.submitNewOrder.bind(this)}>
-                        <View>
+                        <View style={styles.submit_new_order}>
                             <Text>Submit Order</Text>
                         </View>
                     </TouchableWithoutFeedback>
