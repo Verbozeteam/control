@@ -39,6 +39,7 @@ type PropsType = {
 };
 
 type StateType = {
+    is_initialized: boolean,
     menu: Array<MenuItemType>,
     orders: Array<OrderType>,
     cart: {[string]: number},
@@ -53,17 +54,14 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-    return {
-        setCurrentDevice: (d: DiscoveredDeviceType) => {
-            dispatch(connectionActions.set_current_device(d));
-        }
-    };
+    return {};
 }
 
 class KitchenPanel extends React.Component<PropsType, StateType> {
     _unsubscribe: () => null = () => {return null;};
 
     state = {
+        is_initialized: false,
         menu: [],
         orders: [],
         cart: {},
@@ -92,11 +90,14 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
         this.KitchenSocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         this.KitchenConfigManager.initialize(this.KitchenSocketCommunication); // this registers SocketCommunication.setOnMessage
         this.KitchenSocketCommunication.connect(device.ip, device.port);
+
+        this._unsubscribe = this.KitchenConfigManager.registerCategoryChangeCallback("kitchen_controls", this.onKitchenChanged.bind(this));
     }
 
     destroyConnection() {
         if (this.KitchenSocketCommunication && this.KitchenConfigManager) {
-            console.log("running cleanup...")
+            this._unsubscribe();
+            this.setState({is_initialized: false});
             this.KitchenSocketCommunication.cleanup();
             delete this.KitchenSocketCommunication;
             delete this.KitchenConfigManager;
@@ -104,7 +105,6 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     handleSocketConnected() {
-        console.log("kitchen connected");
         if (this.KitchenSocketCommunication) {
             this.KitchenSocketCommunication.sendMessage({
                 code: 0
@@ -113,36 +113,20 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     handleSocketDisconnected() {
-        console.log("kitchen disconnected");
         this.createConnection();
     }
 
     onKitchenChanged(meta: ThingMetadataType, kitchenState: ThingStateType) {
-        var { menu, orders } = this.state;
+        var { menu, orders, is_initialized } = this.state;
 
-        console.log('onKitchenChanged', kitchenState);
-
-        if (JSON.stringify(menu) !== JSON.stringify(kitchenState.menu) ||
+        if (is_initialized !== true ||
+            JSON.stringify(menu) !== JSON.stringify(kitchenState.menu) ||
             JSON.stringify(orders) !== JSON.stringify(kitchenState.orders)) {
             this.setState({
+                is_initialized: true,
                 menu: kitchenState.menu,
                 orders: kitchenState.orders
             });
-        }
-    }
-
-    connectKitchen() {
-        const { device, setCurrentDevice, currentDevice } = this.props;
-
-        this._previous_connected_device = currentDevice;
-        setCurrentDevice(device);
-    }
-
-    disconnectKitchen() {
-        const { setCurrentDevice } = this.props;
-
-        if (this._previous_connected_device) {
-            setCurrentDevice(this._previous_connected_device);
         }
     }
 
@@ -188,7 +172,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             });
         }
 
-        ConfigManager.setThingState(id, {order, 'placed_by_name': 'Mohammed'}, true, false);
+        this.KitchenConfigManager.setThingState(id, {order, 'placed_by_name': 'Mohammed'}, true, false);
 
         /* empty cart */
         this.setState({
