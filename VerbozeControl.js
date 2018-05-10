@@ -16,7 +16,7 @@ import SplashScreen from 'react-native-splash-screen';
 
 const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
-const SocketCommunication = require('./js-api-utils/SocketCommunication');
+import { SocketCommunication } from './js-api-utils/SocketCommunication';
 const UserPreferences = require('./js-api-utils/UserPreferences');
 import SleepView from './components/SleepView';
 import AlarmsHelper from './components/AlarmsHelper';

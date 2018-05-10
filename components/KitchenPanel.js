@@ -5,8 +5,9 @@ import { View, Text, Image, ScrollView, TouchableWithoutFeedback, StyleSheet } f
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { ConfigManager } from '../js-api-utils/ConfigManager';
+import { ConfigManagerClass } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
+import { SocketCommunicationClass } from '../js-api-utils/SocketCommunication';
 
 import type { DiscoveredDeviceType } from '../js-api-utils/ConnectionTypes';
 const connectionActions = require('../redux-objects/actions/connection');
@@ -16,11 +17,8 @@ import MagicButton from '../react-components/MagicButton';
 import { Colors, TypeFaces } from '../constants/styles';
 
 const I18n = require('../js-api-utils/i18n/i18n');
-const SocketCommunication = require('../js-api-utils/SocketCommunication');
 
-type MenuItemType = {
-    name: string
-};
+type MenuItemType = string;
 
 type OrderType = {
     id: string,
@@ -42,7 +40,7 @@ type PropsType = {
 
 type StateType = {
     menu: Array<MenuItemType>,
-    orders: Array<>,
+    orders: Array<OrderType>,
     cart: {[string]: number},
     should_show_new_order: boolean
 };
@@ -72,24 +70,51 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
         should_show_new_order: false
     };
 
-    _previous_connected_device: DiscoveredDeviceType = null;
+    KitchenSocketCommunication = null;
+    KitchenConfigManager = null;
 
     componentWillMount() {
-        this.componentWillReceiveProps(this.props);
-    }
-
-    componentWillReceiveProps(newProps: PropsType) {
-        this._unsubscribe();
-        this._unsubscribe = ConfigManager.registerThingStateChangeCallback(
-            newProps.id, this.onKitchenChanged.bind(this));
-        if (newProps.id in ConfigManager.things) {
-            this.onKitchenChanged(ConfigManager.thingMetas[newProps.id],
-                ConfigManager.things[newProps.id]);
-        }
+        this.createConnection();
     }
 
     componentWillUnmount() {
-        this._unsubscribe();
+        this.destroyConnection();
+    }
+
+    createConnection() {
+        const { device } = this.props;
+
+        this.destroyConnection();
+        this.KitchenSocketCommunication = new SocketCommunicationClass();
+        this.KitchenConfigManager = new ConfigManagerClass();
+        this.KitchenSocketCommunication.initialize(true);
+        this.KitchenSocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
+        this.KitchenSocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
+        this.KitchenConfigManager.initialize(this.KitchenSocketCommunication); // this registers SocketCommunication.setOnMessage
+        this.KitchenSocketCommunication.connect(device.ip, device.port);
+    }
+
+    destroyConnection() {
+        if (this.KitchenSocketCommunication && this.KitchenConfigManager) {
+            console.log("running cleanup...")
+            this.KitchenSocketCommunication.cleanup();
+            delete this.KitchenSocketCommunication;
+            delete this.KitchenConfigManager;
+        }
+    }
+
+    handleSocketConnected() {
+        console.log("kitchen connected");
+        if (this.KitchenSocketCommunication) {
+            this.KitchenSocketCommunication.sendMessage({
+                code: 0
+            });
+        }
+    }
+
+    handleSocketDisconnected() {
+        console.log("kitchen disconnected");
+        this.createConnection();
     }
 
     onKitchenChanged(meta: ThingMetadataType, kitchenState: ThingStateType) {
