@@ -299,7 +299,12 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     render() {
+        const { displayConfig } = this.props;
         const { orders, should_show_new_order } = this.state;
+
+        if (displayConfig.UIStyle !== 'simple') {
+            return null;
+        }
 
         if (should_show_new_order && orders.length > 0) {
             return this.renderOrdersView();
