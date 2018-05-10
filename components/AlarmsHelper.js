@@ -145,10 +145,11 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
   }
 
   startAlarmAudio() {
+    const { alarm_ring } = this.state;
     const { wakeupScreen } = this.props;
 
-    if (this._alarm_audio) {
-      this._alarm_audio.play();
+    if (this._alarm_audio && alarm_ring) {
+      this._alarm_audio.play(this.startAlarmAudio.bind(this));
       wakeupScreen();
     }
   }
