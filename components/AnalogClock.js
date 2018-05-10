@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import Svg, { Line, Circle } from 'react-native-svg';
 
 import { Colors } from '../constants/styles';
@@ -15,12 +17,24 @@ type PropsType = {
 
   hoursHandThickness?: number,
   minutesHandThickness?: number,
-  secondsHandThickness?: number
+  secondsHandThickness?: number,
+
+  displayConfig: Object
 };
 
 type StateType = {};
 
-export default class AnalogClock extends React.Component<PropsType, StateType> {
+function mapStateToProps(state) {
+  return {
+    displayConfig: state.screen.displayConfig
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {};
+}
+
+class AnalogClock extends React.Component<PropsType, StateType> {
 
   static defaultProps = {
     radius: 160,
@@ -31,7 +45,9 @@ export default class AnalogClock extends React.Component<PropsType, StateType> {
 
     hoursHandThickness: 8,
     minutesHandThickness: 5,
-    secondsHandThickness: 2
+    secondsHandThickness: 2,
+
+    displayConfig: {}
   };
 
   should_update_clock: boolean = true;
@@ -105,7 +121,7 @@ export default class AnalogClock extends React.Component<PropsType, StateType> {
   }
 
   renderSecondsHand(datetime: Object) {
-    const { radius, secondsHandThickness } = this.props;
+    const { radius, secondsHandThickness, displayConfig } = this.props;
     const angle = (datetime.getSeconds() / 60
       + datetime.getMilliseconds() / 60000) * Math.PI * 2 - (Math.PI / 2);
 
@@ -118,13 +134,13 @@ export default class AnalogClock extends React.Component<PropsType, StateType> {
     return (
       <Line x1={x1} y1={y1}
         x2={x2} y2={y2}
-        stroke={Colors.red} strokeWidth={secondsHandThickness} />
+        stroke={displayConfig.accentColor} strokeWidth={secondsHandThickness} />
     );
   }
 
   render() {
     const { radius, hourTicksLength, hourTicksThickness,
-      minuteTicksLength, minuteTicksThickness } = this.props;
+      minuteTicksLength, minuteTicksThickness, displayConfig } = this.props;
 
     const datetime = new Date();
 
@@ -139,9 +155,12 @@ export default class AnalogClock extends React.Component<PropsType, StateType> {
           {this.renderMinutesHand(datetime)}
           <Circle cx={radius} cy={radius} r={radius * 0.06} fill={Colors.white} />
           {this.renderSecondsHand(datetime)}
-          <Circle cx={radius} cy={radius} r={radius * 0.04} fill={Colors.red} />
+          <Circle cx={radius} cy={radius} r={radius * 0.04}
+            fill={displayConfig.accentColor} />
         </Svg>
       </View>
     );
   }
 }
+
+module.exports = connect(mapStateToProps, mapDispatchToProps) (AnalogClock);

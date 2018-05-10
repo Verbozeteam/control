@@ -130,10 +130,9 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     }
   }
 
-  checkAlarms() {
+  checkAlarms(datetime: Object) {
     const { alarms } = this.state;
 
-    const datetime = new Date();
     for (var i = 0; i < alarms.length; i++) {
       if (minutesDifference(new Date(alarms[i].time), datetime) <= 0) {
         this.setState({

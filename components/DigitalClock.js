@@ -44,7 +44,9 @@ type PropsType = {
   extraDateStyle?: Object | number,
 };
 
-type StateType = {};
+type StateType = {
+  currentDateTime: Object
+};
 
 export default class DigitalClock extends React.Component<PropsType, StateType> {
 
@@ -53,6 +55,10 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
     clockFontSize: 36,
     dateFontSize: 22,
     showDate: true,
+  };
+
+  state = {
+    currentDateTime: new Date()
   };
 
   /* MinuteTicker class used to update clock */
@@ -84,8 +90,10 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
     }
   }
 
-  updateClock() {
-    this.forceUpdate();
+  updateClock(currentDateTime) {
+    this.setState({
+      currentDateTime
+    });
   }
 
   formatDateTime(datetime: object) {
@@ -121,8 +129,9 @@ export default class DigitalClock extends React.Component<PropsType, StateType> 
   render() {
     const { fontColor, clockFontSize, dateFontSize, showDate,
       providedDateTime, extraTimeStyle, extraDateStyle } = this.props;
+    const { currentDateTime } = this.state;
 
-    const { date, time } = this.formatDateTime(providedDateTime || new Date());
+    const { date, time } = this.formatDateTime(providedDateTime || currentDateTime);
 
     return (
       <View>
