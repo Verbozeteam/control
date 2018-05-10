@@ -35,7 +35,6 @@ type PropsType = {
     id: string,
     displayConfig: Object,
     device: DiscoveredDeviceType,
-    currentDevice: DiscoveredDeviceType,
 };
 
 type StateType = {
@@ -156,7 +155,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     submitNewOrder() {
-        const { id } = this.props;
+        const { id, currentDevice } = this.props;
         const { cart } = this.state;
 
         if (Object.keys(cart).length <= 0) {
@@ -172,7 +171,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             });
         }
 
-        this.KitchenConfigManager.setThingState(id, {order, 'placed_by_name': 'Mohammed'}, true, false);
+        this.KitchenConfigManager.setThingState(id, {order, 'placed_by_name': currentDevice.name}, true, false);
 
         /* empty cart */
         this.setState({
