@@ -10,21 +10,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class SocketPackage implements ReactPackage {
-
     @Override
-    public List<ViewManager> createViewManagers(ReactApplicationContext
-        reactContext) {
-
+    public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Collections.emptyList();
     }
 
     @Override
-    public List<NativeModule> createNativeModules(ReactApplicationContext
-        reactContext) {
-
+    public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
         modules.add(new SocketModule(reactContext));
+        modules.add(new SocketModule.SecondarySocketModule(reactContext));
 
         return modules;
     }
