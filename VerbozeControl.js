@@ -130,7 +130,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         SocketCommunication.discoverDevices();
         this._discovery_timeout = setInterval(() => {
             SocketCommunication.discoverDevices();
-        }, 10000);
+        }, 60000);
 
         /** Periodic wifi connection */
         wifi.setEnabled(true);

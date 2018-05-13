@@ -21,7 +21,6 @@ const I18n = require('../js-api-utils/i18n/i18n');
 type MenuItemType = string;
 
 type OrderType = {
-    id: string,
     timeout: number,
     placed_by_name: string,
     items: Array<{
@@ -35,14 +34,14 @@ type PropsType = {
     id: string,
     displayConfig: Object,
     device: DiscoveredDeviceType,
-    currentDevice: DiscoveredDeviceType,
 };
 
 type StateType = {
+    is_initialized: boolean,
     menu: Array<MenuItemType>,
     orders: Array<OrderType>,
     cart: {[string]: number},
-    should_show_new_order: boolean
+    show_orders: boolean
 };
 
 function mapStateToProps(state) {
@@ -53,21 +52,18 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-    return {
-        setCurrentDevice: (d: DiscoveredDeviceType) => {
-            dispatch(connectionActions.set_current_device(d));
-        }
-    };
+    return {};
 }
 
 class KitchenPanel extends React.Component<PropsType, StateType> {
     _unsubscribe: () => null = () => {return null;};
 
     state = {
+        is_initialized: false,
         menu: [],
         orders: [],
         cart: {},
-        should_show_new_order: false
+        show_orders: false
     };
 
     KitchenSocketCommunication = null;
@@ -92,11 +88,14 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
         this.KitchenSocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         this.KitchenConfigManager.initialize(this.KitchenSocketCommunication); // this registers SocketCommunication.setOnMessage
         this.KitchenSocketCommunication.connect(device.ip, device.port);
+
+        this._unsubscribe = this.KitchenConfigManager.registerCategoryChangeCallback("kitchen_controls", this.onKitchenChanged.bind(this));
     }
 
     destroyConnection() {
         if (this.KitchenSocketCommunication && this.KitchenConfigManager) {
-            console.log("running cleanup...")
+            this._unsubscribe();
+            this.setState({is_initialized: false});
             this.KitchenSocketCommunication.cleanup();
             delete this.KitchenSocketCommunication;
             delete this.KitchenConfigManager;
@@ -104,7 +103,6 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     handleSocketConnected() {
-        console.log("kitchen connected");
         if (this.KitchenSocketCommunication) {
             this.KitchenSocketCommunication.sendMessage({
                 code: 0
@@ -113,36 +111,20 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     handleSocketDisconnected() {
-        console.log("kitchen disconnected");
         this.createConnection();
     }
 
     onKitchenChanged(meta: ThingMetadataType, kitchenState: ThingStateType) {
-        var { menu, orders } = this.state;
+        var { menu, orders, is_initialized } = this.state;
 
-        console.log('onKitchenChanged', kitchenState);
-
-        if (JSON.stringify(menu) !== JSON.stringify(kitchenState.menu) ||
+        if (is_initialized !== true ||
+            JSON.stringify(menu) !== JSON.stringify(kitchenState.menu) ||
             JSON.stringify(orders) !== JSON.stringify(kitchenState.orders)) {
             this.setState({
+                is_initialized: true,
                 menu: kitchenState.menu,
                 orders: kitchenState.orders
             });
-        }
-    }
-
-    connectKitchen() {
-        const { device, setCurrentDevice, currentDevice } = this.props;
-
-        this._previous_connected_device = currentDevice;
-        setCurrentDevice(device);
-    }
-
-    disconnectKitchen() {
-        const { setCurrentDevice } = this.props;
-
-        if (this._previous_connected_device) {
-            setCurrentDevice(this._previous_connected_device);
         }
     }
 
@@ -172,7 +154,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     }
 
     submitNewOrder() {
-        const { id } = this.props;
+        const { currentDevice } = this.props;
         const { cart } = this.state;
 
         if (Object.keys(cart).length <= 0) {
@@ -188,12 +170,13 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             });
         }
 
-        ConfigManager.setThingState(id, {order, 'placed_by_name': 'Mohammed'}, true, false);
+        this.KitchenConfigManager.setThingState('kitchen',
+            {order, 'placed_by_name': currentDevice.name}, true, false);
 
         /* empty cart */
         this.setState({
             cart: {},
-            should_show_new_order: true
+            show_orders: true
         });
     }
 
@@ -208,11 +191,15 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
                 <View style={styles.menu_item_actions}>
                     <TouchableWithoutFeedback
                         onPressIn={() => this.incrementMenuItemQuantity(item.name)}>
-                        <View><Text style={styles.menu_item_action}>Add +</Text></View>
+                        <View style={[styles.button, {marginRight: 20}]}>
+                            <Text style={styles.button_text}>Add +</Text>
+                        </View>
                     </TouchableWithoutFeedback>
                     <TouchableWithoutFeedback
                         onPressIn={() => this.decrementMenuItemQuantity(item.name)}>
-                        <View><Text style={styles.menu_item_action}>Remove -</Text></View>
+                        <View style={styles.button}>
+                            <Text style={styles.button_text}>Remove -</Text>
+                        </View>
                     </TouchableWithoutFeedback>
                 </View>
             </View>
@@ -222,42 +209,51 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
     renderCartItem(item: string, index: number) {
         const { cart } = this.state;
 
+        /* give name title case */
+        const name = item.split(' ').map(
+            x => x[0].toUpperCase() + x.slice(1)).join(' ');
+
         return (
             <View key={'cart-item-' + index} style={styles.menu_item}>
-                <Text style={styles.menu_item_text}>{item}</Text>
+                <Text style={styles.menu_item_text}>{name}</Text>
                 <Text style={styles.menu_item_text}>{cart[item]}x</Text>
             </View>
         );
     }
 
     renderOrderItem(item: OrderItemType, index: number) {
-
         var status = '';
         switch (item.status) {
             case -1:
-                status = 'Placed'
+                status = '?'
                 break;
             case 1:
-                status = 'Accepted'
+                status = '✓'
                 break;
             case 0:
-                status = 'Rejected'
+                status = '╳'
                 break;
         }
 
+        /* give name title case */
+        const name = item.name.split(' ').map(
+            x => x[0].toUpperCase() + x.slice(1)).join(' ');
+
         return (
             <View style={styles.order_item}>
-                <Text>{item.name} {item.quantity}x {status}</Text>
+                <Text style={[styles.button_text,
+                    {flex: 2, textAlign: 'left', paddingVertical: 10}]}>{name}</Text>
+                <Text style={[styles.button_text,
+                    {flex: 1, paddingVertical: 10}]}>{item.quantity}x</Text>
+                <Text style={[styles.button_text,
+                    {flex: 1, textAlign: 'right', paddingVertical: 10}]}>{status}</Text>
             </View>
         );
     }
 
     renderOrder(order: OrderType, index: number) {
-        console.log('order', order);
-
         return (
             <View key={'order-' + order.id} style={styles.order_container}>
-                <Text>Order {order.id}</Text>
                 {order.items.map(this.renderOrderItem.bind(this))}
             </View>
         )
@@ -270,58 +266,64 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
             <View style={styles.container}>
                 <View style={styles.navbar}>
                     <Text style={styles.header}>Orders</Text>
-                    <TouchableWithoutFeedback style={styles.dismiss}
-                        onPressIn={() => this.setState({should_show_new_order: false})}>
-                        <View>
-                            <Text>Dismiss</Text>
+                    <TouchableWithoutFeedback
+                        onPressIn={() => this.setState({show_orders: false})}>
+                        <View style={styles.button}>
+                            <Text style={styles.button_text}>Dismiss</Text>
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
                 <ScrollView style={styles.scroll_view_container}>
-
+                    {orders.map(this.renderOrder.bind(this))}
                 </ScrollView>
             </View>
         );
     }
 
     renderMenuView() {
-        const { menu, cart } = this.state;
-
-        const menu_items = menu.map(this.renderMenuItem.bind(this));
-        const cart_items = Object.keys(cart).map(this.renderCartItem.bind(this));
+        const { menu, cart, orders } = this.state;
 
         return (
             <View style={styles.container}>
                 <View style={styles.navbar}>
                     <Text style={styles.header}>Menu</Text>
+                    {(orders.length > 0) ?
+                        <TouchableWithoutFeedback
+                            onPressIn={() => this.setState({show_orders: true})}>
+                            <View style={styles.button}>
+                                <Text style={styles.button_text}>Show Pending Orders</Text>
+                            </View>
+                        </TouchableWithoutFeedback> : null}
                 </View>
-                <View style={styles.menu_container}>
-                    <ScrollView style={styles.scroll_view_container}>
-                        <Text style={styles.header}>Menu</Text>
+                <View style={styles.menu_view_container}>
+                    <ScrollView style={styles.menu_container}>
+                        {menu.map(this.renderMenuItem.bind(this))}
+                    </ScrollView>
+                    <View style={styles.new_order_container}>
                         <ScrollView style={styles.scroll_view_container}>
-                            {menu_items}
+                            {Object.keys(cart).map(this.renderCartItem.bind(this))}
                         </ScrollView>
-                    </ScrollView>
-                </View>
-                <View style={styles.new_order_container}>
-                    <ScrollView style={styles.scroll_view_container}>
-                        {cart_items}
-                    </ScrollView>
-                    <TouchableWithoutFeedback
-                        onPressIn={this.submitNewOrder.bind(this)}>
-                        <View>
-                            <Text>Submit Order</Text>
-                        </View>
-                    </TouchableWithoutFeedback>
+                        <TouchableWithoutFeedback
+                            onPressIn={this.submitNewOrder.bind(this)}>
+                            <View style={styles.button}>
+                                <Text style={styles.button_text}>Submit Order</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
                 </View>
             </View>
         );
     }
 
     render() {
-        const { orders, should_show_new_order } = this.state;
+        const { displayConfig } = this.props;
+        const { orders, show_orders } = this.state;
 
-        if (should_show_new_order && orders.length > 0) {
+        if (displayConfig.UIStyle !== 'simple') {
+            return null;
+        }
+
+        if (show_orders && orders.length > 0) {
             return this.renderOrdersView();
         } else {
             return this.renderMenuView();
@@ -332,18 +334,23 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: 'row',
+        padding: 20,
     },
     navbar: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+    },
+    menu_view_container: {
+        flex: 1,
+        flexDirection: 'row'
     },
     menu_container: {
-        flex: 3,
         borderRightColor: Colors.white,
         borderRightWidth: 1,
+        paddingRight: 20,
     },
     new_order_container: {
+        paddingLeft: 20,
         flex: 2
     },
     orders_container: {
@@ -353,6 +360,17 @@ const styles = StyleSheet.create({
         color: Colors.white,
         fontSize: 32,
         ...TypeFaces.medium
+    },
+    button: {
+        borderWidth: 1,
+        borderColor: Colors.white,
+        padding: 10
+    },
+    button_text: {
+        color: Colors.white,
+        textAlign: 'center',
+        fontSize: 17,
+        ...TypeFaces.regular
     },
     submit_new_order: {
         width: '100%',
@@ -381,19 +399,15 @@ const styles = StyleSheet.create({
     menu_item_actions: {
         flexDirection: 'row'
     },
-    menu_item_action: {
-        color: Colors.white,
-        fontSize: 20,
-        ...TypeFaces.medium,
-        padding: 10,
-        marginHorizontal: 10,
-        borderWidth: 1,
-        borderColor: Colors.white
-    },
     order_container: {
         borderWidth: 1,
         borderColor: Colors.white,
-        paddingVertical: 20,
+        padding: 20,
+        marginVertical: 20
+    },
+    order_item: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     }
 });
 
