@@ -24,7 +24,7 @@ export default class SleepView extends React.Component<PropsType, StateType> {
 
     return (
       <View style={styles.container}>
-        <DigitalClock fontColor={Colors.light_gray}
+        <DigitalClock fontColor={Colors.gray}
             clockFontSize={120}
             dateFontSize={40} />
         {(displayWarning) ?
