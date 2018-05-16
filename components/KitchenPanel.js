@@ -116,10 +116,13 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
 
     onKitchenChanged(meta: ThingMetadataType, kitchenState: ThingStateType) {
         var { menu, orders, is_initialized } = this.state;
+        const { currentDevice } = this.props;
+
+        var ordersInKitchen = kitchenState.orders.filter(o => o.placed_by_name === currentDevice.name);
 
         if (is_initialized !== true ||
             JSON.stringify(menu) !== JSON.stringify(kitchenState.menu) ||
-            JSON.stringify(orders) !== JSON.stringify(kitchenState.orders)) {
+            JSON.stringify(orders) !== JSON.stringify(ordersInKitchen)) {
             this.setState({
                 is_initialized: true,
                 menu: kitchenState.menu,

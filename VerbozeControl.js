@@ -161,8 +161,12 @@ class VerbozeControl extends React.Component<{}, StateType> {
             SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
         if (reduxState && reduxState.connection.thingStates) {
             var hotel_thing = reduxState.connection.thingStates[this.state.hotelThingId];
-            if (hotel_thing && hotel_thing.card != this.state.cardIn) {
-                this.setState({cardIn: hotel_thing.card});
+            var hotel_meta = reduxState.connection.thingMetas[this.state.hotelThingId];
+            if (hotel_thing && hotel_meta) {
+                var display_nocard_warning = hotel_meta.display_nocard_warning || true;
+                var new_cardin_state = hotel_thing.card || !display_nocard_warning;
+                if (new_cardin_state != this.state.cardIn)
+                    this.setState({cardIn: hotel_thing.card});
             }
         }
     }
