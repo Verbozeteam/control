@@ -113,8 +113,6 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
         this._minuteTicker.stop();
       }
 
-      console.log(alarmsState);
-
       const new_alarm_ring = alarmsState.alarms.find((alarm) => alarm.is_ringing);
 
       if (alarm_ring && !new_alarm_ring) {
