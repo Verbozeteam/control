@@ -10,7 +10,7 @@ import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigMa
 
 const Sound = require('react-native-sound');
 
-import { minutesDifference, removeAlarm, snoozeAlarm }
+import { minutesDifference, removeAlarm, snoozeAlarm, ringAlarm }
   from '../js-api-utils/AlarmUtils';
 import MinuteTicker from '../js-api-utils/MinuteTicker';
 
@@ -113,42 +113,38 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
         this._minuteTicker.stop();
       }
 
-      this.setState({
-        alarms: alarmsState.alarms
-      });
+      const new_alarm_ring = alarmsState.alarms.find((alarm) => alarm.is_ringing);
 
-      /* check if alarm_ring still in array of alarms */
-      if (alarm_ring &&
-        !(alarmsState.alarms.find((alarm) => alarm_ring.id === alarm.id))) {
-
-          this.setState({
-            alarm_ring: null
-          });
-
-          this.stopAlarmAudio();
+      if (alarm_ring && !new_alarm_ring) {
+        this.stopAlarmAudio();
       }
+
+      else if (!alarm_ring && new_alarm_ring) {
+        this.startAlarmAudio();
+      }
+
+      this.setState({
+        alarms: alarmsState.alarms,
+        alarm_ring: new_alarm_ring
+      });
     }
   }
 
   checkAlarms(datetime: Object) {
+    const { id } = this.props;
     const { alarms } = this.state;
 
     for (var i = 0; i < alarms.length; i++) {
       if (minutesDifference(new Date(alarms[i].time), datetime) <= 0) {
-        this.setState({
-          alarm_ring: alarms[i]
-        });
-
-        this.startAlarmAudio();
+        ringAlarm(id, ConfigManager, alarms[i]);
       }
     }
   }
 
   startAlarmAudio() {
-    const { alarm_ring } = this.state;
     const { wakeupScreen } = this.props;
 
-    if (this._alarm_audio && alarm_ring) {
+    if (this._alarm_audio) {
       this._alarm_audio.play(this.startAlarmAudio.bind(this));
       wakeupScreen();
     }
