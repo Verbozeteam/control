@@ -23,6 +23,7 @@ var displayConfig ={
         },
         backgroundColor: '#666666',
         textColor: '#FFFFFF',
+        acTextColor: '#000000',
         lightUI: false,
         displayQRCode: false,
         curtainsDisplayAllSwitch: false,
@@ -45,6 +46,7 @@ var displayConfig ={
         backgroundColor: null,
         lightUI: false,
         textColor: '#FFFFFF',
+        acTextColor: '#FFFFFF',
         displayQRCode: true,
         curtainsDisplayAllSwitch: true,
     }
