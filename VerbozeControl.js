@@ -16,6 +16,7 @@ import SplashScreen from 'react-native-splash-screen';
 
 const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
+import AuthPasswordPage from './components/AuthPasswordPage';
 import { SocketCommunication } from './js-api-utils/SocketCommunication';
 const UserPreferences = require('./js-api-utils/UserPreferences');
 import SleepView from './components/SleepView';
@@ -55,6 +56,7 @@ type StateType = {
     hotelThingId: string,
     alarmThingId: string,
     cardIn: boolean,
+    authPasswordPage: boolean,
 };
 
 class VerbozeControl extends React.Component<{}, StateType> {
@@ -67,6 +69,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         hotelThingId: "",
         alarmThingId: "",
         cardIn: true,
+        authPasswordPage: false,
     };
 
     _screen_dim_timeout: number;
@@ -80,9 +83,11 @@ class VerbozeControl extends React.Component<{}, StateType> {
         /** Connect to the socket communication library */
         console.log("Initializing sockets...");
         SocketCommunication.initialize();
+        SocketCommunication.setSSLKey(null, null, "");
         SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
         SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
+        SocketCommunication.setOnRequireAuthentication(() => this.setState({authPasswordPage: true}));
         ConfigManager.initialize(SocketCommunication); // this registers SocketCommunication.setOnMessage
 
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
@@ -104,6 +109,9 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 this.props.setLanguage(lang);
                 I18n.setLanguage(lang);
             }
+
+            /** Load authentication token */
+            SocketCommunication.setAuthenticationToken(UserPreferences.get('authentication-token'));
 
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
@@ -242,7 +250,16 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     render() {
         const { connectionStatus } = this.props;
-        const { screenDimmed, alarmThingId, cardIn } = this.state;
+        const { screenDimmed, alarmThingId, cardIn, authPasswordPage } = this.state;
+
+        if (authPasswordPage)
+            return <AuthPasswordPage onDone={(pw => {
+                this.setState({authPasswordPage: false});
+                if (pw) {
+                    var new_token = SocketCommunication.setAuthenticationPassword(pw);
+                    UserPreferences.save({'authentication-token': new_token});
+                }
+            }).bind(this)} />
 
         var inner_ui = null;
         if (screenDimmed || (!cardIn && connectionStatus)) {

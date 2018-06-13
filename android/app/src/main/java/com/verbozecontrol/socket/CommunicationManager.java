@@ -1,17 +1,30 @@
 package com.verbozecontrol.socket;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
+
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
+import java.security.cert.CertificateFactory;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 public class CommunicationManager implements Runnable {
     public static class OnConnectedCallback {
@@ -31,24 +44,28 @@ public class CommunicationManager implements Runnable {
     }
 
     private final int BUFFER_SIZE = 256;
+    private String name = "";
     private String[] commandsBuffer;
     private int bufferStart, bufferEnd;
     private String target_IP = "";
     private int target_port = 0;
-    private boolean connected = false;
+    private boolean use_ssl = false;
+    private SSLContext sslContext = null;
+    private SSLSocketFactory sslSocketFactory = null;
     private boolean is_running = true;
-    private ReentrantLock lock = new ReentrantLock();
+    private boolean is_socket_dead = false;
+    private boolean auto_connect = true;
 
     private OnConnectedCallback m_connected_callback = null;
     private OnDataCallback m_data_callback = null;
     private OnDisconnectedCallback m_disconnected_callback = null;
 
     public static CommunicationManager Create (String name,
-        OnConnectedCallback ccb,
-        OnDataCallback dcb,
-        OnDisconnectedCallback dccb) {
+                                               OnConnectedCallback ccb,
+                                               OnDataCallback dcb,
+                                               OnDisconnectedCallback dccb) {
 
-        CommunicationManager m = new CommunicationManager();
+        CommunicationManager m = new CommunicationManager(name);
         m.m_connected_callback = ccb;
         m.m_data_callback = dcb;
         m.m_disconnected_callback = dccb;
@@ -97,7 +114,6 @@ public class CommunicationManager implements Runnable {
                     }
                 } catch (SocketTimeoutException e) {
                 } catch (Exception e) {
-                    e.printStackTrace();
                 } finally {
                     if (s != null && s.isConnected())
                         s.close();
@@ -107,7 +123,8 @@ public class CommunicationManager implements Runnable {
         discoverer.start();
     }
 
-    private CommunicationManager() {
+    private CommunicationManager(String n) {
+        name = n;
     }
 
     public synchronized void addToQueue(String cmd) {
@@ -117,18 +134,87 @@ public class CommunicationManager implements Runnable {
             commandsBuffer[bufferEnd] = cmd;
             bufferEnd = (bufferEnd+1) % BUFFER_SIZE;
         }
+        notify();
     }
 
-    public synchronized void SetServerAddress(String IP, int port) {
+    public synchronized void SetSSLKey(String key, String certificate, String password) {
+        try {
+            KeyManager[] keyManagers = new KeyManager[] { null };
+            TrustManager[] trustManagers = new TrustManager[] { null };
+
+            // load truststore certificate
+            try {
+                if (certificate != null) {
+                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                    KeyStore trustStore = KeyStore.getInstance("AndroidKeyStore");
+                    trustStore.load(null);
+
+                    X509Certificate cacert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certificate.getBytes()));
+                    trustStore.setCertificateEntry("server_alias", cacert);
+
+                    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    trustManagerFactory.init(trustStore);
+                    trustManagers = trustManagerFactory.getTrustManagers();
+                }
+            } catch (Exception e) {
+                trustManagers = new TrustManager[] { new X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                    }
+
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                    }
+                } };
+            }
+
+            // load client certificate
+            try {
+                if (key != null) {
+                    KeyStore keyStore = KeyStore.getInstance("BKS");
+                    keyStore.load(new ByteArrayInputStream(key.getBytes()), password.toCharArray());
+                    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                    keyManagerFactory.init(keyStore, password.toCharArray());
+                    keyManagers = keyManagerFactory.getKeyManagers();
+                }
+            } catch (Exception e) {}
+
+            // create ssl context
+            sslContext = SSLContext.getInstance("TLSv1.2");
+            sslContext.init(keyManagers, trustManagers, null);
+            sslSocketFactory = sslContext.getSocketFactory();
+        } catch (Exception e) {}
+    }
+
+    public synchronized void SetServerAddress(String IP, int port, boolean ssl) {
         bufferEnd = bufferStart;
         target_port = port;
+        use_ssl = ssl && sslSocketFactory != null;
         target_IP = IP;
+        auto_connect = true;
+        notify();
     }
 
-    public void Stop() {
-        lock.lock();
+    public synchronized void Stop() {
         is_running = false;
-        lock.unlock();
+        notify();
+    }
+
+    public synchronized void StartConnecting() {
+        auto_connect = true;
+        notify();
+    }
+
+    public synchronized void StopConnecting() {
+        auto_connect = false;
+        MarkSocketDead(true);
+    }
+
+    public synchronized void MarkSocketDead(boolean is_dead) {
+        is_socket_dead = is_dead;
+        notify();
     }
 
     @Override
@@ -137,54 +223,82 @@ public class CommunicationManager implements Runnable {
         for (int i = 0; i < BUFFER_SIZE; i++)
             commandsBuffer[i] = null;
         bufferEnd = bufferStart = 0;
+        boolean connected = false;
         Socket socket = null;
         OutputStream output = null;
         InputStream input = null;
         String IP = target_IP;
         int port = target_port;
+        boolean ssl = use_ssl;
+        boolean reconnect = auto_connect;
         long beat_timer = 0;
-        ArrayList<Byte> buffer = new ArrayList<>();
+
+        CommunicationReader reader = new CommunicationReader(this);
+        Thread thread = new Thread(reader, name+"-reader");
+        thread.start();
 
         while (true) {
-            // check if we're done
-            lock.lock();
-            if (!is_running) {
-                lock.unlock();
-                try {
-                    if (socket != null)
-                        socket.close();
-                } catch (Exception e) {}
-                break;
-            }
-            lock.unlock();
-
             long curTime = System.currentTimeMillis();
-            if (IP != target_IP) {
-                try {
-                    if (socket != null) {
-                        socket.close();
-                        try {
-                            m_disconnected_callback.onDisconnected();
-                        } catch (Exception e) {}
-                    }
-                } catch (Exception e) {}
+
+            synchronized(this) {
+                // check if we're done
+                if (!is_running) {
+                    reader.SetStream(null);
+                    disconnectSocket(socket, input, output);
+                    socket = null;
+                    break;
+                }
+
+                // Check if new connection is requested
+                if (IP != target_IP || port != target_port || ssl != use_ssl) {
+                    reader.SetStream(null);
+                    disconnectSocket(socket, input, output);
+                    socket = null;
+
+                    socket = null;
+                    connected = false;
+                    ssl = use_ssl;
+                    IP = target_IP;
+                    port = target_port;
+                }
+
+                reconnect = auto_connect;
+            }
+
+            if (is_socket_dead) {
+                MarkSocketDead(false);
+                reader.SetStream(null);
+                disconnectSocket(socket, input, output);
                 socket = null;
                 connected = false;
-                IP = target_IP;
-                port = target_port;
             }
 
             if (IP == "")
                 continue;
 
-            if (!connected) {
+            if (!connected && reconnect) {
                 try {
                     InetAddress addr = InetAddress.getByName(IP);
-                    socket = new Socket(addr, port);
+                    if (!ssl) {
+                        socket = new Socket(addr, port);
+                    } else {
+                        socket = (SSLSocket) sslSocketFactory.createSocket();
+                        SSLSocket sslsock = (SSLSocket)socket;
+                        sslsock.setEnabledProtocols(new String[] {"TLSv1.2"});
+                        sslsock.setUseClientMode(true);
+                        sslsock.setEnabledCipherSuites(new String[] {
+                            "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+                            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+                            "TLS_RSA_WITH_AES_128_CBC_SHA256",
+                        });
+                        sslsock.connect(new InetSocketAddress(addr, port));
+                        sslsock.startHandshake();
+                    }
                     output = socket.getOutputStream();
                     input = socket.getInputStream();
+                    reader.SetStream(input);
                     connected = true;
-                    buffer.clear();
+                    beat_timer = curTime;
                     try {
                         m_connected_callback.onConnected();
                     } catch (Exception e) {}
@@ -196,32 +310,11 @@ public class CommunicationManager implements Runnable {
                 }
             }
 
-            // we are connected, do connected stuff
-            try {
-                int num_available = input.available();
-                if (num_available > 0) {
-                    byte[] read_bytes = new byte[num_available];
-                    int num_read = input.read(read_bytes);
-                    for (int i = 0; i < num_read; i++)
-                        buffer.add(read_bytes[i]);
-                }
-            } catch (IOException e) {
-                connected = false;
-            }
-            ProcessBuffer(buffer);
-
             // send an empty message just to check if the connection is dead
             if (curTime - beat_timer > 3000) {
                 beat_timer = curTime;
-                try {
-                    output.write(2);
-                    output.write(0);
-                    output.write(0);
-                    output.write(0);
-                    output.write("{}".getBytes());
-                } catch (Exception e) {
+                if (!SendCommand(output, "{}"))
                     connected = false;
-                }
             }
 
             int bufend = bufferEnd;
@@ -229,19 +322,8 @@ public class CommunicationManager implements Runnable {
                 String cmd = commandsBuffer[bufferStart];
                 commandsBuffer[bufferStart] = null;
                 bufferStart = (bufferStart + 1) % BUFFER_SIZE;
-                try {
-                    byte[] cmdBytes = new byte[4 + cmd.length()];
-
-                    cmdBytes[0] = (byte)((cmd.length() & 0xFF));
-                    cmdBytes[1] = (byte)((cmd.length() << 8) & 0xFF);
-                    cmdBytes[2] = (byte)((cmd.length() << 16) & 0xFF);
-                    cmdBytes[3] = (byte)((cmd.length() << 24) & 0xFF);
-
-                    System.arraycopy(cmd.getBytes(), 0, cmdBytes, 4, cmd.length());
-                    output.write(cmdBytes);
-                } catch (IOException e) {
+                if (!SendCommand(output, cmd))
                     connected = false;
-                }
             }
 
             try {
@@ -250,7 +332,7 @@ public class CommunicationManager implements Runnable {
 
             synchronized (this) {
                 try {
-                    wait(10);
+                    wait(1000);
                 } catch (InterruptedException e) {}
             }
 
@@ -260,43 +342,122 @@ public class CommunicationManager implements Runnable {
             else if (socket.isConnected() == false)
                 connected = false;
 
-            if (!connected) {
-                try {
-                    if (socket != null) {
-                        socket.close();
-                        try {
-                            m_disconnected_callback.onDisconnected();
-                        } catch (Exception e) {}
-                    }
-                } catch (Exception e) {}
+            if (!connected && socket != null) {
+                reader.SetStream(null);
+                disconnectSocket(socket, input, output);
+                socket = null;
             }
         }
+
+        reader.Stop();
     }
 
-    private void ProcessBuffer(ArrayList<Byte> buffer) {
-        while (buffer.size() >= 4) {
-            int payload_size =
-                ((((int)buffer.get(0)) & 0xFF)      ) |
-                ((((int)buffer.get(1)) & 0xFF) << 8 ) |
-                ((((int)buffer.get(2)) & 0xFF) << 16) |
-                ((((int)buffer.get(3)) & 0xFF) << 24);
+    private boolean SendCommand(OutputStream output, String cmd) {
+        try {
+            byte[] cmdBytes = new byte[4 + cmd.length()];
 
-            if (buffer.size() >= 4 + payload_size) {
-                List<Byte> payload = buffer.subList(4, 4 + payload_size);
+            cmdBytes[0] = (byte)((cmd.length() & 0xFF));
+            cmdBytes[1] = (byte)((cmd.length() << 8) & 0xFF);
+            cmdBytes[2] = (byte)((cmd.length() << 16) & 0xFF);
+            cmdBytes[3] = (byte)((cmd.length() << 24) & 0xFF);
 
-                byte[] byte_array = new byte[payload.size()];
-                for (int i = 0; i < payload.size(); i++)
-                    byte_array[i] = payload.get(i);
-                String payload_string = new String(byte_array);
+            System.arraycopy(cmd.getBytes(), 0, cmdBytes, 4, cmd.length());
+            output.write(cmdBytes);
+        } catch (Exception e) {
+            return false;
+        }
 
-                for (int i = 0; i < 4 + payload_size; i++)
-                    buffer.remove(0);
+        return true;
+    }
 
+    private void disconnectSocket(Socket socket, InputStream input, OutputStream output) {
+        try {
+            if (socket != null) {
+                try { input.close(); } catch (Exception e) {}
+                try { output.close(); } catch (Exception e) {}
+                try { socket.close(); } catch (Exception e) {}
                 try {
-                    m_data_callback.onData(payload_string);
+                    m_disconnected_callback.onDisconnected();
                 } catch (Exception e) {}
-            } else
-                break;
+            }
+        } catch (Exception e) {}
+    }
+
+    private static class CommunicationReader implements Runnable {
+        private CommunicationManager manager;
+        private InputStream input_stream = null;
+        private boolean is_running = true;
+
+        public CommunicationReader(CommunicationManager mgr) {
+            manager = mgr;
+        }
+
+        public synchronized void SetStream(InputStream s) {
+            input_stream = s;
+        }
+
+        public synchronized void Stop() {
+            is_running = false;
+        }
+
+        @Override
+        public void run() {
+            byte[] tmp = new byte[1024];
+            ArrayList<Byte> buffer = new ArrayList<>();
+            InputStream input = null;
+
+            while (is_running) {
+                synchronized(this) {
+                    if (input_stream != input) {
+                        input = input_stream;
+                        buffer.clear();
+                    }
+                }
+
+                if (input != null) {
+                    try {
+                        int nread = input.read(tmp, 0, 1024);
+                        if (nread < 0) {
+                            throw new Exception();
+                        } else {
+                            for (int i = 0; i < nread; i++)
+                                buffer.add(tmp[i]);
+
+                            ProcessBuffer(buffer);
+                        }
+                    } catch (Exception e) {
+                        SetStream(null);
+                        manager.MarkSocketDead(true);
+                    }
+                }
+            }
+        }
+
+        private void ProcessBuffer(ArrayList<Byte> buffer) {
+            while (buffer.size() >= 4) {
+                int payload_size =
+                        ((((int)buffer.get(0)) & 0xFF)      ) |
+                        ((((int)buffer.get(1)) & 0xFF) << 8 ) |
+                        ((((int)buffer.get(2)) & 0xFF) << 16) |
+                        ((((int)buffer.get(3)) & 0xFF) << 24);
+
+                if (buffer.size() >= 4 + payload_size) {
+                    List<Byte> payload = buffer.subList(4, 4 + payload_size);
+
+                    byte[] byte_array = new byte[payload.size()];
+                    for (int i = 0; i < payload.size(); i++)
+                        byte_array[i] = payload.get(i);
+                    String payload_string = new String(byte_array);
+
+                    for (int i = 0; i < 4 + payload_size; i++)
+                        buffer.remove(0);
+
+                    try {
+                        manager.m_data_callback.onData(payload_string);
+                    } catch (Exception e) {}
+                } else
+                    break;
+            }
         }
     }
 }

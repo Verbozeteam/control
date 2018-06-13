@@ -82,9 +82,27 @@ public class SocketModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void connect(String address, Integer port) {
+    public void setSSLKey(String key, String cert, String password) {
         if (comm_mgr != null)
-            comm_mgr.SetServerAddress(address, port);
+            comm_mgr.SetSSLKey(key, cert, password);
+    }
+
+    @ReactMethod
+    public void connect(String address, Integer port, Boolean is_ssl) {
+        if (comm_mgr != null)
+            comm_mgr.SetServerAddress(address, port, is_ssl);
+    }
+
+    @ReactMethod
+    public void startConnecting() {
+        if (comm_mgr != null)
+            comm_mgr.StartConnecting();
+    }
+
+    @ReactMethod
+    public void stopConnecting() {
+        if (comm_mgr != null)
+            comm_mgr.StopConnecting();
     }
 
     @ReactMethod
@@ -96,7 +114,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void disconnect() {
         if (comm_mgr != null)
-            comm_mgr.SetServerAddress("", 0);
+            comm_mgr.SetServerAddress("", 0, false);
     }
 
     @ReactMethod
@@ -156,8 +174,23 @@ public class SocketModule extends ReactContextBaseJavaModule {
         }
 
         @ReactMethod
-        public void connect(String address, Integer port) {
-            super.connect(address, port);
+        public void setSSLKey(String key, String cert, String password) {
+            super.setSSLKey(key, cert, password);
+        }
+
+        @ReactMethod
+        public void connect(String address, Integer port, Boolean use_ssl) {
+            super.connect(address, port, use_ssl);
+        }
+
+        @ReactMethod
+        public void startConnecting() {
+            super.startConnecting();
+        }
+
+        @ReactMethod
+        public void stopConnecting() {
+            super.stopConnecting();
         }
 
         @ReactMethod

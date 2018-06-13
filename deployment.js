@@ -13,12 +13,12 @@ if (default_passphrase === ("{"+"{PASSWORD}}")) default_passphrase = "notdefault
 if (default_ip === ("{"+"{TARGET_IP}}")) default_ip = "192.168.10.1";
 if (default_port === ("{"+"{TARGET_PORT}}")) default_port = 7990;
 if (default_QRCode === ("{"+"{QR_CODE}}")) default_QRCode = "ws://192.168.10.1:7986/";
-else if (typeof(default_port) === "string") default_port = parseInt(default_port);
+if (typeof(default_port) === "string") default_port = parseInt(default_port);
 
 try {
     if (__DEV__) {
-        default_ip = "192.168.10.1";
-        default_port = 7990;
+        default_ip = "10.11.28.190";
+        default_port = 4568;
     }
 } catch (e) {}
 
