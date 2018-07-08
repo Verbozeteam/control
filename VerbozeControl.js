@@ -48,6 +48,7 @@ function mapDispatchToProps(dispatch) {
         setThingsStates: thing_to_state => {dispatch(connectionActions.set_things_states(thing_to_state));},
         setLanguage: l => {dispatch(settingsActions.set_language(l));},
         setScreenDimmingState: is_dim => {dispatch(screenActions.dim_screen(is_dim));},
+        setDisplayParams: p => {dispatch(screenActions.set_display_params(p));},
     };
 }
 
@@ -83,7 +84,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         /** Connect to the socket communication library */
         console.log("Initializing sockets...");
         SocketCommunication.initialize();
-        SocketCommunication.setSSLKey(null, null, "");
+        //SocketCommunication.setSSLKey(null, null, "");
         SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
         SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
@@ -199,6 +200,10 @@ class VerbozeControl extends React.Component<{}, StateType> {
             if (ConfigManager.thingMetas[tid].category === 'alarm_system') {
                 this.setState({alarmThingId: tid});
             }
+        }
+
+        if (config.display) {
+            this.props.setDisplayParams(config.display);
         }
     }
 

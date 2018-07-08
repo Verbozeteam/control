@@ -99,7 +99,7 @@ class LightSwitch extends React.Component<PropsType, StateType> {
         var intensity_after_switch = my_category === 'light_switches' ? (1 - intensity) : (intensity > 0 ? 0 : 100);
 
         var on_press = (() => this.changeIntensity(intensity_after_switch)).bind(this);
-        var name = I18n.t(!id ? "All" : ConfigManager.thingMetas[id].name);
+        var name = I18n.t(!id ? displayConfig.allSwitchName : ConfigManager.thingMetas[id].name);
 
         switch (displayConfig.UIStyle) {
             case 'modern':

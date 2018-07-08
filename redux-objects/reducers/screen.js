@@ -1,11 +1,16 @@
 
-import { DIM_SCREEN, UNDIM_SCREEN, SET_PAGING_LOCK } from '../actions/screen';
+import {
+    DIM_SCREEN,
+    UNDIM_SCREEN,
+    SET_PAGING_LOCK,
+    SET_DISPLAY_PARAMS,
+} from '../actions/screen';
 
 import {
     defaultUIStyle,
 } from '../../deployment';
 
-var displayConfig ={
+var displayConfig = {
     SIMPLE_UI: {
         UIStyle: 'simple',
         accentColor: '#3B9FFF',
@@ -27,6 +32,7 @@ var displayConfig ={
         lightUI: false,
         displayQRCode: false,
         curtainsDisplayAllSwitch: false,
+        allSwitchName: 'All',
     },
     SIMPLE_LIGHT_UI: { /* filled below... */ },
     MODERN_UI: {
@@ -49,6 +55,7 @@ var displayConfig ={
         acTextColor: '#FFFFFF',
         displayQRCode: true,
         curtainsDisplayAllSwitch: true,
+        allSwitchName: 'All',
     }
 };
 displayConfig.SIMPLE_LIGHT_UI = {
@@ -85,8 +92,24 @@ module.exports = function (state=defaultState, action) {
         case SET_PAGING_LOCK:
             newState.pagingLock = action.lock;
             break;
+        case SET_DISPLAY_PARAMS:
+            mergeDicts(newState.displayConfig, action.params);
+            break;
         default:
             return state;
     }
     return newState;
 };
+
+function mergeDicts(base_dict: Object, new_dict: Object) {
+    var keys = Object.keys(new_dict);
+    for (var kindex in keys) {
+        k = keys[kindex];
+        if (!(k in base_dict))
+            base_dict[k] = cloneObject(new_dict[k]);
+        else if (typeof(base_dict[k]) == 'object' && typeof(new_dict[k]) == 'object')
+            mergeDicts(base_dict[k], new_dict[k]);
+        else
+            base_dict[k] = cloneObject(new_dict[k]);
+    }
+}
