@@ -9,7 +9,8 @@ import {
     SET_THING_STATE,
     SET_THINGS_STATES,
     SET_THING_PARTIAL_STATE,
-    SET_THINGS_PARTIAL_STATES
+    SET_THINGS_PARTIAL_STATES,
+    SET_TARGET_SSID
 } from '../actions/connection';
 
 import {
@@ -46,6 +47,10 @@ module.exports = function (state=defaultState, action) {
     switch(action.type) {
         case SET_CONNECTION_STATUS:
             newState.isConnected = action.isConnected;
+            break;
+        case SET_TARGET_SSID:
+            newState.targetSSID = action.ssid;
+            newState.targetPassphrase = action.passphrase;
             break;
         case ADD_DISCOVERED_DEVICE:
             var index = -1;

@@ -70,6 +70,9 @@ class DeviceDiscoveryView extends React.Component<any> {
 
         return (
             <View style={styles.container}>
+                <Text style={styles.header}>
+                  Device Discovery
+                </Text>
                 <View style={styles.button_container}>
                     <View style={styles.button}>
                         <Button
@@ -119,6 +122,10 @@ class DeviceListItem extends React.Component<DeviceListItemPropsType> {
 const styles = StyleSheet.create({
     container: {
         flex: 2,
+    },
+    header: {
+      fontFamily: 'HKNova-MediumR',
+      color: 'white'
     },
     button_container: {
         flexDirection: 'row',

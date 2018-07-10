@@ -49,6 +49,7 @@ function mapDispatchToProps(dispatch) {
         setLanguage: l => {dispatch(settingsActions.set_language(l));},
         setScreenDimmingState: is_dim => {dispatch(screenActions.dim_screen(is_dim));},
         setDisplayParams: p => {dispatch(screenActions.set_display_params(p));},
+        setTargetSSID: (s, p) => {dispatch(connectionActions.set_target_ssid(s, p));},
     };
 }
 
@@ -106,7 +107,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
             /** Load saved language */
             var lang = UserPreferences.get('language');
             if (lang) {
-                console.log('Language loaded from preferences: ', lang);
+                console.log('Language loaded from preferences:', lang);
                 this.props.setLanguage(lang);
                 I18n.setLanguage(lang);
             }
@@ -117,8 +118,17 @@ class VerbozeControl extends React.Component<{}, StateType> {
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
             if (cur_device) {
-                console.log('Device loaded from preferences: ', cur_device);
+                console.log('Device loaded from preferences:', cur_device);
                 this.props.setCurrentDevice(cur_device);
+            }
+
+            /** Load target SSID and passphrase */
+            var wifi_ssid = UserPreferences.get('wifi_ssid');
+            var wifi_passphrase = UserPreferences.get('wifi_passphrase');
+            if (wifi_ssid) {
+              console.log('Target SSID loaded from preferences:', wifi_ssid);
+              this.props.setTargetSSID(wifi_ssid, wifi_passphrase);
+              this.connectWifi();
             }
         }).bind(this));
 

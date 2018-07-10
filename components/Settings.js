@@ -15,6 +15,7 @@ const UserPreferences = require('../js-api-utils/UserPreferences');
 
 import Panel from './Panel';
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
+const WifiSelector = require('./WifiSelector');
 
 type LanguageType = 'en' | 'ar' | 'ru' | 'de' | 'zh';
 
@@ -70,8 +71,10 @@ class Settings extends React.Component<any> {
         );
 
         var device_discovery = null;
+        var wifi_selector = null;
         if (devMode) {
             device_discovery = <DeviceDiscoveryView />
+            wifi_selector = <WifiSelector />
         }
 
         var settings = [];
@@ -131,6 +134,7 @@ class Settings extends React.Component<any> {
                     <View style={{ flex: 5 }}>
                         {settings_views}
                         {device_discovery}
+                        {wifi_selector}
                     </View>
                     <View style={{ flex: 3, justifyContent: 'flex-end', alignItems: 'flex-end'}}>
                         {qr_code_view}
