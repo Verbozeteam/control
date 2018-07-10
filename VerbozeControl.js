@@ -36,6 +36,7 @@ function mapStateToProps(state) {
         language: state.settings.language,
         targetSSID: state.connection.targetSSID,
         targetPassphrase: state.connection.targetPassphrase,
+        usingSSL: state.connection.usingSSL
     };
 }
 
@@ -50,6 +51,7 @@ function mapDispatchToProps(dispatch) {
         setScreenDimmingState: is_dim => {dispatch(screenActions.dim_screen(is_dim));},
         setDisplayParams: p => {dispatch(screenActions.set_display_params(p));},
         setTargetSSID: (s, p) => {dispatch(connectionActions.set_target_ssid(s, p));},
+        setUsingSSL: b => {dispatch(connectionActions.set_using_ssl(b));}
     };
 }
 
@@ -126,9 +128,19 @@ class VerbozeControl extends React.Component<{}, StateType> {
             var wifi_ssid = UserPreferences.get('wifi_ssid');
             var wifi_passphrase = UserPreferences.get('wifi_passphrase');
             if (wifi_ssid) {
-              console.log('Target SSID loaded from preferences:', wifi_ssid);
-              this.props.setTargetSSID(wifi_ssid, wifi_passphrase);
-              this.connectWifi();
+                console.log('Target SSID loaded from preferences:', wifi_ssid);
+                this.props.setTargetSSID(wifi_ssid, wifi_passphrase);
+                this.connectWifi();
+            }
+
+            /** Load whether using SSL or not */
+            var using_ssl = UserPreferences.get('using_ssl');
+            if (using_ssl) {
+                this.props.setUsingSSL(true);
+                SocketCommunication.setSSLKey(null, null, '');
+            } else {
+                this.props.setUsingSSL(false);
+                SocketCommunication.disableSSL();
             }
         }).bind(this));
 
