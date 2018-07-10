@@ -185,7 +185,7 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
 
     renderMenuItem(item: MenuItemType, index: number) {
         /* give name title case */
-        const name = item.name.split(' ').map(
+        const name = item.split(' ').map(
             x => x[0].toUpperCase() + x.slice(1)).join(' ');
 
         return (
@@ -193,13 +193,13 @@ class KitchenPanel extends React.Component<PropsType, StateType> {
                 <Text style={styles.menu_item_text}>{name}</Text>
                 <View style={styles.menu_item_actions}>
                     <TouchableWithoutFeedback
-                        onPressIn={() => this.incrementMenuItemQuantity(item.name)}>
+                        onPressIn={() => this.incrementMenuItemQuantity(item)}>
                         <View style={[styles.button, {marginRight: 20}]}>
                             <Text style={styles.button_text}>Add +</Text>
                         </View>
                     </TouchableWithoutFeedback>
                     <TouchableWithoutFeedback
-                        onPressIn={() => this.decrementMenuItemQuantity(item.name)}>
+                        onPressIn={() => this.decrementMenuItemQuantity(item)}>
                         <View style={styles.button}>
                             <Text style={styles.button_text}>Remove -</Text>
                         </View>
@@ -396,6 +396,9 @@ const styles = StyleSheet.create({
     },
     menu_item_text: {
         color: Colors.white,
+        lineHeight: 16,
+        maxWidth: 200,
+        flexShrink: 1,
         fontSize: 20,
         ...TypeFaces.light
     },
