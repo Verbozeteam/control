@@ -109,7 +109,7 @@ class DeviceListItem extends React.Component<DeviceListItemPropsType> {
 
         return (
             <TouchableOpacity style={styles.list}
-                onPressIn={() => {setDevice(device);}}>
+                onPress={() => {setDevice(device);}}>
                 <Text style={[styles.list_text,
                     (selected) ? styles.selected : null]}>
                     {title}
