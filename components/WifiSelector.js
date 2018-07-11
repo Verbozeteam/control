@@ -147,10 +147,11 @@ class WifiSelector extends React.Component<PropsType, StateType> {
           <Dialog.Description>
             {selected_ssid}
           </Dialog.Description>
-          <Dialog.Input onChangeText={(passphrase) => {
-            this.setState({
-              passphrase
-            });
+          <Dialog.Input autoCapitalize={'none'}
+            onChangeText={(passphrase) => {
+              this.setState({
+                passphrase
+              });
           }}/>
           <Dialog.Button label={'Cancel'} onPress={() => {
             this.setState({
