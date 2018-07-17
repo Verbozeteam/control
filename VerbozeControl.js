@@ -3,7 +3,7 @@ if (!__DEV__) {
 }
 
 import * as React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, ToastAndroid } from 'react-native';
 import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
@@ -91,7 +91,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
         SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
-        SocketCommunication.setOnRequireAuthentication(() => this.setState({authPasswordPage: true}));
+        SocketCommunication.setOnRequireAuthentication(this.onAuthenticationRequired.bind(this));
         ConfigManager.initialize(SocketCommunication); // this registers SocketCommunication.setOnMessage
 
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
@@ -106,6 +106,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
         UserPreferences.load((() => {
             console.log("preferences loaded");
 
+            ToastAndroid.show('Loaded user preferences', ToastAndroid.SHORT);
+
             /** Load saved language */
             var lang = UserPreferences.get('language');
             if (lang) {
@@ -116,6 +118,16 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
             /** Load authentication token */
             SocketCommunication.setAuthenticationToken(UserPreferences.get('authentication-token'));
+
+            /** Load whether using SSL or not */
+            var using_ssl = UserPreferences.get('using_ssl');
+            if (using_ssl) {
+                this.props.setUsingSSL(true);
+                SocketCommunication.setSSLKey(null, null, '');
+            } else {
+                this.props.setUsingSSL(false);
+                SocketCommunication.disableSSL();
+            }
 
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
@@ -131,16 +143,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 console.log('Target SSID loaded from preferences:', wifi_ssid);
                 this.props.setTargetSSID(wifi_ssid, wifi_passphrase);
                 this.connectWifi();
-            }
-
-            /** Load whether using SSL or not */
-            var using_ssl = UserPreferences.get('using_ssl');
-            if (using_ssl) {
-                this.props.setUsingSSL(true);
-                SocketCommunication.setSSLKey(null, null, '');
-            } else {
-                this.props.setUsingSSL(false);
-                SocketCommunication.disableSSL();
             }
         }).bind(this));
 
@@ -227,6 +229,14 @@ class VerbozeControl extends React.Component<{}, StateType> {
         if (config.display) {
             this.props.setDisplayParams(config.display);
         }
+
+        ToastAndroid.show('Loaded new configuration', ToastAndroid.SHORT);
+    }
+
+    onAuthenticationRequired(is_required) {
+        this.setState({authPasswordPage: is_required});
+        if (is_required)
+            ToastAndroid.show('Verboze system requires authentication', ToastAndroid.SHORT);
     }
 
     onHotelControlsChanged(meta: ThingMetadataType, hcState: ThingStateType) {
@@ -240,12 +250,14 @@ class VerbozeControl extends React.Component<{}, StateType> {
         SocketCommunication.sendMessage({
             code: 0
         });
+        ToastAndroid.show('Connected to Verboze system', ToastAndroid.SHORT);
     }
 
     handleSocketDisconnected() {
         console.log('Socket disconnected!');
         this.props.setConnectionStatus(false);
         this.props.setConfig({});
+        ToastAndroid.show('Disconnected from Verboze system', ToastAndroid.SHORT);
     }
 
     handleDeviceDiscovered(device: DiscoveredDeviceType) {

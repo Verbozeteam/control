@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import QRCode from 'react-native-qrcode';
-import { View, Text, StyleSheet, Picker } from 'react-native';
+import { View, Text, StyleSheet, Picker, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TypeFaces } from '../constants/styles';
@@ -12,6 +12,7 @@ const settingsActions = require ('../redux-objects/actions/settings');
 
 const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../js-api-utils/UserPreferences');
+import { SocketCommunication } from '../js-api-utils/SocketCommunication';
 
 import Panel from './Panel';
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
@@ -31,7 +32,6 @@ function mapStateToProps(state) {
     return {
         language: state.settings.language,
         devMode: state.settings.devMode,
-        qrCode: state.connection.QRCodeAddress,
         displayConfig: state.screen.displayConfig,
     };
 }
@@ -61,7 +61,7 @@ class Settings extends React.Component<any> {
     }
 
     render() {
-        const { language, devMode, qrCode, displayConfig } = this.props;
+        const { language, devMode, displayConfig } = this.props;
 
         var language_items = Object.keys(I18n._supported_languages).map((abbreviation, i) =>
             <Picker.Item key={'language-option-' + i}
@@ -109,18 +109,22 @@ class Settings extends React.Component<any> {
         }
 
         var qr_code_view = null;
-        if (displayConfig.displayQRCode && qrCode && qrCode !== "") {
+        if (displayConfig.QRCodeAddress !== "") {
             qr_code_view = (
                 <View>
                     <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
                     <View style={styles.qrcode_background}>
-                        <View style={styles.qrcode_component}>
-                            <QRCode
-                                value={qrCode}
-                                size={200}
-                                bgColor='black'
-                                fgColor='white' />
-                        </View>
+                        <TouchableWithoutFeedback
+                            onLongPress={() => SocketCommunication.sendMessage({code: 3})}
+                            delayLongPress={5000}>
+                            <View style={styles.qrcode_component}>
+                                <QRCode
+                                    value={displayConfig.QRCodeAddress}
+                                    size={200}
+                                    bgColor='black'
+                                    fgColor='white' />
+                            </View>
+                        </TouchableWithoutFeedback>
                     </View>
                 </View>
             );
