@@ -86,15 +86,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
     _wifi_timeout: any = undefined;
 
     componentWillMount() {
-        const path = RNFS.ExternalStorageDirectoryPath + '/test.txt';
-        console.log(path);
-        RNFS.appendFile(path, 'Lorem ipsum', 'utf8').then((success) => {
-          console.log('Successfully wrote to file');
-        }).catch((err) => {
-          console.log('Error writing to file');
-        });
-
-
         /* setup Sentry error logging */
         if (!__DEV__) {
             Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
