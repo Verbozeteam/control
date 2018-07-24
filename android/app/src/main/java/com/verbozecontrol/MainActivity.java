@@ -2,13 +2,17 @@ package com.verbozecontrol;
 
 import com.facebook.react.ReactActivity;
 import android.view.KeyEvent;
-import android.content.Intent;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.PowerManager;
 import java.lang.Thread;
 import org.devio.rn.splashscreen.SplashScreen;
+
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 
 public class MainActivity extends ReactActivity {
 
@@ -45,38 +49,27 @@ public class MainActivity extends ReactActivity {
             Thread.getDefaultUncaughtExceptionHandler();
 
         // create new exception handler that reboots the app after crashing
-        // FIXME: currently doesn't work
-        Thread.setDefaultUncaughtExceptionHandler(
-            new Thread.UncaughtExceptionHandler() {
-                @Override
-                public void uncaughtException(Thread thread,
-                    Throwable throwable) {
+        Thread.setDefaultUncaughtExceptionHandler(new RestartingExceptionHandler(this));
+    }
 
-                    restartApp();
-                    if (oldHandler != null) {
-                        oldHandler.uncaughtException(thread, throwable);
-                    } else {
-                        System.exit(2);
-                    }
-                }
+    public class RestartingExceptionHandler implements Thread.UncaughtExceptionHandler {
+            private Activity activity;
+            public RestartingExceptionHandler(Activity a) {
+                activity = a;
             }
-        );
-    }
-
-    /**
-     * Creates a new Intent that starts the app in a new Activity and releases
-     * any other instances of the Activity.
-     */
-    public void restartApp() {
-        Intent mIntent = getBaseContext().getPackageManager()
-            .getLaunchIntentForPackage(getBaseContext().getPackageName());
-
-        mIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
-            Intent.FLAG_ACTIVITY_CLEAR_TASK |
-            Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        startActivity(mIntent);
-    }
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+                Intent intent = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                | Intent.FLAG_ACTIVITY_NEW_TASK);
+                PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                AlarmManager mgr = (AlarmManager) getBaseContext().getSystemService(Context.ALARM_SERVICE);
+                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, pendingIntent);
+                activity.finish();
+                System.exit(2);
+            }
+        };
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
