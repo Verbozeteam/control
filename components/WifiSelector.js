@@ -240,7 +240,7 @@ class WifiListItem extends React.Component<WifiListItemPropsType> {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 3
+    flex: 2
   },
   header: {
     fontFamily: 'HKNova-MediumR',
