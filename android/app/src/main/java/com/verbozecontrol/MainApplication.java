@@ -5,9 +5,10 @@ import com.verbozecontrol.socket.*;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.devstepbcn.wifi.AndroidWifiPackage;
 import com.rnimmersive.RNImmersivePackage;
 import com.zmxv.RNSound.RNSoundPackage;
-import com.devstepbcn.wifi.AndroidWifiPackage;
+import com.skierkowski.WifiManager.*;
 import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import com.horcrux.svg.SvgPackage;
 import com.ninty.system.setting.SystemSettingPackage;
@@ -31,12 +32,13 @@ public class MainApplication extends Application implements ReactApplication {
         @Override
         protected List<ReactPackage> getPackages() {
             return Arrays.<ReactPackage>asList(
+                new WifiManager(),
                 new MainReactPackage(),
-            new RNImmersivePackage(),
-            new RNSoundPackage(),
             new AndroidWifiPackage(),
-            new SplashScreenReactPackage(),
-            new SvgPackage(),
+                new RNImmersivePackage(),
+                new RNSoundPackage(),
+                new SplashScreenReactPackage(),
+                new SvgPackage(),
                 new SystemSettingPackage(),
                 new LinearGradientPackage(),
                 new SocketPackage()

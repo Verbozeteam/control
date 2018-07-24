@@ -6,7 +6,7 @@ var default_port = "{{TARGET_PORT}}";
 var default_ssid = "{{SSID}}";
 var default_passphrase = "{{PASSWORD}}";
 
-if (defaultUIStyle === ("{"+"{UI_STYLE}}")) defaultUIStyle = "SIMPLE_UI";
+if (defaultUIStyle === ("{"+"{UI_STYLE}}")) defaultUIStyle = "MODERN_UI";
 if (default_ssid === ("{"+"{SSID}}")) default_ssid = "vbzatmn130";
 if (default_passphrase === ("{"+"{PASSWORD}}")) default_passphrase = "notdefaultatall";
 if (default_ip === ("{"+"{TARGET_IP}}")) default_ip = "192.168.10.1";

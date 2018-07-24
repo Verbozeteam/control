@@ -6,13 +6,14 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import wifi from 'react-native-android-wifi';
+// import WifiManager from 'react-native-wifi-manager';
 import Dialog from 'react-native-dialog';
 
 const connectionActions = require('../redux-objects/actions/connection');
 const UserPreferences = require('../js-api-utils/UserPreferences');
 const { SocketCommunication } = require('../js-api-utils/SocketCommunication');
 
-import type { WifiItemType } from '../js-api-utils/ConnectionTypes';
+// import type { WifiItemType } from '../js-api-utils/ConnectionTypes';
 
 function mapStateToProps(state) {
   return {
@@ -42,7 +43,7 @@ type PropsType = {
 };
 
 type StateType = {
-  wifi_list: Array<WifiItemType>,
+  wifi_list: Array<string>,
   current_ssid: string,
   selected_ssid: string,
   passphrase: string
@@ -80,6 +81,13 @@ class WifiSelector extends React.Component<PropsType, StateType> {
   }
 
   checkAvailableWifi() {
+    // WifiManager.list((wifi_list) => {
+    //   this.setState({
+    //     wifi_list
+    //   });
+    // }, (error) => {
+    //   console.erro(error);
+    // });
     wifi.loadWifiList((wifi_string_list) => {
       this.setState({
         wifi_list: JSON.parse(wifi_string_list)

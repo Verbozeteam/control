@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
 import wifi from 'react-native-android-wifi';
+import WifiManager from 'react-native-wifi-manager';
 import Immersive from 'react-native-immersive';
 
 import SplashScreen from 'react-native-splash-screen';
