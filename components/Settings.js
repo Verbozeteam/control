@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import QRCode from 'react-native-qrcode';
-import { View, Text, StyleSheet, Picker, TouchableWithoutFeedback } from 'react-native';
+import { View, Button, Text, StyleSheet, Picker, TouchableWithoutFeedback }
+  from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TypeFaces } from '../constants/styles';
@@ -60,6 +61,11 @@ class Settings extends React.Component<any> {
         this.props.setLanguage(itemValue);
     }
 
+    crashApp() {
+      console.log('Crash me pressed');
+      const will_crash = crash;
+    }
+
     render() {
         const { language, devMode, displayConfig } = this.props;
 
@@ -72,6 +78,10 @@ class Settings extends React.Component<any> {
 
         var device_discovery = null;
         var wifi_selector = null;
+        var crash_button = null;
+        crash_button = <Button title={'Crash me'} onPress={this.crashApp.bind(this)}
+          color={'red'} />;
+
         if (devMode) {
             device_discovery = <DeviceDiscoveryView />
             wifi_selector = <WifiSelector />
@@ -137,6 +147,7 @@ class Settings extends React.Component<any> {
                 <View style={{ flex: 1, flexDirection: 'row' }}>
                     <View style={{ flex: 5 }}>
                         {settings_views}
+                        {crash_button}
                         {device_discovery}
                         {wifi_selector}
                     </View>

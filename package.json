@@ -23,6 +23,7 @@
 		"react-native-immersive": "^1.1.0",
 		"react-native-linear-gradient": "^2.4.0",
 		"react-native-qrcode": "^0.2.6",
+		"react-native-sentry": "^0.38.2",
 		"react-native-sound": "^0.10.9",
 		"react-native-splash-screen": "^3.0.6",
 		"react-native-storage": "^0.2.2",
