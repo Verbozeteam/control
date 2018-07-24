@@ -5,6 +5,8 @@ if (!__DEV__) {
 import * as React from 'react';
 import { StyleSheet, View, Text, ToastAndroid } from 'react-native';
 import PropTypes from 'prop-types';
+import { Sentry } from 'react-native-sentry';
+const RNFS = require('react-native-fs');
 
 import { connect } from 'react-redux';
 
@@ -84,6 +86,27 @@ class VerbozeControl extends React.Component<{}, StateType> {
     _wifi_timeout: any = undefined;
 
     componentWillMount() {
+        const path = RNFS.ExternalStorageDirectoryPath + '/test.txt';
+        console.log(path);
+        RNFS.appendFile(path, 'Lorem ipsum', 'utf8').then((success) => {
+          console.log('Successfully wrote to file');
+        }).catch((err) => {
+          console.log('Error writing to file');
+        });
+
+
+        /* setup Sentry error logging */
+        if (!__DEV__) {
+            Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
+
+            Sentry.setShouldSendCallback((event) => {
+              const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+              RNFS.appendFile(path, JSON.stringify({crash: event}, null, 4), 'utf8');
+
+              return true;
+            });
+        }
+
         /** Connect to the socket communication library */
         console.log("Initializing sockets...");
         SocketCommunication.initialize();
