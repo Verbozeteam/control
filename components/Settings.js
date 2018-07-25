@@ -60,11 +60,11 @@ class Settings extends React.Component<any> {
         I18n.setLanguage(itemValue);
         this.props.setLanguage(itemValue);
     }
-
-    crashApp() {
-      console.log('Crash me pressed');
-      const will_crash = crash;
-    }
+    // 
+    // crashApp() {
+    //   console.log('Crash me pressed');
+    //   const will_crash = crash;
+    // }
 
     render() {
         const { language, devMode, displayConfig } = this.props;
@@ -78,13 +78,13 @@ class Settings extends React.Component<any> {
 
         var device_discovery = null;
         var wifi_selector = null;
-        var crash_button = null;
-        crash_button = <Button title={'Crash me'} onPress={this.crashApp.bind(this)}
-          color={'red'} />;
+        // var crash_button = null;
 
         if (devMode) {
             device_discovery = <DeviceDiscoveryView />
             wifi_selector = <WifiSelector />
+            // crash_button = <Button title={'Crash me'} onPress={this.crashApp.bind(this)}
+            //   color={'red'} />;
         }
 
         var settings = [];
@@ -147,7 +147,7 @@ class Settings extends React.Component<any> {
                 <View style={{ flex: 1, flexDirection: 'row' }}>
                     <View style={{ flex: 5 }}>
                         {settings_views}
-                        {crash_button}
+                        {/* {crash_button} */}
                         {device_discovery}
                         {wifi_selector}
                     </View>
