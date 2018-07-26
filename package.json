@@ -20,17 +20,22 @@
 		"react-native": "^0.50.4",
 		"react-native-android-wifi": "0.0.25",
 		"react-native-dialog": "^5.1.0",
+		"react-native-exception-handler": "^2.8.9",
+		"react-native-fs": "^2.10.14",
 		"react-native-immersive": "^1.1.0",
 		"react-native-linear-gradient": "^2.4.0",
 		"react-native-qrcode": "^0.2.6",
+		"react-native-sentry": "^0.38.2",
 		"react-native-sound": "^0.10.9",
+		"react-native-source-maps": "^1.0.0",
 		"react-native-splash-screen": "^3.0.6",
 		"react-native-storage": "^0.2.2",
 		"react-native-svg": "^5.5.1",
 		"react-native-system-setting": "^1.4.1",
 		"react-redux": "^5.0.7",
 		"redux": "^3.7.2",
-		"rgb-hex": "^2.1.0"
+		"rgb-hex": "^2.1.0",
+		"source-map": "^0.7.3"
 	},
 	"devDependencies": {
 		"babel-cli": "^6.26.0",

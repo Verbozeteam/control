@@ -30,9 +30,7 @@ var displayConfig = {
         textColor: '#FFFFFF',
         acTextColor: '#000000',
         lightUI: false,
-        displayQRCode: false,
         curtainsDisplayAllSwitch: false,
-        allSwitchName: 'All',
     },
     SIMPLE_LIGHT_UI: { /* filled below... */ },
     MODERN_UI: {
@@ -53,9 +51,7 @@ var displayConfig = {
         lightUI: false,
         textColor: '#FFFFFF',
         acTextColor: '#FFFFFF',
-        displayQRCode: true,
         curtainsDisplayAllSwitch: true,
-        allSwitchName: 'All',
     }
 };
 displayConfig.SIMPLE_LIGHT_UI = {
@@ -67,6 +63,18 @@ displayConfig.SIMPLE_LIGHT_UI = {
     },
     lightUI: true
 };
+
+commonDisplayConfig = {
+    QRCodeAddress: "",
+    allSwitchName: 'All',
+};
+
+for (var key in displayConfig) {
+    displayConfig[key] = {
+        ...displayConfig[key],
+        ...commonDisplayConfig,
+    };
+}
 
 let defaultState = {
     isDimmed: false,

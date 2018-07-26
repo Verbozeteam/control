@@ -1,9 +1,58 @@
+import { Sentry } from 'react-native-sentry';
+import StackTrace from 'stacktrace-js';
+const RNFS = require('react-native-fs');
+
+import {
+    setJSExceptionHandler,
+    getJSExceptionHandler,
+    setNativeExceptionHandler
+} from 'react-native-exception-handler';
+
+/* setup Sentry error logging */
 if (!__DEV__) {
-  console.log = () => {};
+    console.log = () => {};
+
+    // Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
+
+    // Sentry.setShouldSendCallback((event) => {
+    //     const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+    //         RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+    //         crash: event}, null, 4) + "==~~--==", 'utf8');
+
+    //     return true;
+    // });
+
+    const currentHandler = getJSExceptionHandler();
+    setJSExceptionHandler((error, isFatal) => {
+        console.log(error.stack);
+        try {
+            var frames = error.stack.split('\n').filter(L => L.match(/.*:.*:*./g)).map(f => {return {
+                function: f.split(':')[0],
+                line: f.split(':')[1],
+                column: f.split(':')[2]
+            }});
+            if (frames.length > 10)
+                frames = frames.slice(frames.length - 10);
+            const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+                RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+                    stack: frames,
+                    message: error.message,
+                    ...error,
+                }, null, 4) + "==~~--==", 'utf8');
+        } catch(E) {console.log(E)}
+        if (currentHandler)
+            currentHandler(error, isFatal);
+    });
+
+    setNativeExceptionHandler((exceptionString) => {
+        const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+            RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+            str: exceptionString}, null, 4) + "==~~--==", 'utf8');
+    });
 }
 
 import * as React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, ToastAndroid } from 'react-native';
 import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
@@ -91,7 +140,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
         SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
         SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
-        SocketCommunication.setOnRequireAuthentication(() => this.setState({authPasswordPage: true}));
+        SocketCommunication.setOnRequireAuthentication(this.onAuthenticationRequired.bind(this));
         ConfigManager.initialize(SocketCommunication); // this registers SocketCommunication.setOnMessage
 
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
@@ -106,6 +155,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
         UserPreferences.load((() => {
             console.log("preferences loaded");
 
+            ToastAndroid.show('Loaded user preferences', ToastAndroid.SHORT);
+
             /** Load saved language */
             var lang = UserPreferences.get('language');
             if (lang) {
@@ -116,6 +167,16 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
             /** Load authentication token */
             SocketCommunication.setAuthenticationToken(UserPreferences.get('authentication-token'));
+
+            /** Load whether using SSL or not */
+            var using_ssl = UserPreferences.get('using_ssl');
+            if (using_ssl) {
+                this.props.setUsingSSL(true);
+                SocketCommunication.setSSLKey(null, null, '');
+            } else {
+                this.props.setUsingSSL(false);
+                SocketCommunication.disableSSL();
+            }
 
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
@@ -131,16 +192,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 console.log('Target SSID loaded from preferences:', wifi_ssid);
                 this.props.setTargetSSID(wifi_ssid, wifi_passphrase);
                 this.connectWifi();
-            }
-
-            /** Load whether using SSL or not */
-            var using_ssl = UserPreferences.get('using_ssl');
-            if (using_ssl) {
-                this.props.setUsingSSL(true);
-                SocketCommunication.setSSLKey(null, null, '');
-            } else {
-                this.props.setUsingSSL(false);
-                SocketCommunication.disableSSL();
             }
         }).bind(this));
 
@@ -227,6 +278,14 @@ class VerbozeControl extends React.Component<{}, StateType> {
         if (config.display) {
             this.props.setDisplayParams(config.display);
         }
+
+        ToastAndroid.show('Loaded new configuration', ToastAndroid.SHORT);
+    }
+
+    onAuthenticationRequired(is_required) {
+        this.setState({authPasswordPage: is_required});
+        if (is_required)
+            ToastAndroid.show('Verboze system requires authentication', ToastAndroid.SHORT);
     }
 
     onHotelControlsChanged(meta: ThingMetadataType, hcState: ThingStateType) {
@@ -240,12 +299,14 @@ class VerbozeControl extends React.Component<{}, StateType> {
         SocketCommunication.sendMessage({
             code: 0
         });
+        ToastAndroid.show('Connected to Verboze system', ToastAndroid.SHORT);
     }
 
     handleSocketDisconnected() {
         console.log('Socket disconnected!');
         this.props.setConnectionStatus(false);
         this.props.setConfig({});
+        ToastAndroid.show('Disconnected from Verboze system', ToastAndroid.SHORT);
     }
 
     handleDeviceDiscovered(device: DiscoveredDeviceType) {

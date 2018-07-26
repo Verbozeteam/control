@@ -19,7 +19,6 @@ import {
     default_port,
     default_ssid,
     default_passphrase,
-    default_QRCode,
 } from '../../deployment';
 
 let defaultState = {
@@ -30,7 +29,6 @@ let defaultState = {
         name: "QSTP Device",
     },
     discoveredDevices: [],
-    QRCodeAddress: default_QRCode,
     targetSSID: default_ssid,
     targetPassphrase: default_passphrase,
 
