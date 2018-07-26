@@ -55,3 +55,6 @@ echo -e "\033[31mCommit: $commit\033[0m"
 echo "{\"commit\": \"$commit\"}" > deployment.txt
 adb push deployment.txt /sdcard/
 rm deployment.txt
+
+# Remove old crashlogs
+adb shell rm /sdcard/crashlog.txt

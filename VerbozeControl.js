@@ -1,18 +1,56 @@
 import { Sentry } from 'react-native-sentry';
+import StackTrace from 'stacktrace-js';
 const RNFS = require('react-native-fs');
+
+import {
+    setJSExceptionHandler,
+    getJSExceptionHandler,
+    setNativeExceptionHandler
+} from 'react-native-exception-handler';
+
 /* setup Sentry error logging */
 if (!__DEV__) {
-    console.log = () => {};
+    //console.log = () => {};
 
-    Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
+    // Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
 
-    Sentry.setShouldSendCallback((event) => {
-        const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
-            RNFS.appendFile(path, "==--~~==" + JSON.stringify({
-            crash: event}, null, 4) + "==~~--==", 'utf8');
+    // Sentry.setShouldSendCallback((event) => {
+    //     const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+    //         RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+    //         crash: event}, null, 4) + "==~~--==", 'utf8');
 
-        return true;
+    //     return true;
+    // });
+
+    const currentHandler = getJSExceptionHandler();
+    setJSExceptionHandler((error, isFatal) => {
+        console.log(error.stack);
+        try {
+            var frames = error.stack.split('\n')
+            console.log(frames);
+            frames = frames.filter(L => L.match(/.*:.*:*./g));
+            console.log(frames);
+            var frames = error.stack.split('\n').filter(L => L.match(/.*:.*:*./g)).map(f => {return {
+                function: f.split(':')[0],
+                line: f.split(':')[1],
+                column: f.split(':')[2]
+            }});
+            const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+                RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+                    stack: frames,
+                    message: error.message,
+                    ...error,
+                }, null, 4) + "==~~--==", 'utf8');
+        } catch(E) {console.log(E)}
+        if (currentHandler)
+            currentHandler(error, isFatal);
     });
+
+    // setNativeExceptionHandler((exceptionString) => {
+    //     const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+    //         RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+    //         str: exceptionString}, null, 4) + "==~~--==", 'utf8');
+    // });
 }
 
 import * as React from 'react';
@@ -185,8 +223,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         Immersive.on();
         Immersive.setImmersive(true);
-
-        this.breakMe();
     }
 
     componentDidMount() {
