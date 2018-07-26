@@ -1,16 +1,23 @@
+import { Sentry } from 'react-native-sentry';
+const RNFS = require('react-native-fs');
+/* setup Sentry error logging */
 if (!__DEV__) {
-  console.log = () => {};
+    console.log = () => {};
+
+    Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
+
+    Sentry.setShouldSendCallback((event) => {
+        const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+            RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+            crash: event}, null, 4) + "==~~--==", 'utf8');
+
+        return true;
+    });
 }
 
 import * as React from 'react';
 import { StyleSheet, View, Text, ToastAndroid } from 'react-native';
 import PropTypes from 'prop-types';
-import { Sentry } from 'react-native-sentry';
-const RNFS = require('react-native-fs');
-// import { initSourceMaps, getStackTrace } from 'react-native-source-maps';
-// import ErrorUtils from "ErrorUtils";
-// import SourceMap from 'source-map';
-// import StackTrace from 'stacktrace-js';
 
 import { connect } from 'react-redux';
 
@@ -90,62 +97,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
     _wifi_timeout: any = undefined;
 
     componentWillMount() {
-        // initSourceMaps({sourceMapBundle: 'index.android.bundle.map'});
-
-        /* setup Sentry error logging */
-        if (!__DEV__) {
-            Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
-
-            Sentry.setShouldSendCallback((event) => {
-              const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
-              RNFS.appendFile(path, JSON.stringify({
-                crash: event}, null, 4), 'utf8');
-
-              return true;
-            });
-        }
-
-        // (async () => {
-        //   const sourcemap_contents = await RNFS.readFileAssets('index.android.bundle.map');
-        //   const sourcemap = JSON.parse(sourcemap_contents);
-        //   const map_consumer = new SourceMap.SourceMapConsumer(sourcemap);
-        //
-        //   const sourceMapper = (row) => {
-        //     return map_consumer.originalPositionFor({
-        //       line: row.lineNumber,
-        //       column: row.columnNumber
-        //     });
-        //   }
-        //
-        //   const stackTracer = async (error) => {
-        //     const stack_trace = await StackTrace.fromError(error, {offline: true});
-        //
-        //     return stack_trace.map((row) => {
-        //       const mapped = sourceMapper(row);
-        //       const source = mapped.source || '';
-        //       const function_name = mapped.name || 'unknown';
-        //
-        //       return {
-        //         'function': function_name,
-        //         'line no': mapped.line,
-        //         'column no': mapped.column,
-        //       }
-        //     });
-        //   }
-        //
-        //   const default_global_handler = ErrorUtils.getGlobalHandler();
-        //
-        //   ErrorUtils.setGlobalHandler(async(error, is_fatal) => {
-        //     const path = RNFS.ExternalStorageDirectoryPath + '/customcrashlog.txt';
-        //     error.stack = stackTracer(error);
-        //     RNFS.write(path, JSON.stringify({error: error}), 'utf8');
-        //
-        //     if (default_global_handler) {
-        //       default_global_handler(error, is_fatal);
-        //     }
-        //   });
-        // })();
-
         /** Connect to the socket communication library */
         console.log("Initializing sockets...");
         SocketCommunication.initialize();
@@ -234,6 +185,8 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
         Immersive.on();
         Immersive.setImmersive(true);
+
+        this.breakMe();
     }
 
     componentDidMount() {

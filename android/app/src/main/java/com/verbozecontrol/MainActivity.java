@@ -45,9 +45,6 @@ public class MainActivity extends ReactActivity {
 
         KillSystemUI();
 
-        final Thread.UncaughtExceptionHandler oldHandler =
-            Thread.getDefaultUncaughtExceptionHandler();
-
         // create new exception handler that reboots the app after crashing
         Thread.setDefaultUncaughtExceptionHandler(new RestartingExceptionHandler(this));
     }

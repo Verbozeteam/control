@@ -26,6 +26,7 @@
 		"react-native-qrcode": "^0.2.6",
 		"react-native-sentry": "^0.38.2",
 		"react-native-sound": "^0.10.9",
+		"react-native-source-maps": "^1.0.0",
 		"react-native-splash-screen": "^3.0.6",
 		"react-native-storage": "^0.2.2",
 		"react-native-svg": "^5.5.1",
