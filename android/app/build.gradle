@@ -145,6 +145,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-exception-handler')
     compile project(':react-native-fs')
     compile project(':react-native-sentry')
     compile project(':react-native-immersive')

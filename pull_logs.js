@@ -25,22 +25,34 @@ function onFilesReady(crashlog, sourcemap, deployment) {
         if (hasArg(["--latest", "-l"]))
             crashlog = crashlog.slice(crashlog.length-1);
         for (var i = 0; i < crashlog.length; i++) {
-            console.log("\nStack trace: ");
-            for (var j = crashlog[i].stack.length - 1; j >= 0; j--) {
-                var frame = crashlog[i].stack[j];
-                var location = consumer.originalPositionFor(frame);
-                var actualLine = FS.readFileSync(location.source, 'utf-8').split('\n')[location.line-1];
-                var trimmedLine = actualLine.trim();
-                var trimmedCol = location.column - (actualLine.indexOf(trimmedLine));
-                console.log("\033[31m" + actualLine.trim() + "\033[0m");
-                console.log(Array.from(new Array(trimmedCol), (v, i) => ' ').join("") + Array.from(new Array(location.name ? location.name.length : 1), (v, i) => '^').join(""));
-                console.log('  ' + location.source + ':' + location.line + ':' + location.column);
-                console.log("  In function " + location.name + ' (' + frame.function + ')');
-                console.log("=================");
+            if (typeof(crashlog[i]) == typeof({}) && crashlog[i].stack && crashlog[i].message) {
+                console.log("\nStack trace: ");
+                for (var j = crashlog[i].stack.length - 1; j >= 0; j--) {
+                    var frame = crashlog[i].stack[j];
+                    var location = consumer.originalPositionFor(frame);
+                    var actualLine = getActualLine(location.source, location.line);
+                    var trimmedLine = actualLine.trim();
+                    var trimmedCol = location.column - (actualLine.indexOf(trimmedLine));
+                    console.log("\033[31m" + actualLine.trim() + "\033[0m");
+                    console.log(Array.from(new Array(trimmedCol), (v, i) => ' ').join("") + Array.from(new Array(location.name ? location.name.length : 1), (v, i) => '^').join(""));
+                    console.log('  ' + location.source + ':' + location.line + ':' + location.column + ' (' + frame.function + ')');
+                    console.log("=================");
+                }
+                console.log("\n" + crashlog[i].message);
+            } else {
+                console.log(crashlog[i]);
             }
-            console.log("\n" + crashlog[i].message);
         }
     });
+}
+
+function getActualLine(filename, lineNumber) {
+    // @TODO: store source files on the tablet and pull them when doing this comparison
+    try {
+        return FS.readFileSync(filename, 'utf-8').split('\n')[lineNumber-1];
+    } catch(err) {
+        return "<Unknown file>";
+    }
 }
 
 /*

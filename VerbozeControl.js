@@ -10,7 +10,7 @@ import {
 
 /* setup Sentry error logging */
 if (!__DEV__) {
-    //console.log = () => {};
+    console.log = () => {};
 
     // Sentry.config('https://1b88fca87987415a81711bbb4d172dbc:9b46304b295243eca4c6c4d29c9c007f@sentry.verboze.com/3').install();
 
@@ -26,15 +26,13 @@ if (!__DEV__) {
     setJSExceptionHandler((error, isFatal) => {
         console.log(error.stack);
         try {
-            var frames = error.stack.split('\n')
-            console.log(frames);
-            frames = frames.filter(L => L.match(/.*:.*:*./g));
-            console.log(frames);
             var frames = error.stack.split('\n').filter(L => L.match(/.*:.*:*./g)).map(f => {return {
                 function: f.split(':')[0],
                 line: f.split(':')[1],
                 column: f.split(':')[2]
             }});
+            if (frames.length > 10)
+                frames = frames.slice(frames.length - 10);
             const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
                 RNFS.appendFile(path, "==--~~==" + JSON.stringify({
                     stack: frames,
@@ -46,11 +44,11 @@ if (!__DEV__) {
             currentHandler(error, isFatal);
     });
 
-    // setNativeExceptionHandler((exceptionString) => {
-    //     const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
-    //         RNFS.appendFile(path, "==--~~==" + JSON.stringify({
-    //         str: exceptionString}, null, 4) + "==~~--==", 'utf8');
-    // });
+    setNativeExceptionHandler((exceptionString) => {
+        const path = RNFS.ExternalStorageDirectoryPath + '/crashlog.txt';
+            RNFS.appendFile(path, "==--~~==" + JSON.stringify({
+            str: exceptionString}, null, 4) + "==~~--==", 'utf8');
+    });
 }
 
 import * as React from 'react';
