@@ -26,6 +26,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
     protected String m_socket_disconnected = "socket_disconnected";
     protected String m_socket_data = "socket_data";
     protected String m_device_discovered = "device_discovered";
+    protected String m_log_sent = "log_sent";
 
     private CommunicationManager comm_mgr = null;
 
@@ -44,6 +45,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
         final String socket_connected = m_socket_connected;
         final String socket_disconnected = m_socket_disconnected;
         final String socket_data = m_socket_data;
+        final String log_sent = m_log_sent;
 
         comm_mgr = CommunicationManager.Create("communication_manager",
             new CommunicationManager.OnConnectedCallback() {
@@ -68,6 +70,15 @@ public class SocketModule extends ReactContextBaseJavaModule {
                 public void onDisconnected() {
                     WritableMap params = Arguments.createMap();
                     sendEvent(mReactContext, socket_disconnected, params);
+                }
+            },
+
+            new CommunicationManager.OnLogSentCallback() {
+                @Override
+                public void onLogSent(String log) {
+                    WritableMap params = Arguments.createMap();
+                    params.putString("log", log);
+                    sendEvent(mReactContext, log_sent, params);
                 }
             }
         );
@@ -155,6 +166,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
         constants.put(m_socket_disconnected, m_socket_disconnected);
         constants.put(m_socket_data, m_socket_data);
         constants.put(m_device_discovered, m_device_discovered);
+        constants.put(m_log_sent, m_log_sent);
 
         return constants;
     }
@@ -166,6 +178,7 @@ public class SocketModule extends ReactContextBaseJavaModule {
             m_socket_disconnected = "secondary_socket_disconnected";
             m_socket_data = "secondary_socket_data";
             m_device_discovered = "secondary_device_discovered";
+            m_log_sent = "secondary_log_sent";
         }
 
         @ReactMethod
