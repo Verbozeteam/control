@@ -113,11 +113,19 @@ function mergeDicts(base_dict: Object, new_dict: Object) {
     var keys = Object.keys(new_dict);
     for (var kindex in keys) {
         k = keys[kindex];
-        if (!(k in base_dict))
-            base_dict[k] = cloneObject(new_dict[k]);
-        else if (typeof(base_dict[k]) == 'object' && typeof(new_dict[k]) == 'object')
+        var new_object_type = new_dict[k] == null ? 'null' : typeof(new_dict[k]);
+        var base_object_type = base_dict[k] == null ? 'null' : typeof(base_dict[k]);
+        if (!(k in base_dict)) {
+            if (new_object_type == 'object')
+                base_dict[k] = cloneObject(new_dict[k]);
+            else
+                base_dict[k] = new_dict[k];
+        } else if (base_object_type == 'object' && new_object_type == 'object') {
             mergeDicts(base_dict[k], new_dict[k]);
-        else
+        } else if (new_object_type == 'object' == 'object') {
             base_dict[k] = cloneObject(new_dict[k]);
+        } else {
+            base_dict[k] = new_dict[k];
+        }
     }
 }
