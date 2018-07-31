@@ -24,7 +24,6 @@ if (!__DEV__) {
 
     const currentHandler = getJSExceptionHandler();
     setJSExceptionHandler((error, isFatal) => {
-        console.log(error.stack);
         try {
             var frames = error.stack.split('\n').filter(L => L.match(/.*:.*:*./g)).map(f => {return {
                 function: f.split(':')[0],

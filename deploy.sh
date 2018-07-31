@@ -3,6 +3,7 @@ set -e
 
 do_bundle=1
 do_assemble=1
+debug=0
 commit=`git rev-parse HEAD`
 
 # Parse the command line
@@ -12,6 +13,8 @@ while [ "$1" != "" ]; do
                                 do_bundle=0
                                 ;;
         -na | --noassemble )    do_assemble=0
+                                ;;
+        -d | --debug )          debug=1
                                 ;;
         -h | --help )           usage
                                 exit
@@ -36,7 +39,7 @@ else
 fi
 
 # Create the APK
-if (( $do_assemble == 1 )); then
+if (( $do_assemble == 1 && $debug == 0 )); then
     echo -e "\033[31mAssemblign APK...\033[0m"
     cd android && ./gradlew assembleRelease && cd ..
 else
@@ -44,8 +47,13 @@ else
 fi
 
 # Install APK and push the sourcemaps to the device
-echo -e "\033[31mInstalling APK...\033[0m"
-adb install -r android/app/build/outputs/apk/app-release.apk
+if (( $debug == 0 )); then
+    echo -e "\033[31mInstalling APK...\033[0m"
+    adb install -r android/app/build/outputs/apk/app-release.apk
+else
+    echo -e "\033[31mRunning react-native...\033[0m"
+    react-native run-android
+fi
 echo -e "\033[31mPushing sourcemaps to device SD card\033[0m"
 adb push android.main.bundle.map /sdcard/
 

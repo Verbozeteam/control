@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -42,6 +43,9 @@ public class CommunicationManager implements Runnable {
     public static class DeviceDiscoveryCallback {
         public void onDeviceFound(String addr, String text, int type, String data) {}
     }
+    public static class OnLogSentCallback {
+        public void onLogSent(String log) {}
+    }
 
     private final int BUFFER_SIZE = 256;
     private String name = "";
@@ -59,16 +63,29 @@ public class CommunicationManager implements Runnable {
     private OnConnectedCallback m_connected_callback = null;
     private OnDataCallback m_data_callback = null;
     private OnDisconnectedCallback m_disconnected_callback = null;
+    private OnLogSentCallback m_log_sent_callback = null;
+
+    private static HashMap<String, CommunicationManager> m_communication_managers = new HashMap<String, CommunicationManager>();
 
     public static CommunicationManager Create (String name,
                                                OnConnectedCallback ccb,
                                                OnDataCallback dcb,
-                                               OnDisconnectedCallback dccb) {
+                                               OnDisconnectedCallback dccb,
+                                               OnLogSentCallback lscb) {
+
+        if (m_communication_managers.containsKey(name)) {
+            CommunicationManager old_manager = m_communication_managers.get(name);
+            old_manager.Stop();
+            m_communication_managers.remove(name);
+        }
 
         CommunicationManager m = new CommunicationManager(name);
         m.m_connected_callback = ccb;
         m.m_data_callback = dcb;
         m.m_disconnected_callback = dccb;
+        m.m_log_sent_callback = lscb;
+
+        m_communication_managers.put(name, m);
 
         Thread thread = new Thread(m, name);
         thread.start();
@@ -233,6 +250,7 @@ public class CommunicationManager implements Runnable {
         boolean reconnect = auto_connect;
         long beat_timer = 0;
 
+        // m_log_sent_callback.onLogSent("Starting main communication thread");
         CommunicationReader reader = new CommunicationReader(this);
         Thread thread = new Thread(reader, name+"-reader");
         thread.start();
@@ -263,14 +281,14 @@ public class CommunicationManager implements Runnable {
                 }
 
                 reconnect = auto_connect;
-            }
 
-            if (is_socket_dead) {
-                MarkSocketDead(false);
-                reader.SetStream(null);
-                disconnectSocket(socket, input, output);
-                socket = null;
-                connected = false;
+                if (is_socket_dead) {
+                    MarkSocketDead(false);
+                    reader.SetStream(null);
+                    disconnectSocket(socket, input, output);
+                    socket = null;
+                    connected = false;
+                }
             }
 
             if (IP == "")
@@ -278,6 +296,7 @@ public class CommunicationManager implements Runnable {
 
             if (!connected && reconnect) {
                 try {
+                    // m_log_sent_callback.onLogSent("Attempting to connect...");
                     InetAddress addr = InetAddress.getByName(IP);
                     if (!ssl) {
                         socket = new Socket(addr, port);
@@ -402,21 +421,27 @@ public class CommunicationManager implements Runnable {
 
         @Override
         public void run() {
+            // long id = Thread.currentThread().getId();
+            // String tid = "[" + Long.toString(id) + "] ";
             byte[] tmp = new byte[1024];
             ArrayList<Byte> buffer = new ArrayList<>();
             InputStream input = null;
 
             while (is_running) {
+                // manager.m_log_sent_callback.onLogSent(tid + "Read loop spin...");
                 synchronized(this) {
                     if (input_stream != input) {
                         input = input_stream;
                         buffer.clear();
+                        // manager.m_log_sent_callback.onLogSent(tid + "New input: " + input.toString());
                     }
                 }
 
                 if (input != null) {
                     try {
+                        // manager.m_log_sent_callback.onLogSent(tid + "Attempting to read...");
                         int nread = input.read(tmp, 0, 1024);
+                        // manager.m_log_sent_callback.onLogSent(tid + "read " + Integer.toString(nread));
                         if (nread < 0) {
                             throw new Exception();
                         } else {
@@ -428,6 +453,12 @@ public class CommunicationManager implements Runnable {
                     } catch (Exception e) {
                         SetStream(null);
                         manager.MarkSocketDead(true);
+                    }
+                } else {
+                    synchronized (this) {
+                        try {
+                            wait(2000);
+                        } catch (InterruptedException e) {}
                     }
                 }
             }

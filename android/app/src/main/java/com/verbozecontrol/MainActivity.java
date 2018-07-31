@@ -56,6 +56,7 @@ public class MainActivity extends ReactActivity {
             }
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
+                ex.printStackTrace();
                 Intent intent = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                                 | Intent.FLAG_ACTIVITY_CLEAR_TASK
