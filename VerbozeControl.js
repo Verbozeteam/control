@@ -167,16 +167,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
             /** Load authentication token */
             SocketCommunication.setAuthenticationToken(UserPreferences.get('authentication-token'));
 
-            /** Load whether using SSL or not */
-            var using_ssl = UserPreferences.get('using_ssl');
-            if (using_ssl) {
-                this.props.setUsingSSL(true);
-                SocketCommunication.setSSLKey(null, null, '');
-            } else {
-                this.props.setUsingSSL(false);
-                SocketCommunication.disableSSL();
-            }
-
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
             if (cur_device) {
@@ -238,8 +228,13 @@ class VerbozeControl extends React.Component<{}, StateType> {
     onReduxStateChanged() {
         // on every state change, check if we need to connect to socket
         const reduxState = this.context.store.getState();
-        if (reduxState && reduxState.connection.currentDevice)
+        if (reduxState && reduxState.connection.currentDevice) {
+            if (reduxState.connection.currentDevice.type && reduxState.connection.currentDevice.type == 8) // uses SSL
+                SocketCommunication.setSSLKey(null, null, '');
+            else
+                SocketCommunication.disableSSL();
             SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
+        }
         if (reduxState && reduxState.connection.thingStates) {
             var hotel_thing = reduxState.connection.thingStates[this.state.hotelThingId];
             if (hotel_thing && hotel_thing.card != this.state.cardIn) {

@@ -351,7 +351,7 @@ public class CommunicationManager implements Runnable {
 
             synchronized (this) {
                 try {
-                    wait(1000);
+                    wait(200);
                 } catch (InterruptedException e) {}
             }
 
@@ -365,6 +365,9 @@ public class CommunicationManager implements Runnable {
                 reader.SetStream(null);
                 disconnectSocket(socket, input, output);
                 socket = null;
+                try {
+                    Thread.sleep(2000);
+                } catch(InterruptedException e2) {}
             }
         }
 

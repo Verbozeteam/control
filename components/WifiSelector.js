@@ -18,7 +18,6 @@ function mapStateToProps(state) {
   return {
     targetSSID: state.connection.targetSSID,
     targetPassphrase: state.connection.targetPassphrase,
-    usingSSL: state.connection.usingSSL
   };
 }
 
@@ -27,18 +26,13 @@ function mapDispatchToProps(dispatch) {
     setTargetSSID: (ssid: string, passphrase: string) => {
       dispatch(connectionActions.set_target_ssid(ssid, passphrase));
     },
-    setUsingSSL: (enabled: boolean) => {
-      dispatch(connectionActions.set_using_ssl(enabled));
-    }
   };
 }
 
 type PropsType = {
   targetSSID: string,
   targetPassphrase: string,
-  usingSSL: string,
   setTargetSSID: (ssid: string, passphrase: string) => null,
-  setUsingSSL: (enabled: boolean) => null
 };
 
 type StateType = {
@@ -168,28 +162,6 @@ class WifiSelector extends React.Component<PropsType, StateType> {
     );
   }
 
-  toggleSSL() {
-    const { usingSSL, setUsingSSL } = this.props;
-
-    setUsingSSL(!usingSSL);
-    UserPreferences.save({'using_ssl': !usingSSL});
-
-    if (!usingSSL) {
-      SocketCommunication.setSSLKey(null, null, '');
-    } else {
-      SocketCommunication.disableSSL();
-    }
-  }
-
-  renderSSLButton() {
-    const { usingSSL, setUsingSSL } = this.props;
-
-    return (
-      <Button onPress={this.toggleSSL.bind(this)}
-        title={'SSL: ' + ((usingSSL) ? 'Enabled' : 'Disabled')} />
-    );
-  }
-
   render() {
     const { wifi_list } = this.state;
 
@@ -204,7 +176,6 @@ class WifiSelector extends React.Component<PropsType, StateType> {
     return (
       <View style={styles.container}>
         <Text style={styles.header}>Wifi Selector</Text>
-        {this.renderSSLButton()}
         {wifi_flat_list}
         {this.renderPassphraseDialog()}
       </View>

@@ -12,20 +12,12 @@ export const SET_THINGS_STATES = 'SET_THINGS_STATES';
 export const SET_THING_PARTIAL_STATE = 'SET_THING_PARTIAL_STATE';
 export const SET_THINGS_PARTIAL_STATES = 'SET_THINGS_PARTIAL_STATES';
 export const SET_TARGET_SSID = 'SET_TARGET_SSID';
-export const SET_USING_SSL = 'SET_USING_SSL';
 
 export function set_target_ssid(ssid: string, passphrase: string) {
   return {
     type: SET_TARGET_SSID,
     ssid,
     passphrase
-  };
-}
-
-export function set_using_ssl(usingSSL: boolean) {
-  return {
-    type: SET_USING_SSL,
-    usingSSL
   };
 }
 

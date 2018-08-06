@@ -105,7 +105,7 @@ class DeviceListItem extends React.Component<DeviceListItemPropsType> {
     render() {
         const { device, selected, setDevice } = this.props;
 
-        const title = device.name + ' ' + device.ip + ':' + device.port;
+        const title = device.name + ' ' + device.ip + ':' + device.port + ' (' + device.type + ')';
 
         return (
             <TouchableOpacity style={styles.list}
