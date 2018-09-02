@@ -11,15 +11,7 @@ export const SET_THING_STATE = 'SET_THING_STATE';
 export const SET_THINGS_STATES = 'SET_THINGS_STATES';
 export const SET_THING_PARTIAL_STATE = 'SET_THING_PARTIAL_STATE';
 export const SET_THINGS_PARTIAL_STATES = 'SET_THINGS_PARTIAL_STATES';
-export const SET_TARGET_SSID = 'SET_TARGET_SSID';
 
-export function set_target_ssid(ssid: string, passphrase: string) {
-  return {
-    type: SET_TARGET_SSID,
-    ssid,
-    passphrase
-  };
-}
 
 export function set_connection_status(is_connected: boolean) {
     return {

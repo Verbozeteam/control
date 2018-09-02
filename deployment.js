@@ -3,12 +3,8 @@
 var defaultUIStyle = '{{UI_STYLE}}';
 var default_ip = "{{TARGET_IP}}";
 var default_port = "{{TARGET_PORT}}";
-var default_ssid = "{{SSID}}";
-var default_passphrase = "{{PASSWORD}}";
 
-if (defaultUIStyle === ("{"+"{UI_STYLE}}")) defaultUIStyle = "SIMPLE_UI";
-if (default_ssid === ("{"+"{SSID}}")) default_ssid = "vbzatmn130";
-if (default_passphrase === ("{"+"{PASSWORD}}")) default_passphrase = "notdefaultatall";
+if (defaultUIStyle === ("{"+"{UI_STYLE}}")) defaultUIStyle = "MODERN_UI";
 if (default_ip === ("{"+"{TARGET_IP}}")) default_ip = "192.168.10.1";
 if (default_port === ("{"+"{TARGET_PORT}}")) default_port = 7990;
 if (typeof(default_port) === "string") default_port = parseInt(default_port);
@@ -24,6 +20,4 @@ export {
     defaultUIStyle,
     default_ip,
     default_port,
-    default_ssid,
-    default_passphrase,
 };

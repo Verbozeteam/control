@@ -57,7 +57,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
-import wifi from 'react-native-android-wifi';
 import Immersive from 'react-native-immersive';
 
 import SplashScreen from 'react-native-splash-screen';
@@ -82,8 +81,6 @@ function mapStateToProps(state) {
     return {
         connectionStatus: state.connection.isConnected,
         language: state.settings.language,
-        targetSSID: state.connection.targetSSID,
-        targetPassphrase: state.connection.targetPassphrase,
         usingSSL: state.connection.usingSSL
     };
 }
@@ -98,7 +95,6 @@ function mapDispatchToProps(dispatch) {
         setLanguage: l => {dispatch(settingsActions.set_language(l));},
         setScreenDimmingState: is_dim => {dispatch(screenActions.dim_screen(is_dim));},
         setDisplayParams: p => {dispatch(screenActions.set_display_params(p));},
-        setTargetSSID: (s, p) => {dispatch(connectionActions.set_target_ssid(s, p));},
         setUsingSSL: b => {dispatch(connectionActions.set_using_ssl(b));}
     };
 }
@@ -129,7 +125,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
     _last_touch_time: number = 0;
 
     _discovery_timeout: any = undefined;
-    _wifi_timeout: any = undefined;
 
     componentWillMount() {
         /** Connect to the socket communication library */
@@ -173,15 +168,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 console.log('Device loaded from preferences:', cur_device);
                 this.props.setCurrentDevice(cur_device);
             }
-
-            /** Load target SSID and passphrase */
-            var wifi_ssid = UserPreferences.get('wifi_ssid');
-            var wifi_passphrase = UserPreferences.get('wifi_passphrase');
-            if (wifi_ssid) {
-                console.log('Target SSID loaded from preferences:', wifi_ssid);
-                this.props.setTargetSSID(wifi_ssid, wifi_passphrase);
-                this.connectWifi();
-            }
         }).bind(this));
 
         /** Set volume to max */
@@ -203,11 +189,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
             SocketCommunication.discoverDevices();
         }, 60000);
 
-        /** Periodic wifi connection */
-        wifi.setEnabled(true);
-        this.connectWifi();
-        this._wifi_timeout = setInterval(this.connectWifi.bind(this), 10000);
-
         Immersive.on();
         Immersive.setImmersive(true);
     }
@@ -222,7 +203,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._unsubscribe_hotel_change();
         SocketCommunication.cleanup();
         clearTimeout(this._discovery_timeout);
-        clearTimeout(this._wifi_timeout);
     }
 
     onReduxStateChanged() {
@@ -240,15 +220,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
             if (hotel_thing && hotel_thing.card != this.state.cardIn) {
                 this.setState({cardIn: hotel_thing.card});
             }
-        }
-    }
-
-    connectWifi() {
-        if (this.props.targetSSID !== "") {
-            wifi.getSSID(((ssid) => {
-                if (ssid !== this.props.targetSSID)
-                    wifi.findAndConnect(this.props.targetSSID, this.props.targetPassphrase, () => null);
-            }).bind(this));
         }
     }
 

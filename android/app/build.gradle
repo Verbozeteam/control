@@ -150,7 +150,6 @@ dependencies {
     compile project(':react-native-sentry')
     compile project(':react-native-immersive')
     compile project(':react-native-sound')
-    compile project(':react-native-android-wifi')
     compile project(':react-native-splash-screen')
     compile project(':react-native-svg')
     compile project(':react-native-system-setting')

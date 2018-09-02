@@ -10,7 +10,6 @@ import com.rnfs.RNFSPackage;
 import io.sentry.RNSentryPackage;
 import com.rnimmersive.RNImmersivePackage;
 import com.zmxv.RNSound.RNSoundPackage;
-import com.devstepbcn.wifi.AndroidWifiPackage;
 import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import com.horcrux.svg.SvgPackage;
 import com.ninty.system.setting.SystemSettingPackage;
@@ -40,7 +39,6 @@ public class MainApplication extends Application implements ReactApplication {
             new RNSentryPackage(),
             new RNImmersivePackage(),
             new RNSoundPackage(),
-            new AndroidWifiPackage(),
             new SplashScreenReactPackage(),
             new SvgPackage(),
                 new SystemSettingPackage(),

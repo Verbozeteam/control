@@ -17,7 +17,6 @@ import { SocketCommunication } from '../js-api-utils/SocketCommunication';
 
 import Panel from './Panel';
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
-const WifiSelector = require('./WifiSelector');
 
 type LanguageType = 'en' | 'ar' | 'ru' | 'de' | 'zh';
 
@@ -60,7 +59,7 @@ class Settings extends React.Component<any> {
         I18n.setLanguage(itemValue);
         this.props.setLanguage(itemValue);
     }
-    // 
+    //
     // crashApp() {
     //   console.log('Crash me pressed');
     //   const will_crash = crash;
@@ -77,12 +76,10 @@ class Settings extends React.Component<any> {
         );
 
         var device_discovery = null;
-        var wifi_selector = null;
         // var crash_button = null;
 
         if (devMode) {
             device_discovery = <DeviceDiscoveryView />
-            wifi_selector = <WifiSelector />
             // crash_button = <Button title={'Crash me'} onPress={this.crashApp.bind(this)}
             //   color={'red'} />;
         }
@@ -149,7 +146,6 @@ class Settings extends React.Component<any> {
                         {settings_views}
                         {/* {crash_button} */}
                         {device_discovery}
-                        {wifi_selector}
                     </View>
                     <View style={{ flex: 3, justifyContent: 'flex-end', alignItems: 'flex-end'}}>
                         {qr_code_view}
