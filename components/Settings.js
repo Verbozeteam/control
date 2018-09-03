@@ -42,8 +42,24 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-class Settings extends React.Component<any> {
+type PropsType = {
+  language: string,
+  devMode: boolean,
+  displayConfig: Object
+};
+
+type StateType = {
+  num_qrcode_press: number
+};
+
+class Settings extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
+
+    state: StateType = {
+      num_qrcode_press: 0
+    };
+
+    _qrcode_press_timeout: TimeoutID = null;
 
     componentWillMount() {
         const { store } = this.context;
@@ -59,11 +75,36 @@ class Settings extends React.Component<any> {
         I18n.setLanguage(itemValue);
         this.props.setLanguage(itemValue);
     }
-    //
+
     // crashApp() {
     //   console.log('Crash me pressed');
     //   const will_crash = crash;
     // }
+
+    qrcodePressed() {
+      var { num_qrcode_press } = this.state;
+
+      num_qrcode_press++;
+
+      if (this._qrcode_press_timeout) {
+        clearTimeout(this._qrcode_press_timeout);
+      }
+
+      this._qrcode_press_timeout = setTimeout(
+        () => this.setState({num_qrcode_press: 0}), 500);
+
+      if (num_qrcode_press == 5) {
+        SocketCommunication.sendMessage({code: 3});
+
+        num_qrcode_press = 0;
+        clearTimeout(this._qrcode_press_timeout);
+        this._qrcode_press_timeout = null;
+      }
+
+      this.setState({
+        num_qrcode_press
+      });
+    }
 
     render() {
         const { language, devMode, displayConfig } = this.props;
@@ -122,8 +163,7 @@ class Settings extends React.Component<any> {
                     <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
                     <View style={styles.qrcode_background}>
                         <TouchableWithoutFeedback
-                            onLongPress={() => SocketCommunication.sendMessage({code: 3})}
-                            delayLongPress={5000}>
+                            onPress={this.qrcodePressed.bind(this)}>
                             <View style={styles.qrcode_component}>
                                 <QRCode
                                     value={displayConfig.QRCodeAddress}
