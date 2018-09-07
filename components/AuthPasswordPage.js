@@ -46,16 +46,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     innerContainer: {
-        width: '40%',
-        height: 120,
+        width: '60%',
+        height: 180,
         flexDirection: 'column',
     },
     textField: {
         color: 'white',
         backgroundColor: '#111111',
+        height: 80
     },
     buttonsContainer: {
         flexDirection: 'row',
+        height: 100
     },
     button: {
         flex: 1,

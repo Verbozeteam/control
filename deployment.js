@@ -5,8 +5,8 @@ var default_ip = "{{TARGET_IP}}";
 var default_port = "{{TARGET_PORT}}";
 
 if (defaultUIStyle === ("{"+"{UI_STYLE}}")) defaultUIStyle = "MODERN_UI";
-if (default_ip === ("{"+"{TARGET_IP}}")) default_ip = "192.168.10.1";
-if (default_port === ("{"+"{TARGET_PORT}}")) default_port = 7990;
+if (default_ip === ("{"+"{TARGET_IP}}")) default_ip = "";
+if (default_port === ("{"+"{TARGET_PORT}}")) default_port = 0;
 if (typeof(default_port) === "string") default_port = parseInt(default_port);
 
 try {

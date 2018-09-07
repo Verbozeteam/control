@@ -117,10 +117,13 @@ class Settings extends React.Component<PropsType, StateType> {
         );
 
         var device_discovery = null;
+        var force_connect = null;
         // var crash_button = null;
 
         if (devMode) {
             device_discovery = <DeviceDiscoveryView />
+            force_connect = <Button title={'Force Connect'}
+              onPress={() => SocketCommunication.startConnecting()} />;
             // crash_button = <Button title={'Crash me'} onPress={this.crashApp.bind(this)}
             //   color={'red'} />;
         }
@@ -186,6 +189,7 @@ class Settings extends React.Component<PropsType, StateType> {
                         {settings_views}
                         {/* {crash_button} */}
                         {device_discovery}
+                        {force_connect}
                     </View>
                     <View style={{ flex: 3, justifyContent: 'flex-end', alignItems: 'flex-end'}}>
                         {qr_code_view}
