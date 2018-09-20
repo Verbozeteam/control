@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 const I18n = require('../js-api-utils/i18n/i18n');
-import { SocketCommunication } from '../js-api-utils/SocketCommunication';
 
 const connectionActions = require ('../redux-objects/actions/connection');
 const UserPreferences = require('../js-api-utils/UserPreferences');
@@ -75,9 +74,6 @@ class DeviceDiscoveryView extends React.Component<any> {
                 </Text>
                 <View style={styles.button_container}>
                     <View style={styles.button}>
-                        <Button
-                            onPress={() => SocketCommunication.discoverDevices()}
-                            title={'Discover Devices'} />
                     </View>
                     <View style={styles.button}>
                         <Button

@@ -121,7 +121,7 @@ class PagingView extends React.Component<any, StateType> {
             }
 
             if (JSON.stringify(newGroups) != JSON.stringify(groups)) {
-                this.setState({groups: newGroups, currentPage: 0});
+                this.setState({groups: newGroups, currentPage: newGroups.length});
             }
         }
     }

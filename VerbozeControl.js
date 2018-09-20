@@ -64,7 +64,7 @@ import SplashScreen from 'react-native-splash-screen';
 const I18n = require('./js-api-utils/i18n/i18n');
 import SystemSetting from 'react-native-system-setting';
 import AuthPasswordPage from './components/AuthPasswordPage';
-import { SocketCommunication } from './js-api-utils/SocketCommunication';
+import { WebSocketCommunication } from './js-api-utils/WebSocketCommunication';
 const UserPreferences = require('./js-api-utils/UserPreferences');
 import SleepView from './components/SleepView';
 import AlarmsHelper from './components/AlarmsHelper';
@@ -121,7 +121,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
     };
 
     _screen_dim_timeout: number;
-    _screen_dim_timeout_duration: number = __DEV__ ? 30000 : 30000;
+    _screen_dim_timeout_duration: number = __DEV__ ? 3000000 : 30000;
     _last_touch_time: number = 0;
 
     _discovery_timeout: any = undefined;
@@ -129,13 +129,11 @@ class VerbozeControl extends React.Component<{}, StateType> {
     componentWillMount() {
         /** Connect to the socket communication library */
         console.log("Initializing sockets...");
-        SocketCommunication.initialize();
         //SocketCommunication.setSSLKey(null, null, "");
-        SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
-        SocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
-        SocketCommunication.setOnDeviceDiscovered(this.handleDeviceDiscovered.bind(this));
-        SocketCommunication.setOnRequireAuthentication(this.onAuthenticationRequired.bind(this));
-        ConfigManager.initialize(SocketCommunication); // this registers SocketCommunication.setOnMessage
+        WebSocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
+        WebSocketCommunication.setOnDisconnected(this.handleSocketDisconnected.bind(this));
+        ConfigManager.initialize(WebSocketCommunication); // this registers SocketCommunication.setOnMessage
+        WebSocketCommunication.connect('wss://www.verboze.com/stream/d039cb83-bd55-4474-90c4-9646ce6e6bd2/');
 
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
         this.onReduxStateChanged();
@@ -159,9 +157,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 I18n.setLanguage(lang);
             }
 
-            /** Load authentication token */
-            SocketCommunication.setAuthenticationToken(UserPreferences.get('authentication-token'));
-
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
             if (cur_device) {
@@ -183,12 +178,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
         /** Initialize dimming procedures */
         this._resetScreenDim();
 
-        /** Periodic discovery */
-        SocketCommunication.discoverDevices();
-        this._discovery_timeout = setInterval(() => {
-            SocketCommunication.discoverDevices();
-        }, 60000);
-
         Immersive.on();
         Immersive.setImmersive(true);
     }
@@ -201,20 +190,12 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._unsubscribe();
         this._unsubscribe_config_change();
         this._unsubscribe_hotel_change();
-        SocketCommunication.cleanup();
         clearTimeout(this._discovery_timeout);
     }
 
     onReduxStateChanged() {
         // on every state change, check if we need to connect to socket
         const reduxState = this.context.store.getState();
-        if (reduxState && reduxState.connection.currentDevice) {
-            if (reduxState.connection.currentDevice.type && reduxState.connection.currentDevice.type == 8) // uses SSL
-                SocketCommunication.setSSLKey(null, null, '');
-            else
-                SocketCommunication.disableSSL();
-            SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
-        }
         if (reduxState && reduxState.connection.thingStates) {
             var hotel_thing = reduxState.connection.thingStates[this.state.hotelThingId];
             if (hotel_thing && hotel_thing.card != this.state.cardIn) {
@@ -261,17 +242,15 @@ class VerbozeControl extends React.Component<{}, StateType> {
     handleSocketConnected() {
         console.log('Socket connected!');
         this.props.setConnectionStatus(true);
-        SocketCommunication.sendMessage({
+        WebSocketCommunication.sendMessage({
             code: 0
         });
-        ToastAndroid.show('Connected to Verboze system', ToastAndroid.SHORT);
     }
 
     handleSocketDisconnected() {
         console.log('Socket disconnected!');
         this.props.setConnectionStatus(false);
         this.props.setConfig({});
-        ToastAndroid.show('Disconnected from Verboze system', ToastAndroid.SHORT);
     }
 
     handleDeviceDiscovered(device: DiscoveredDeviceType) {
@@ -305,19 +284,10 @@ class VerbozeControl extends React.Component<{}, StateType> {
         const { connectionStatus } = this.props;
         const { screenDimmed, alarmThingId, cardIn, authPasswordPage } = this.state;
 
-        if (authPasswordPage)
-            return <AuthPasswordPage onDone={(pw => {
-                this.setState({authPasswordPage: false});
-                if (pw) {
-                    var new_token = SocketCommunication.setAuthenticationPassword(pw);
-                    UserPreferences.save({'authentication-token': new_token});
-                }
-            }).bind(this)} />
-
         var inner_ui = null;
-        if (screenDimmed || (!cardIn && connectionStatus)) {
-            inner_ui = <SleepView displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
-        }
+        // if (screenDimmed || (!cardIn && connectionStatus)) {
+        //     inner_ui = <SleepView displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
+        // }
 
         return <View style={styles.container}
             onTouchStart={(cardIn || !connectionStatus) ? this.wakeupScreen.bind(this) : null}

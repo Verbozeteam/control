@@ -9,6 +9,8 @@ import { connect } from 'react-redux';
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
+import { TypeFaces } from '../constants/styles';
+
 import MagicButton from '../react-components/MagicButton';
 
 const I18n = require('../js-api-utils/i18n/i18n');
@@ -93,7 +95,7 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
                         const v = value;
                         TimeoutHandler.createTimeout(
                             curtains[i].id,
-                            curtains[i].max_move_time || 2000,
+                            curtains[i].max_move_time || 6000,
                             (() => this.setCurtainValue([c])(0)).bind(this));
                         continue; // don't perform the update on this curtain, auto update will do it
                     }
@@ -111,6 +113,13 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
 
     renderCurtainView(curtain: ?ThingMetadataType) {
         var { things, displayConfig } = this.props;
+
+        if (things.length === 0 || !things[0] || !curtain || !ConfigManager.things || ConfigManager.things.length === 0)
+            return <View />;
+        for (var i = 0; i < things.length; i++)
+            if (!things[i] || !things[i].id || !(things[i].id in ConfigManager.things))
+                return <View />;
+
         var text = (!curtain ? "All" : curtain.name);
         var isOpening = curtain ? ConfigManager.things[curtain.id].curtain === 1 : things.map(t => ConfigManager.things[t.id].curtain === 1).reduce((a, b) => a && b);
         var isClosing = curtain ? ConfigManager.things[curtain.id].curtain === 2 : things.map(t => ConfigManager.things[t.id].curtain === 2).reduce((a, b) => a && b);
@@ -120,7 +129,7 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
             case 'modern':
                 return (
                     <View key={"curtain-"+(curtain ? curtain.id : "all")} style={styles.curtainContainer}>
-                        <Text style={styles.texts}>{I18n.t(text)}</Text>
+                        <Text style={[ styles.texts, {...TypeFaces.light}]}>{I18n.t(text)}</Text>
                         <View style={styles.controlsContainer}>
                             <MagicButton
                                         width={70}
@@ -275,10 +284,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#444444',
     },
     texts: {
-        fontWeight: '100',
         color: '#ffffff',
         fontSize: 22,
-        marginLeft: 5,
     },
     controlsContainer: {
         flexDirection: 'row',

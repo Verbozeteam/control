@@ -13,7 +13,6 @@ const settingsActions = require ('../redux-objects/actions/settings');
 
 const I18n = require('../js-api-utils/i18n/i18n');
 const UserPreferences = require('../js-api-utils/UserPreferences');
-import { SocketCommunication } from '../js-api-utils/SocketCommunication';
 
 import Panel from './Panel';
 const DeviceDiscoveryView = require('./DeviceDiscoveryView');
@@ -94,7 +93,6 @@ class Settings extends React.Component<PropsType, StateType> {
         () => this.setState({num_qrcode_press: 0}), 500);
 
       if (num_qrcode_press == 5) {
-        SocketCommunication.sendMessage({code: 3});
 
         num_qrcode_press = 0;
         clearTimeout(this._qrcode_press_timeout);
@@ -160,25 +158,24 @@ class Settings extends React.Component<PropsType, StateType> {
         }
 
         var qr_code_view = null;
-        if (displayConfig.QRCodeAddress !== "") {
-            qr_code_view = (
-                <View>
-                    <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
-                    <View style={styles.qrcode_background}>
-                        <TouchableWithoutFeedback
-                            onPress={this.qrcodePressed.bind(this)}>
-                            <View style={styles.qrcode_component}>
-                                <QRCode
-                                    value={displayConfig.QRCodeAddress}
-                                    size={200}
-                                    bgColor='black'
-                                    fgColor='white' />
-                            </View>
-                        </TouchableWithoutFeedback>
-                    </View>
+        var qr = 'wss://www.verboze.com/stream/d039cb83-bd55-4474-90c4-9646ce6e6bd2/';
+        qr_code_view = (
+            <View>
+                <Text style={styles.qrcode_text}>{I18n.t("Scan from Verboze Mobile app")}</Text>
+                <View style={styles.qrcode_background}>
+                    <TouchableWithoutFeedback
+                        onPress={this.qrcodePressed.bind(this)}>
+                        <View style={styles.qrcode_component}>
+                            <QRCode
+                                value={qr}
+                                size={200}
+                                bgColor='black'
+                                fgColor='white' />
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
-            );
-        }
+            </View>
+        );
 
         return (
             <Panel layout={{}}

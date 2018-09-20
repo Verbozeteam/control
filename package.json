@@ -32,6 +32,7 @@
 		"react-native-svg": "^5.5.1",
 		"react-native-system-setting": "^1.4.1",
 		"react-redux": "^5.0.7",
+		"reconnecting-websocket": "^4.0.0-rc5",
 		"redux": "^3.7.2",
 		"rgb-hex": "^2.1.0",
 		"source-map": "^0.7.3"
