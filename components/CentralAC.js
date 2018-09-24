@@ -133,7 +133,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
 
                 roomTemperatureView = (
                     <View style={tabStyles.roomTempContainer}>
-                        <Text style={[tabStyles.roomTempText, {fontSize: 40}]}>{temp.toFixed(1) + " °C"}</Text>
+                        <Text style={[tabStyles.roomTempText, {fontSize: 40}]}>{temp ? temp.toFixed(1) + " °C" : "22.0 °C" }</Text>
                         <Text style={tabStyles.roomTempText}>{I18n.t("Room Temperature")}</Text>
                     </View>
                 );
@@ -148,7 +148,7 @@ class CentralAC extends React.Component<PropsType, StateType> {
                                     onPressOut={() => setHighlight(-1)}>
                                     <View><Text style={minusStyle}>{"-"}</Text></View>
                                 </TouchableWithoutFeedback>
-                                <Text style={tabStyles.settingTempText}>{(fan == 0) ? I18n.t('Off') : set_pt.toFixed(1) + " °C"}</Text>
+                                <Text style={tabStyles.settingTempText}>{(fan == 0) ? I18n.t('Off') : (set_pt ? set_pt.toFixed(1) + " °C" : "22.0 °C" ) }</Text>
                                 <TouchableWithoutFeedback
                                     onPressIn={(() => {raiseTemp(); setHighlight(1);}).bind(this)}
                                     onPressOut={() => setHighlight(-1)}>

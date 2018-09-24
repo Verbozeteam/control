@@ -114,11 +114,11 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
     renderCurtainView(curtain: ?ThingMetadataType) {
         var { things, displayConfig } = this.props;
 
-        if (things.length === 0 || !things[0] || !curtain || !ConfigManager.things || ConfigManager.things.length === 0)
-            return <View />;
+        if (things.length === 0 || !things[0] || !ConfigManager.things || ConfigManager.things.length === 0)
+            return <View><Text>{ things.length + ' - ' + JSON.stringify(ConfigManager.things) }</Text></View>;
         for (var i = 0; i < things.length; i++)
             if (!things[i] || !things[i].id || !(things[i].id in ConfigManager.things))
-                return <View />;
+                return <View><Text>{ JSON.stringify(things[i]) + ' - ' + ConfigManager.things.length + ' - ' + JSON.stringify(ConfigManager.things)  }</Text></View>;
 
         var text = (!curtain ? "All" : curtain.name);
         var isOpening = curtain ? ConfigManager.things[curtain.id].curtain === 1 : things.map(t => ConfigManager.things[t.id].curtain === 1).reduce((a, b) => a && b);
@@ -129,33 +129,37 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
             case 'modern':
                 return (
                     <View key={"curtain-"+(curtain ? curtain.id : "all")} style={styles.curtainContainer}>
-                        <Text style={[ styles.texts, {...TypeFaces.light}]}>{I18n.t(text)}</Text>
                         <View style={styles.controlsContainer}>
+                            <MagicButton text={'Open'}
+                                onPressIn={() => this.setCurtainValue(targetCurtains)(1)}
+                                onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
+                                width={120}
+                                height={70}
+                                isOn={isOpening}
+                                extraStyle={{marginRight: 10}}
+                                textStyle={{fontSize: 16, ...TypeFaces.light, color: '#ffffff'}}
+                                glowColor={displayConfig.accentColor} />
+
+                            <MagicButton text={'Close'}
+                                onPressIn={() => this.setCurtainValue(targetCurtains)(2)}
+                                onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
+                                width={120}
+                                height={70}
+                                isOn={isClosing}
+                                extraStyle={{marginRight: 10}}
+                                textStyle={{fontSize: 16, ...TypeFaces.light, color: '#ffffff'}}
+                                glowColor={displayConfig.accentColor} />
+
                             <MagicButton
-                                        width={70}
-                                        height={70}
-                                        extraStyle={{marginLeft: 0}}
-                                        isOn={isOpening}
-                                        glowColor={displayConfig.accentColor}
-                                        onPressIn={() => this.setCurtainValue(targetCurtains)(1)}
-                                        onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
-                                        icon={this._openIcon} />
-                            <MagicButton
-                                        width={70}
-                                        height={70}
-                                        extraStyle={{marginLeft: 20}}
-                                        glowColor={displayConfig.accentColor}
-                                        onPressIn={() => this.setCurtainValue(targetCurtains)(0)}
-                                        icon={this._pauseIcon} />
-                            <MagicButton
-                                        width={70}
-                                        height={70}
-                                        extraStyle={{marginLeft: 20}}
-                                        isOn={isClosing}
-                                        glowColor={displayConfig.accentColor}
-                                        onPressIn={() => this.setCurtainValue(targetCurtains)(2)}
-                                        onPressOut={() => this.setCurtainValue(targetCurtains)(0)}
-                                        icon={this._closeIcon} />
+                                width={70}
+                                height={70}
+                                sideText={I18n.t(text)}
+                                sideTextStyle={[ styles.texts, {...TypeFaces.light}]}
+                                textStyle={{fontSize: 16, ...TypeFaces.light, color: '#ffffff'}}
+                                glowColor={displayConfig.accentColor}
+                                onPressIn={() => this.setCurtainValue(targetCurtains)(0)}
+                                iconStyle={{width: 20, height: 20}}
+                                icon={this._pauseIcon} />
                         </View>
                     </View>
                 );
@@ -220,6 +224,7 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
         if (displayConfig.curtainsDisplayAllSwitch && numCurtains > 0) {
             allView = (
                 <View style={styles.allContainer}>
+                    {this.renderSeparator(0)}
                     {this.renderCurtainView(null)}
                 </View>
             );
@@ -229,18 +234,18 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
         if (numCurtains > 0) {
             for (var i = 0; i < numCurtains; i++) {
                 thingsView.push(this.renderCurtainView(curtains[i]));
-                if (displayConfig.UIStyle === 'modern' && i !== numCurtains - 1)
-                    thingsView.push(this.renderSeparator(i));
             }
         }
 
         switch (displayConfig.UIStyle) {
             case 'modern':
                 return (
-                    <View style={[styles.container, {width: layout.width, height: layout.height}]}>
-                        <View style={styles.tab}>{allView}</View>
-                        <View style={{flex: 1}} />
-                        <View style={[styles.tab]}>{thingsView}</View>
+                    <View style={styles.container}>
+                        <View style={styles.tab}>
+                            {thingsView}
+                            {allView}
+                        </View>
+                        <View style={{flex:1}} />
                     </View>
                 );
             case 'simple':
@@ -255,21 +260,19 @@ class CurtainsPanelContents extends React.Component<PropsType, StateType> {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         position: 'relative',
         flexDirection: 'row',
     },
     tab: {
         flex: 2,
-        position: 'relative',
         flexDirection: 'column',
-        alignItems: 'center',
     },
     allContainer: {
         flex: 1,
-        position: 'absolute',
-        bottom: 0,
     },
     curtainContainer: {
+        flex: 1
     },
     separatorContainer: {
         flexDirection: 'column',
