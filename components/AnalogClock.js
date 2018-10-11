@@ -69,7 +69,10 @@ class AnalogClock extends React.Component<PropsType, StateType> {
   }
 
   renderClockPerimeter(num_ticks: number, ticks_length: number, ticks_thickness: number) {
-    const { radius, hourTicks, minuteTicks } = this.props;
+    const { radius } = this.props;
+    if (!radius)
+      return null;
+
     const circumference = 2 * Math.PI * (radius - (ticks_length / 2));
 
     return (
@@ -86,6 +89,9 @@ class AnalogClock extends React.Component<PropsType, StateType> {
 
   renderHoursHand(datetime: Object) {
     const { radius, hoursHandThickness } = this.props;
+    if (!radius)
+      return null;
+
     const angle = (datetime.getHours() / 12
       + datetime.getMinutes() / 720 ) * Math.PI * 2 - (Math.PI / 2);
 
@@ -104,6 +110,9 @@ class AnalogClock extends React.Component<PropsType, StateType> {
 
   renderMinutesHand(datetime: Object) {
     const { radius, minutesHandThickness } = this.props;
+    if (!radius)
+      return null;
+
     const angle = (datetime.getMinutes() / 60
       + datetime.getSeconds() / 3600) * Math.PI * 2 - (Math.PI / 2);
 
@@ -122,6 +131,9 @@ class AnalogClock extends React.Component<PropsType, StateType> {
 
   renderSecondsHand(datetime: Object) {
     const { radius, secondsHandThickness, displayConfig } = this.props;
+    if (!radius)
+      return null;
+
     const angle = (datetime.getSeconds() / 60
       + datetime.getMilliseconds() / 60000) * Math.PI * 2 - (Math.PI / 2);
 
@@ -141,6 +153,8 @@ class AnalogClock extends React.Component<PropsType, StateType> {
   render() {
     const { radius, hourTicksLength, hourTicksThickness,
       minuteTicksLength, minuteTicksThickness, displayConfig } = this.props;
+    if (!radius || !hourTicksLength || !hourTicksThickness || !minuteTicksLength || !minuteTicksThickness)
+      return null;
 
     const datetime = new Date();
 

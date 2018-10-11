@@ -21,6 +21,8 @@ import CurtainsPanelContents from './CurtainsPanelContents';
 import WaterFountainsPanel from './WaterFountainsPanel';
 import PenthouseDiscoPanel from './PenthouseDisco';
 import AlarmsPanel from './AlarmsPanel';
+import TelephonePanelContents from './Telephone';
+import HotelOrdersPanelContents from './HotelOrdersPanelContents';
 
 import KitchenPanel from './KitchenPanel';
 
@@ -156,6 +158,10 @@ class PagingView extends React.Component<any, StateType> {
                     return <PenthouseDiscoPanel id={things.filter(t => t.category === 'penthouse_disco')[0].id} layout={layout} />
                 case 'alarm_system':
                     return <AlarmsPanel id={things.filter(t => t.category === 'alarm_system')[0].id} layout={layout} />;
+                case 'telephone':
+                    return <TelephonePanelContents id={things.filter(t => t.category === 'telephone')[0].id} layout={layout} />;
+                case 'hotel_orders':
+                    return <HotelOrdersPanelContents id={things.filter(t => t.category === 'hotel_orders')[0].id} layout={layout} />;
             }
         }
         return null;

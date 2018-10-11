@@ -11,7 +11,7 @@ if (typeof(default_port) === "string") default_port = parseInt(default_port);
 
 try {
     if (__DEV__) {
-        default_ip = "192.168.0.7";
+        default_ip = "10.11.28.187";
         default_port = 4567;
     }
 } catch (e) {}
