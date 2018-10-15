@@ -101,124 +101,6 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
         this.setState({menu: meta.menu});
     }
 
-    /*getItemAtNavigation(nav: NavigationType): MenuItem {
-        const { menu } = this.state;
-        var cur = menu;
-        for (var i = 0; i < nav.length; i++)
-            cur = cur.children[nav[i]];
-        return cur;
-    }
-
-    onItemClicked(index: number, item: MenuItem) {
-        const { currentNavigation } = this.state;
-        this.setState({currentNavigation: currentNavigation.concat([index])});
-    }
-
-    onBack() {
-        const { currentNavigation } = this.state;
-        this.setState({currentNavigation: currentNavigation.slice(0, currentNavigation.length - 1), confirmationMessage: null});
-    }
-
-    submitOrder(item: MenuItem) {
-        ConfigManager.setThingState(this.props.id, {place_order: item.name}, true, false);
-        this.setState({confirmationMessage: item.customOrderPrompt || I18n.t("We got your order and it will be on the way :)")});
-    }*/
-
-    /*render() {
-        const { menu, currentNavigation, confirmationMessage } = this.state;
-        const { displayConfig } = this.props;
-
-        var curMenu = this.getItemAtNavigation(currentNavigation);
-        var body = null;
-        if (confirmationMessage) {
-            body =
-            <View style={styles.confirmationContainer}>
-                <View style={styles.confirmationBox}>
-                    <Text style={[styles.textStyle, {color: displayConfig.textColor, textAlign: 'center', marginBottom: 10}]}>
-                        {I18n.t(confirmationMessage)}
-                    </Text>
-                    <View style={styles.confirmationButtonsContainer}>
-                        <View style={styles.confirmationButton}>
-                            <Panel style={styles.confirmationButtonPanel} onPress={() => this.setState({currentNavigation: [], confirmationMessage: null})}>
-                                <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("Ok")}</Text>
-                            </Panel>
-                        </View>
-                    </View>
-                </View>
-            </View>;
-        } else if (curMenu.children.length > 0) {
-            // render subitems
-            var rows = [];
-            var cols = [];
-            var blocksPerRow = 6;
-            for (var i = 0; i < curMenu.children.length; i += cols.length) {
-                cols = [];
-                var blockSize = 1;
-                var numPerRow = blocksPerRow / blockSize;
-                for (var j = i; j < Math.min(curMenu.children.length, i + numPerRow); j++) {
-                    const index = j;
-                    const c = curMenu.children[j];
-                    cols.push(
-                        <Panel key={'amenities-child-'+index} active blocks={blockSize} onPress={() => this.onItemClicked(index, c)}>
-                            <Image style={styles.icon} source={c.icon in this._icons ? this._icons[c.icon] : this._icons.other} />
-                            <View style={styles.textContainer}>
-                                <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t(c.name)}</Text>
-                            </View>
-                        </Panel>
-                    );
-                }
-                rows.push(<View key={'amenities-row-'+i} style={styles.row}>{cols}</View>);
-            }
-            body = <ScrollView>{rows}</ScrollView>;
-        } else if (currentNavigation.length > 0) {
-            // no subitems means this is an order, make confirmation
-            body =
-                <View style={styles.confirmationContainer}>
-                    <View style={styles.confirmationBox}>
-                        <Text style={[styles.textStyle, {color: displayConfig.textColor, textAlign: 'center', marginBottom: 10}]}>
-                            {curMenu.customPreorderPrompt ? I18n.t(curMenu.customPreorderPrompt) : (I18n.t("You are placing an order for ") + I18n.t(curMenu.name))}
-                        </Text>
-                        <Text style={[styles.textStyle, {color: displayConfig.textColor, textAlign: 'center'}]}>
-                            {I18n.t("Do you want to proceed with the order?")}
-                        </Text>
-                        <View style={styles.confirmationButtonsContainer}>
-                            <View style={styles.confirmationButton}>
-                                <Panel style={styles.confirmationButtonPanel} onPress={() => this.submitOrder(curMenu)}>
-                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("Yes")}</Text>
-                                </Panel>
-                            </View>
-                            <View style={styles.confirmationButton}>
-                                <Panel style={styles.confirmationButtonPanel} onPress={() => this.onBack()}>
-                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("No")}</Text>
-                                </Panel>
-                            </View>
-                        </View>
-                    </View>
-                </View>;
-        }
-
-        return (
-            <View style={styles.container}>
-                <View style={styles.navbar}>
-                    {currentNavigation.length > 0 ?
-                    <TouchableOpacity style={[styles.navbarColumn, {alignItems: 'flex-start'}]} onPress={() => this.onBack()}>
-                        <View style={styles.backButton}>
-                            <Text style={[styles.textStyle, {color: displayConfig.textColor}]}>{I18n.t("< Back")}</Text>
-                        </View>
-                    </TouchableOpacity>
-                    : <View style={styles.navbarColumn} /> }
-                    <View style={[styles.navbarColumn, {flex: 2}]}>
-                        <Text style={[styles.textStyle, {color: displayConfig.textColor}]}>{I18n.t(curMenu.name)}</Text>
-                    </View>
-                    <View style={styles.navbarColumn}>
-                    </View>
-                </View>
-
-                {body}
-            </View>
-        );
-    }*/
-
     onItemClicked(item: MenuItemType) {
         this.setState({
             selectedItem: item
@@ -338,7 +220,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        padding: 15,
     },
     navbar: {
         width: '100%',
