@@ -258,13 +258,15 @@ class IOSLookingVerbozeControl extends React.Component<{}, StateType> {
     _resetScreenDim() {
         SystemSetting.setBrightnessForce(1);
         clearTimeout(this._screen_dim_timeout);
-        this._screen_dim_timeout = setTimeout((() => {
-            this.setState({
-                screenDimmed: true,
-            });
-            this.props.setScreenDimmingState(true);
-            SystemSetting.setBrightnessForce(0);
-        }).bind(this), this._screen_dim_timeout_duration);
+        if (!__DEV__) { // in dev mode, disable screen dimming
+            this._screen_dim_timeout = setTimeout((() => {
+                this.setState({
+                    screenDimmed: true,
+                });
+                this.props.setScreenDimmingState(true);
+                SystemSetting.setBrightnessForce(0);
+            }).bind(this), this._screen_dim_timeout_duration);
+        }
     }
 
     wakeupScreen() {

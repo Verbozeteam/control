@@ -17,23 +17,32 @@ const I18n = require('../js-api-utils/i18n/i18n');
 
 type PropsType = {
     id: string,
-    layout: Object,
+    width: number,
+    height: number,
     displayConfig: Object,
 };
 
-type MenuItem = {
+type MenuType = {
+    heading: string,
+    subheading: string,
+    groups: Array<MenuGroupType>,
+};
+
+type MenuGroupType = {
+    name: string,
+    items: Array<MenuItemType>,
+};
+
+type MenuItemType = {
     name: string,
     icon: string,
-    children: Array<MenuItem>,
     customPreorderPrompt?: string,
     customOrderPrompt?: string,
-}
-
-type NavigationType = Array<number>
+};
 
 type StateType = {
-    menu: MenuItem,
-    currentNavigation: NavigationType,
+    menu: MenuType,
+    selectedItem: ?MenuItemType,
     confirmationMessage: ?string,
 };
 
@@ -51,9 +60,26 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
     _unsubscribe: () => any = () => null;
 
     state = {
-        menu: {name: "", icon: "", children: []},
-        currentNavigation: [],
+        menu: {heading: "", subheading: "", groups: []},
+        selectedItem: null,
         confirmationMessage: null,
+    };
+
+    _icons = {
+        toiletries: require('../assets/images/amenities/toiletries.png'),
+        pillow: require('../assets/images/amenities/pillow.png'),
+        bed: require('../assets/images/amenities/bed.png'),
+        iron: require('../assets/images/amenities/iron.png'),
+        beverages: require('../assets/images/amenities/beverages.png'),
+        chargers: require('../assets/images/amenities/chargers.png'),
+        laundry: require('../assets/images/amenities/laundry.png'),
+        concierge: require('../assets/images/amenities/concierge.png'),
+        shampoo: require('../assets/images/amenities/shampoo.png'),
+        toilet_paper: require('../assets/images/amenities/toilet_paper.png'),
+        toothpaste: require('../assets/images/amenities/toothpaste.png'),
+        toothbrush: require('../assets/images/amenities/toothbrush.png'),
+        bar_soap: require('../assets/images/amenities/bar_soap.png'),
+        other: require('../assets/images/amenities/other.png'),
     };
 
     componentWillMount() {
@@ -75,7 +101,7 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
         this.setState({menu: meta.menu});
     }
 
-    getItemAtNavigation(nav: NavigationType): MenuItem {
+    /*getItemAtNavigation(nav: NavigationType): MenuItem {
         const { menu } = this.state;
         var cur = menu;
         for (var i = 0; i < nav.length; i++)
@@ -96,9 +122,9 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
     submitOrder(item: MenuItem) {
         ConfigManager.setThingState(this.props.id, {place_order: item.name}, true, false);
         this.setState({confirmationMessage: item.customOrderPrompt || I18n.t("We got your order and it will be on the way :)")});
-    }
+    }*/
 
-    render() {
+    /*render() {
         const { menu, currentNavigation, confirmationMessage } = this.state;
         const { displayConfig } = this.props;
 
@@ -112,11 +138,11 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
                         {I18n.t(confirmationMessage)}
                     </Text>
                     <View style={styles.confirmationButtonsContainer}>
-                        <TouchableOpacity style={styles.confirmationButton} onPress={() => this.setState({currentNavigation: [], confirmationMessage: null})}>
-                            <View style={{borderBottomColor: displayConfig.accentColor, borderBottomWidth: 2}}>
-                                <Text style={[styles.textStyle, {color: displayConfig.textColor}]}>{I18n.t("Ok")}</Text>
-                            </View>
-                        </TouchableOpacity>
+                        <View style={styles.confirmationButton}>
+                            <Panel style={styles.confirmationButtonPanel} onPress={() => this.setState({currentNavigation: [], confirmationMessage: null})}>
+                                <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("Ok")}</Text>
+                            </Panel>
+                        </View>
                     </View>
                 </View>
             </View>;
@@ -134,8 +160,7 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
                     const c = curMenu.children[j];
                     cols.push(
                         <Panel key={'amenities-child-'+index} active blocks={blockSize} onPress={() => this.onItemClicked(index, c)}>
-                            <View style={styles.iconContainer}>
-                            </View>
+                            <Image style={styles.icon} source={c.icon in this._icons ? this._icons[c.icon] : this._icons.other} />
                             <View style={styles.textContainer}>
                                 <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t(c.name)}</Text>
                             </View>
@@ -157,16 +182,16 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
                             {I18n.t("Do you want to proceed with the order?")}
                         </Text>
                         <View style={styles.confirmationButtonsContainer}>
-                            <TouchableOpacity style={styles.confirmationButton} onPress={() => this.submitOrder(curMenu)}>
-                                <View style={{borderBottomColor: displayConfig.accentColor, borderBottomWidth: 2}}>
-                                    <Text style={[styles.textStyle, {color: displayConfig.textColor}]}>{I18n.t("Yes")}</Text>
-                                </View>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.confirmationButton} onPress={() => this.onBack()}>
-                                <View style={{borderBottomColor: displayConfig.accentColor, borderBottomWidth: 2}}>
-                                    <Text style={[styles.textStyle, {color: displayConfig.textColor}]}>{I18n.t("No")}</Text>
-                                </View>
-                            </TouchableOpacity>
+                            <View style={styles.confirmationButton}>
+                                <Panel style={styles.confirmationButtonPanel} onPress={() => this.submitOrder(curMenu)}>
+                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("Yes")}</Text>
+                                </Panel>
+                            </View>
+                            <View style={styles.confirmationButton}>
+                                <Panel style={styles.confirmationButtonPanel} onPress={() => this.onBack()}>
+                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("No")}</Text>
+                                </Panel>
+                            </View>
                         </View>
                     </View>
                 </View>;
@@ -192,6 +217,120 @@ class AmenitiesPanelClass extends React.Component<PropsType, StateType> {
                 {body}
             </View>
         );
+    }*/
+
+    onItemClicked(item: MenuItemType) {
+        this.setState({
+            selectedItem: item
+        });
+    }
+
+    submitOrder(item: MenuItemType) {
+        ConfigManager.setThingState(this.props.id, {place_order: item.name}, true, false);
+        this.setState({
+            confirmationMessage: item.customOrderPrompt || I18n.t("We got your order and it will be on the way :)"),
+            selectedItem: null,
+        });
+    }
+
+    renderItem(item: MenuItemType) {
+        return (
+            <Panel key={'amenities-child-'+item.name} active blocks={1} onPress={() => this.onItemClicked(item)}>
+                <Image style={styles.icon} source={item.icon in this._icons ? this._icons[item.icon] : this._icons.other} />
+                <View style={styles.textContainer}>
+                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t(item.name)}</Text>
+                </View>
+            </Panel>
+        );
+    }
+
+    renderGroup(group: MenuGroupType) {
+        const { width, height, displayConfig } = this.props;
+
+        var blocksPerRow = 6;
+        var rows: Array<Array<MenuItemType>> = [[]];
+        for (var i = 0; i < group.items.length; i++) {
+            const item = group.items[i];
+            var curRowBlocks = rows[rows.length-1].length * 1;
+            if (curRowBlocks + 1 > blocksPerRow)
+                rows.push([]);
+            rows[rows.length-1].push(item);
+        }
+        var renderedRows: Array<Array<any>> = [];
+        for (var i = 0; i < rows.length; i++)
+            renderedRows.push(rows[i].map(item => this.renderItem(item)));
+
+        return (
+            <View key={'group-' + group.name} style={groupStyles.container}>
+                <Text style={groupStyles.headerText}>{I18n.t(group.name)}</Text>
+                <View style={groupStyles.thingsContainer}>
+                    {renderedRows.map((rowPanels, index) =>
+                        <View key={'group-'+group.name+'-'+index} style={[groupStyles.thingsContainerRow, I18n.r2l() ? {justifyContent: 'flex-end'} : {}]}>
+                            {rowPanels}
+                        </View>
+                    )}
+                </View>
+            </View>
+        );
+    }
+
+    render() {
+        const { width, height, displayConfig } = this.props;
+        const { menu, selectedItem, confirmationMessage } = this.state;
+
+        if (confirmationMessage) {
+            return (
+                <View style={styles.confirmationContainer}>
+                    <View style={styles.confirmationBox}>
+                        <Text style={[styles.textStyle, {color: displayConfig.textColor, textAlign: 'center', marginBottom: 10}]}>
+                            {I18n.t(confirmationMessage)}
+                        </Text>
+                        <View style={styles.confirmationButtonsContainer}>
+                            <View style={styles.confirmationButton}>
+                                <Panel active style={styles.confirmationButtonPanel} onPress={() => this.setState({confirmationMessage: null})}>
+                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("Ok")}</Text>
+                                </Panel>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            );
+        } else if (selectedItem) {
+            return (
+                <View style={styles.confirmationContainer}>
+                    <View style={styles.confirmationBox}>
+                        <Text style={[styles.textStyle, {color: displayConfig.textColor, textAlign: 'center', marginBottom: 10}]}>
+                            {selectedItem.customPreorderPrompt ? I18n.t(selectedItem.customPreorderPrompt) : (I18n.t("You are placing an order for ") + I18n.t(selectedItem.name))}
+                        </Text>
+                        <Text style={[styles.textStyle, {color: displayConfig.textColor, textAlign: 'center'}]}>
+                            {I18n.t("Do you want to proceed with the order?")}
+                        </Text>
+                        <View style={styles.confirmationButtonsContainer}>
+                            <View style={styles.confirmationButton}>
+                                <Panel active style={styles.confirmationButtonPanel} onPress={() => this.submitOrder(selectedItem)}>
+                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("Yes")}</Text>
+                                </Panel>
+                            </View>
+                            <View style={styles.confirmationButton}>
+                                <Panel active style={styles.confirmationButtonPanel} onPress={() => this.setState({selectedItem: null})}>
+                                    <Text style={[styles.textStyle, {color: '#000000'}]}>{I18n.t("No")}</Text>
+                                </Panel>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            );
+        } else {
+            return (
+                <ScrollView style={[styles.container, {width, height}]}>
+                    <View style={headingStyles.container}>
+                        <Text style={headingStyles.heading}>{I18n.t(menu.heading)}</Text>
+                        <Text style={headingStyles.comment}>{I18n.t(menu.subheading)}</Text>
+                    </View>
+                    {menu.groups.map(g => this.renderGroup(g))}
+                </ScrollView>
+            );
+        }
     }
 }
 
@@ -246,17 +385,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    confirmationButtonPanel: {
+        width: 100,
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     itemContainer: {
         width: '100%',
         height: 110,
         flexDirection: 'row',
     },
-    iconContainer: {
+    icon: {
         width: 44,
         height: 44,
-        borderRadius: 21001203,
-        borderColor: '#BA3737',
-        borderWidth: 2,
     },
     textContainer: {
         flex: 1,
@@ -268,6 +410,47 @@ const styles = StyleSheet.create({
         fontSize: 18,
         ...TypeFaces.light,
     }
+});
+
+const groupStyles = StyleSheet.create({
+    container: {
+        width: '100%',
+        flexDirection: 'column',
+        marginBottom: 20,
+    },
+    headerText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        paddingLeft: 20,
+        ...TypeFaces.regular,
+    },
+    thingsContainer: {
+        paddingLeft: 15,
+        flexDirection: 'column',
+    },
+    thingsContainerRow: {
+        flexDirection: 'row',
+    }
+});
+
+const headingStyles = StyleSheet.create({
+    container: {
+        width: '100%',
+        padding: 20,
+        flexDirection: 'column',
+        marginBottom: 80,
+    },
+    heading: {
+        fontSize: 38,
+        color: '#FFFFFF',
+        marginBottom: 10,
+        ...TypeFaces.regular,
+    },
+    comment: {
+        fontSize: 24,
+        color: '#FFFFFF',
+        ...TypeFaces.regular,
+    },
 });
 
 const AmenitiesPanel = connect(mapStateToProps, mapDispatchToProps) (AmenitiesPanelClass);
