@@ -44,7 +44,8 @@ class CurtainClass extends React.Component<PropsType, StateType> {
         curtain: 0,
     };
 
-    _icon: number = require('../../assets/images/basic_ui/curtain.png');
+    _icon: number = require('../../assets/images/icons/curtain.png');
+    _icon_on: number = require('../../assets/images/icons/curtainon.png');
 
     _clickTime : number = 0;
     _canCancel: boolean = false;
@@ -121,9 +122,9 @@ class CurtainClass extends React.Component<PropsType, StateType> {
 
         return (
             <Panel active={true} onPressIn={() => this.onPress(open ? 1 : 2)} onPressOut={() => this.onPress(0)}>
-                <Image style={styles.icon} source={this._icon} />
-                <View style={styles.texts}>
-                    <Text style={[styles.name, {fontWeight: isActive ? 'bold' : 'normal'}]}>{I18n.t(name)}</Text>
+                <Image style={styles.icon} source={isActive ? this._icon_on : this._icon} />
+                <View style={I18n.l2r() ? styles.texts : styles.texts_r2l}>
+                    <Text style={[styles.name, isActive ? TypeFaces.bold : {}]}>{I18n.t(name)}</Text>
                     <Text style={[styles.info, isActive ? {color: displayConfig.accentColor} : {}]}>{I18n.t(isActive ? (open ? "Opening" : "Closing") : (open ? "Open" : "Close"))}</Text>
                 </View>
             </Panel>
@@ -142,15 +143,20 @@ const styles = StyleSheet.create({
         left: 10,
         bottom: 10,
     },
+    texts_r2l: {
+        position: 'absolute',
+        right: 10,
+        bottom: 10,
+    },
     name: {
         color: '#000000',
-        fontSize: 18,
-        height: 46,
+        fontSize: 17,
+        height: 54,
         ...TypeFaces.light,
     },
     info: {
         color: '#000000',
-        fontSize: 18,
+        fontSize: 17,
         ...TypeFaces.light,
     },
 });

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
-
+import I18n from '../../js-api-utils/i18n/i18n';
 
 type StateType = {
 };
@@ -14,6 +14,7 @@ type PropsType = {
     onPressOut?: ?(() => any),
     children?: ?any,
     blocks?: ?number,
+    style?: ?any,
 };
 
 export default class Panel extends React.Component<PropsType, StateType> {
@@ -22,22 +23,22 @@ export default class Panel extends React.Component<PropsType, StateType> {
     };
 
     render() {
-        const { children, active, onPress, onPressIn, onPressOut } = this.props;
+        const { children, active, onPress, onPressIn, onPressOut, style } = this.props;
         var { blocks } = this.props;
 
         if (!blocks) blocks = 1;
 
+        var panelStyle = [[styles.panel, active ? styles.active : {}, {width: 140 * blocks + (10*(blocks-1))}, I18n.r2l() ? {alignItems: 'flex-end'} : {}, style]];
+
         if (onPress || onPressIn || onPressOut) {
             return (
-                <TouchableOpacity activeOpacity={0.5} onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
-                    <View style={[styles.panel, active ? styles.active : {}, {width: 140 * blocks + (10*(blocks-1))}]}>
-                        {children}
-                    </View>
+                <TouchableOpacity activeOpacity={0.5} onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} style={panelStyle}>
+                    {children}
                 </TouchableOpacity>
             );
         } else {
             return (
-                <View style={[styles.panel, active ? styles.active : {}]}>
+                <View style={panelStyle}>
                     {children}
                 </View>
             );
@@ -47,7 +48,7 @@ export default class Panel extends React.Component<PropsType, StateType> {
 
 const styles = StyleSheet.create({
     panel: {
-        height: 140,
+        height: 150,
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         margin: 5,

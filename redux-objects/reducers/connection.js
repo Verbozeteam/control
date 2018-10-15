@@ -10,6 +10,8 @@ import {
     SET_THINGS_STATES,
     SET_THING_PARTIAL_STATE,
     SET_THINGS_PARTIAL_STATES,
+    SET_ROOM_CARD_IN,
+    SET_ROOM_TEMPERATURE,
 } from '../actions/connection';
 
 import {
@@ -28,6 +30,10 @@ let defaultState = {
 
     config: null,
     thingStates: {},
+    roomStatus: {
+        cardIn: null,
+        temperature: null,
+    }
 };
 
 let cloneObject = function(obj) {
@@ -91,6 +97,16 @@ module.exports = function (state=defaultState, action) {
                     ...newState.thingStates[k],
                     ...action.thingsToPartialStates[k],
                 };
+            break;
+        case SET_ROOM_CARD_IN:
+            if (newState.roomStatus.cardIn === action.isIn)
+                return state;
+            newState.roomStatus.cardIn = action.isIn;
+            break;
+        case SET_ROOM_TEMPERATURE:
+            if (newState.roomStatus.temperature === action.temperature)
+                return state;
+            newState.roomStatus.temperature = action.temperature;
             break;
         default:
             return state;

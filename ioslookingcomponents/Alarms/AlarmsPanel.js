@@ -3,17 +3,15 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
-import { ConfigManager } from '../js-api-utils/ConfigManager';
-import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
+import { ConfigManager } from '../../js-api-utils/ConfigManager';
+import type { ThingStateType, ThingMetadataType } from '../../js-api-utils/ConfigManager';
 
-import { addAlarm, removeAlarm } from '../js-api-utils/AlarmUtils';
-import type { AlarmType } from '../js-api-utils/AlarmUtils';
+import { addAlarm, removeAlarm } from '../../js-api-utils/AlarmUtils';
+import type { AlarmType } from '../../js-api-utils/AlarmUtils';
 
-import AnalogClock from './AnalogClock';
-import DigitalClock from './DigitalClock';
+import AnalogClock from '../AnalogClock';
+import DigitalClock from '../DigitalClock';
 import AlarmItem from './AlarmItem';
-
-import SeparatorLine from './SeparatorLine';
 
 type PropsType = {
     id: string,
@@ -62,16 +60,15 @@ export default class AlarmsPanel extends React.Component<PropsType, StateType> {
 
     renderAlarms() {
         const { id } = this.props;
-        const { alarms } = this.state;
+        var { alarms } = this.state;
 
         return (
-            alarms.map((alarm) =>
-                <View key={'alarm-' + (alarm.id || '/')}>
-                    <AlarmItem alarmDef={alarm}
+            alarms.sort((a, b) => new Date(a.time) - new Date(b.time)).map((alarm) =>
+                    <AlarmItem
+                        key={'alarm-' + (alarm.id || '/')}
+                        alarmDef={alarm}
                         setTime={new Date(alarm.time)}
                         removeAlarm={(alarm) => removeAlarm(id, ConfigManager, alarm)} />
-                        <SeparatorLine />
-                </View>
             )
         );
     }
@@ -104,7 +101,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     clocks_container: {
-        flex: 2,
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'space-around',
         padding: 10,
@@ -113,6 +110,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     alarms_container: {
-        flex: 1,
+        width: 340,
+        padding: 10,
     }
 });

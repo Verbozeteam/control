@@ -19,5 +19,8 @@ export const TypeFaces = {
   },
   regular: {
     fontFamily: 'CeraPRO-Regular'
+  },
+  bold: {
+    fontFamily: 'CeraPRO-Bold'
   }
 }

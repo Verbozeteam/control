@@ -91,16 +91,16 @@ class RoomStatusClass extends React.Component<PropsType, StateType> {
         const { room_service, do_not_disturb } = this.state;
 
         var isActive: number = (propertyName === 'room_service' && room_service !== undefined) ? room_service : ((propertyName === 'do_not_disturb' && do_not_disturb !== undefined) ? do_not_disturb : 0);
-        var color: string = propertyName === 'room_service' ? '#57BA57' : displayConfig.accentColor;
+        var color: string = propertyName === 'room_service' ? '#37BA37' : displayConfig.accentColor;
 
         return (
             <Panel active={isActive} blocks={2} onPress={() => this.changeStatus(1 - isActive)}>
-                <View style={styles.texts}>
-                    <View style={styles.icon}>
-                        <View style={[styles.circle, {borderColor: color, backgroundColor: isActive ? color : '#00000000'}]} />
-                    </View>
-                    <Text style={[styles.name, {fontWeight: isActive ? 'bold' : 'normal'}]}>{I18n.t(propertyName === 'room_service' ? 'Housekeeping' : 'Do Not Disturb')}</Text>
-                    <Text style={[styles.info, isActive ? {color: displayConfig.accentColor} : {}]}>{isActive ? (propertyName === 'room_service' ? "Housekeeping on the way" : "No one will disturb you") : " "}</Text>
+                <View style={styles.icon}>
+                    <View style={[styles.circle, {borderColor: color, backgroundColor: isActive ? color : '#00000000'}]} />
+                </View>
+                <View style={I18n.l2r() ? styles.texts : styles.texts_r2l}>
+                    <Text style={[styles.name, isActive ? TypeFaces.bold : {}]}>{I18n.t(propertyName === 'room_service' ? 'Housekeeping' : 'Do Not Disturb')}</Text>
+                    <Text style={[styles.info, isActive ? {color: displayConfig.accentColor} : {}]}>{isActive ? I18n.t(propertyName === 'room_service' ? "Housekeeping on the way" : "No one will disturb you") : " "}</Text>
                 </View>
             </Panel>
         );
@@ -125,15 +125,20 @@ const styles = StyleSheet.create({
         left: 10,
         bottom: 10,
     },
+    texts_r2l: {
+        position: 'absolute',
+        right: 10,
+        bottom: 10,
+    },
     name: {
         color: '#000000',
-        fontSize: 18,
-        height: 46,
+        fontSize: 17,
+        height: 54,
         ...TypeFaces.light,
     },
     info: {
         color: '#000000',
-        fontSize: 18,
+        fontSize: 17,
         ...TypeFaces.light,
     },
 });

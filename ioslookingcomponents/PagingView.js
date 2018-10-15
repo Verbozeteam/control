@@ -4,6 +4,7 @@ import * as React from 'react';
 import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import Immersive from 'react-native-immersive';
 
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { GroupType, ThingMetadataType, ConfigType } from '../js-api-utils/ConfigManager';
@@ -12,8 +13,11 @@ import { TypeFaces } from '../constants/styles';
 
 const I18n = require('../js-api-utils/i18n/i18n');
 
-import AlarmsPanel          from './AlarmsPanel';
 import RoomControlsPanel    from './RoomControlsPanel';
+import AlarmsPanel          from './Alarms/AlarmsPanel';
+import TelephonePanel       from './TelephonePanel';
+import AmenitiesPanel       from './AmenitiesPanel';
+import SettingsPanel        from './Settings/SettingsPanel';
 
 import FadeInView from './FadeInView';
 
@@ -30,7 +34,8 @@ type IconType = {
 type PageType = {
     name: string,
     icon: IconType,
-    render: (number, number) => any,
+    render: (number, number, ?boolean) => any,
+    background: number,
     things: Array<ThingMetadataType>,
 };
 
@@ -43,7 +48,9 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-    return {};
+    return {
+        set_dev_mode: (b: boolean) => {dispatch(settingsActions.set_dev_mode(b));},
+    };
 }
 
 class PagingViewClass extends React.Component<any, StateType> {
@@ -55,7 +62,7 @@ class PagingViewClass extends React.Component<any, StateType> {
     };
 
     _backgrounds = {
-        'dimmers': require('../assets/images/rip/rip7.jpg'),
+        'dimmers': require('../assets/images/room-lights.png'),
         'light_switches': require('../assets/images/bathroom-lights2.png'),
         'curtains': require('../assets/images/curtain_back.jpg'),
         'hotel_controls': require('../assets/images/services_stack.jpg'),
@@ -67,26 +74,29 @@ class PagingViewClass extends React.Component<any, StateType> {
 
     _icons = {
         room: {
-            passive: require('../assets/images/fan.png'),
-            active: require('../assets/images/fan.png'),
+            passive: require('../assets/images/icons/bed.png'),
+            active: require('../assets/images/icons/bed_on.png'),
         },
         amenities: {
-            passive: require('../assets/images/fan.png'),
-            active: require('../assets/images/fan.png'),
+            passive: require('../assets/images/icons/bell.png'),
+            active: require('../assets/images/icons/bell_on.png'),
         },
         alarms: {
-            passive: require('../assets/images/fan.png'),
-            active: require('../assets/images/fan.png'),
+            passive: require('../assets/images/icons/alarm.png'),
+            active: require('../assets/images/icons/alarm_on.png'),
         },
         telephone: {
-            passive: require('../assets/images/fan.png'),
-            active: require('../assets/images/fan.png'),
+            passive: require('../assets/images/icons/telephone.png'),
+            active: require('../assets/images/icons/telephone_on.png'),
         },
         settings: {
-            passive: require('../assets/images/fan.png'),
-            active: require('../assets/images/fan.png'),
+            passive: require('../assets/images/icons/cog.png'),
+            active: require('../assets/images/icons/cog_on.png'),
         },
-    }
+    };
+
+    _last_settings_click = new Date();
+    _num_settings_clicks = 0;
 
     componentWillMount() {
         this._unsubscribe = ConfigManager.registerConfigChangeCallback(this.onConfigChanged.bind(this));
@@ -136,6 +146,7 @@ class PagingViewClass extends React.Component<any, StateType> {
                         pages.push({
                             name: 'Alarms',
                             icon: this._icons.alarms,
+                            background: this._backgrounds.alarm_system,
                             things: [thing],
                             render: (w, h) => <AlarmsPanel id={thing.id} width={w} height={h} />
                         });
@@ -144,16 +155,18 @@ class PagingViewClass extends React.Component<any, StateType> {
                         pages.push({
                             name: 'Telephone',
                             icon: this._icons.telephone,
+                            background: this._backgrounds.settings,
                             things: [thing],
-                            render: () => null,
+                            render: (w, h) => <TelephonePanel id={thing.id} width={w} height={h} />,
                         });
                         break;
                     case 'hotel_orders':
                         pages.push({
                             name: 'Amenities',
                             icon: this._icons.amenities,
+                            background: this._backgrounds.hotel_controls,
                             things: [thing],
-                            render: () => null,
+                            render: (w, h) => <AmenitiesPanel id={thing.id} width={w} height={h} />,
                         });
                         break;
                 }
@@ -164,17 +177,36 @@ class PagingViewClass extends React.Component<any, StateType> {
             pages = [{
                 name: 'Room',
                 icon: this._icons.room,
+                background: this._backgrounds.dimmers,
                 things: roomThings,
                 render: (w, h) => <RoomControlsPanel ids={roomThings.map(t => t.id)} width={w} height={h} />
             }].concat(pages);
         pages.push({
             name: 'Settings',
             icon: this._icons.settings,
+            background: this._backgrounds.settings,
             things: [],
-            render: () => null,
+            render: (w, h) => <SettingsPanel width={w} height={h} language={I18n._language} />,
         });
 
         return pages;
+    }
+
+    onPageClick(numPages: number, i: number) {
+        if (this.state.currentPage !== i)
+            this.setState({currentPage: i});
+
+        if (i == numPages - 1) {
+            var now = new Date();
+            this._num_settings_clicks += 1;
+            if (now - this._last_settings_click < 500) {
+                if (this._num_settings_clicks >= 8)
+                    this.props.set_dev_mode(true);
+            } else
+                this._num_settings_clicks = 1;
+            this._last_settings_click = now;
+        } else
+            this.props.set_dev_mode(false);
     }
 
     renderMenuPages(pages: Array<PageType>) {
@@ -184,7 +216,7 @@ class PagingViewClass extends React.Component<any, StateType> {
         return (
             <View style={menuStyles.buttonsGroup}>
                 {pages.map((page, i) =>
-                    <TouchableOpacity key={'group-'+i} activeOpacity={0.5} onPress={() => this.setState({currentPage: i})}>
+                    <TouchableOpacity key={'group-'+i} activeOpacity={0.5} onPress={() => this.onPageClick(pages.length, i)}>
                         <View style={menuStyles.buttonContainer}>
                             <Image style={menuStyles.icon} source={i == currentPage ? page.icon.active : page.icon.passive} />
                             <Text style={[menuStyles.text, {color: i == currentPage ? displayConfig.accentColor : '#BBBBBB'}]}>{I18n.t(page.name)}</Text>
@@ -199,13 +231,15 @@ class PagingViewClass extends React.Component<any, StateType> {
         const { groups, currentPage } = this.state;
         const { displayConfig, discoveredDevices } = this.props;
 
+        Immersive.setImmersive(true);
+
         const screenDimensions = {
             width: Dimensions.get('screen').width,
             height: Dimensions.get('screen').height
         };
 
         var pages = this.getPages();
-        var bkg = this._backgrounds['dimmers'];
+        var bkg = pages[currentPage].background;
 
         return (
             <View style={[styles.container, displayConfig.backgroundColor ? {backgroundColor: displayConfig.backgroundColor} : null]}>

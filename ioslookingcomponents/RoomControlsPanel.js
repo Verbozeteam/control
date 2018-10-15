@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
+const connectionActions = require ('../redux-objects/actions/connection');
 
 import PropTypes from 'prop-types';
 
@@ -11,14 +12,13 @@ import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigMa
 
 import { TypeFaces } from '../constants/styles';
 
-import SeparatorLine from './SeparatorLine';
-
-import LightSwitch    from './ControlButtons/LightSwitch';
-import LightDimmer    from './ControlButtons/LightDimmer';
-import Curtain        from './ControlButtons/Curtain';
-import RoomStatus     from './ControlButtons/RoomStatus';
-import ClimateStatus  from './ControlButtons/ClimateStatus';
-import ClimateControl from './ControlButtons/ClimateControl';
+import RoomControlsHeader   from './RoomControlsHeader';
+import LightSwitch          from './ControlButtons/LightSwitch';
+import LightDimmer          from './ControlButtons/LightDimmer';
+import Curtain              from './ControlButtons/Curtain';
+import RoomStatus           from './ControlButtons/RoomStatus';
+import ClimateStatus        from './ControlButtons/ClimateStatus';
+import ClimateControl       from './ControlButtons/ClimateControl';
 
 const I18n = require('../js-api-utils/i18n/i18n');
 
@@ -30,10 +30,11 @@ type PropsType = {
     width: number,
     height: number,
     displayConfig: Object,
+    reduxRoomStatus: Object,
+    setReduxCardIn: boolean => null,
 };
 
 type RenderedThing = {
-    state: ThingStateType,
     meta: ThingMetadataType,
     render: RenderedThing => Array<any>,
 }
@@ -46,39 +47,50 @@ type GroupType = {
 function mapStateToProps(state) {
     return {
         displayConfig: state.screen.displayConfig,
+        reduxRoomStatus: state.connection.roomStatus,
     };
 }
 
 function mapDispatchToProps(dispatch) {
-    return {};
+    return {
+        setReduxCardIn: (is_in: boolean) => {dispatch(connectionActions.set_room_card_in(is_in));},
+    };
 }
 
 class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
+    _unsubscribe: () => any = () => null;
+
     state: StateType = {
     };
-
     componentWillMount() {
         this.componentWillReceiveProps(this.props);
     }
 
     componentWillReceiveProps(newProps: PropsType) {
+        this._unsubscribe();
+        if (newProps.ids) {
+            for (var i = 0; i < newProps.ids.length; i++) {
+                var id = newProps.ids[i];
+                if (id in ConfigManager.thingMetas && ConfigManager.thingMetas[id].category === 'hotel_controls') {
+                    this._unsubscribe = ConfigManager.registerThingStateChangeCallback(id, this.onRoomStatusChanged.bind(this));
+                    if (id in ConfigManager.things)
+                        this.onRoomStatusChanged(ConfigManager.thingMetas[id], ConfigManager.things[id]);
+                }
+            }
+        }
     }
 
     componentWillUnmount() {
+        this._unsubscribe();
     }
 
-    renderHeader() {
-        const { displayConfig } = this.props;
+    onRoomStatusChanged(meta: ThingMetadataType, roomStatusState: ThingStateType) {
+        const { reduxRoomStatus, setReduxCardIn } = this.props;
 
-        return (
-            <View style={headerStyles.container}>
-                <Text style={headerStyles.welcomeText}>{I18n.t("Welcome")}</Text>
-                <Text style={headerStyles.comment}>{I18n.t("Something about the room")}</Text>
-                <Text style={headerStyles.comment}>{I18n.t("Something else about the room")}</Text>
-                <Text style={[headerStyles.warning, {color: displayConfig.accentColor}]}>{I18n.t("Warning about something!")}</Text>
-            </View>
-        );
+        if ('card' in roomStatusState && roomStatusState.card !== reduxRoomStatus.cardIn)
+            setReduxCardIn(roomStatusState.card);
     }
+
 
     getGroups(): Array<GroupType> {
         const { ids } = this.props;
@@ -115,8 +127,7 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
         var groups = [];
 
         for (var i = 0; i < ids.length; i++) {
-            if (ids[i] in ConfigManager.things && ids[i] in ConfigManager.thingMetas) {
-                var thingState = ConfigManager.things[ids[i]];
+            if (ids[i] in ConfigManager.thingMetas) {
                 var thingMeta = ConfigManager.thingMetas[ids[i]];
                 if (thingMeta.category in filters) {
                     var groupName = filters[thingMeta.category];
@@ -130,7 +141,7 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
                             name: groupName,
                             things: []
                         });
-                    groups[groupIndex].things.push({state: thingState, meta: thingMeta, render: renderers[groupName]});
+                    groups[groupIndex].things.push({meta: thingMeta, render: renderers[groupName]});
                 }
             }
         }
@@ -152,7 +163,7 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
             <View key={'group-' + group.name} style={groupStyles.container}>
                 <Text style={groupStyles.headerText}>{I18n.t(group.name)}</Text>
                 <View style={groupStyles.thingsContainer}>
-                    <View style={groupStyles.thingsContainerRow}>
+                    <View style={[groupStyles.thingsContainerRow, I18n.r2l() ? {justifyContent: 'flex-end'} : {}]}>
                         {panels}
                     </View>
                 </View>
@@ -161,14 +172,14 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
     }
 
     render() {
-        const { ids, width, height, displayConfig } = this.props;
+        const { ids, width, height, displayConfig, reduxRoomStatus } = this.props;
 
         var groups = this.getGroups();
 
         return (
             <ScrollView style={[styles.container, {width, height}]}>
-                {this.renderHeader()}
-                {groups.map(g => this.renderGroup(g))}
+                {<RoomControlsHeader />}
+                {reduxRoomStatus.cardIn !== 0 ? groups.map(g => this.renderGroup(g)) : null}
             </ScrollView>
         );
     }

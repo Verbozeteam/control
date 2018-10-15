@@ -130,14 +130,19 @@ class ClimateControlClass extends React.Component<PropsType, StateType> {
 
         var isActive: number = fan > 0 ? 1 : 0;
         var color = warmer ? displayConfig.accentColor : '#3737AA';
+        var new_set_pt =
+            Math.min(Math.max(
+                warmer ? set_pt < temp ? temp + 0.5 : set_pt + 0.5
+                       : set_pt > temp ? temp - 0.5 : set_pt - 0.5,
+            temp_range[0]), temp_range[1]);
 
         return (
-            <Panel active={isActive} onPress={(!isActive && warmer) ? (() => null) : () => this.changeWarmth(Math.min(Math.max(set_pt + (warmer ? 0.5 : -0.5), temp_range[0]), temp_range[1]))}>
-                <View style={styles.texts}>
-                    <View style={styles.icon}>
-                        <View style={[styles.circle, {borderColor: color}]} />
-                    </View>
-                    <Text style={styles.name}>{I18n.t(warmer ? 'Make It Warmer' : 'Make It Cooler')}</Text>
+            <Panel active={isActive} onPress={(!isActive && warmer) ? (() => null) : () => this.changeWarmth(new_set_pt)}>
+                <View style={styles.icon}>
+                    <View style={[styles.circle, {borderColor: color}, isActive ? {backgroundColor: color} : {}]} />
+                </View>
+                <View style={I18n.l2r() ? styles.texts : styles.texts_r2l}>
+                    <Text style={styles.name}>{I18n.t(warmer ? 'Make it warmer' : 'Make it cooler')}</Text>
                     <Text style={[styles.info, isActive ? {color: displayConfig.accentColor} : {}]}>{" "}</Text>
                 </View>
             </Panel>
@@ -163,15 +168,20 @@ const styles = StyleSheet.create({
         left: 10,
         bottom: 10,
     },
+    texts_r2l: {
+        position: 'absolute',
+        right: 10,
+        bottom: 10,
+    },
     name: {
         color: '#000000',
-        fontSize: 18,
-        height: 46,
+        fontSize: 17,
+        height: 54,
         ...TypeFaces.light,
     },
     info: {
         color: '#000000',
-        fontSize: 18,
+        fontSize: 17,
         ...TypeFaces.light,
     },
 });

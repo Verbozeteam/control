@@ -11,6 +11,8 @@ export const SET_THING_STATE = 'SET_THING_STATE';
 export const SET_THINGS_STATES = 'SET_THINGS_STATES';
 export const SET_THING_PARTIAL_STATE = 'SET_THING_PARTIAL_STATE';
 export const SET_THINGS_PARTIAL_STATES = 'SET_THINGS_PARTIAL_STATES';
+export const SET_ROOM_CARD_IN = 'SET_ROOM_CARD_IN';
+export const SET_ROOM_TEMPERATURE = 'SET_ROOM_TEMPERATURE';
 
 
 export function set_connection_status(is_connected: boolean) {
@@ -81,5 +83,19 @@ export function set_things_partial_states(thing_to_partial_state: Object) {
     return {
         type: SET_THINGS_PARTIAL_STATES,
         thingsToPartialStates: thing_to_partial_state,
+    }
+}
+
+export function set_room_card_in(is_in: ?number) {
+    return {
+        type: SET_ROOM_CARD_IN,
+        isIn: is_in,
+    }
+}
+
+export function set_room_temperature(temperture: ?number) {
+    return {
+        type: SET_ROOM_TEMPERATURE,
+        temperature: temperture,
     }
 }

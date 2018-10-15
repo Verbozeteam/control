@@ -1,16 +1,17 @@
 /** @flow */
 import * as React from 'react';
-import { View, Text, StyleSheet, TimePickerAndroid } from 'react-native';
+import { View, Text, StyleSheet, Image, TimePickerAndroid } from 'react-native';
 
-import { minutesDifference } from '../js-api-utils/AlarmUtils';
-import type { AlarmType } from '../js-api-utils/AlarmUtils';
+import { minutesDifference } from '../../js-api-utils/AlarmUtils';
+import type { AlarmType } from '../../js-api-utils/AlarmUtils';
 
-import { TypeFaces, Colors } from '../constants/styles';
-import MagicButton from '../react-components/MagicButton';
+import { TypeFaces, Colors } from '../../constants/styles';
+import MagicButton from '../../react-components/MagicButton';
+import Panel from '../ControlButtons/Panel';
 
-import DigitalClock from './DigitalClock';
+import DigitalClock from '../DigitalClock';
 
-const I18n = require('../js-api-utils/i18n/i18n');
+const I18n = require('../../js-api-utils/i18n/i18n');
 
 type PropsType = {
     alarmDef?: AlarmType,
@@ -22,8 +23,6 @@ type PropsType = {
 type StateType = {};
 
 export default class AlarmItem extends React.Component<PropsType> {
-
-    _add_icon = require('../assets/images/plus.png');
 
     static defaultProps = {
         addAlarm: undefined,
@@ -58,17 +57,10 @@ export default class AlarmItem extends React.Component<PropsType> {
         const { addAlarm } = this.props;
 
         return (
-            <MagicButton
-                width={70}
-                height={70}
-                textStyle={{...TypeFaces.light}}
-                onPressIn={() => this.showTimePicker(addAlarm)}
-                sideText={I18n.t("Add Alarm")}
-                sideTextStyle={{lineHeight: 25, flexShrink: 1, ...TypeFaces.light}}
-                textColor={Colors.white}
-                icon={this._add_icon}
-                glowColor={Colors.red}
-                />
+            <Panel active={true} style={styles.alarm_container} onPress={() => this.showTimePicker(addAlarm)}>
+                <Text style={[styles.plus_image]}>{"+"}</Text>
+                <Text style={styles.alarm_text}>{I18n.t("Add Alarm")}</Text>
+            </Panel>
         );
     }
 
@@ -88,10 +80,10 @@ export default class AlarmItem extends React.Component<PropsType> {
 
         var todayOrTomorrow = this.determineTodayOrTomorrow(setTime);
         var alarmTime = <DigitalClock showDate={false} providedDateTime={setTime}
-            extraTimeStyle={{textAlign: 'left'}} />;
+            extraTimeStyle={{textAlign: 'left', color: Colors.black, fontSize: 28,}} />;
 
         return (
-            <View style={styles.alarm_container}>
+            <Panel active={true} style={styles.alarm_container} onPress={(removeAlarm && alarmDef) ? (() => removeAlarm(alarmDef)) : () => {}}>
                 <View style={styles.alarm_text_container}>
                     <Text style={styles.today_or_tomorrow_text_container}>
                         {todayOrTomorrow}
@@ -99,19 +91,9 @@ export default class AlarmItem extends React.Component<PropsType> {
                     {alarmTime}
                 </View>
                 <View style={styles.delete_alarm_container}>
-                    <MagicButton
-                        width={70}
-                        height={70}
-                        textStyle={{...TypeFaces.light}}
-                        onPressIn={(removeAlarm && alarmDef) ? () => removeAlarm(alarmDef) : () => null}
-                        textColor={Colors.white}
-                        icon={this._add_icon}
-                        iconStyle={{transform: [{ rotate: '45deg'}], width: 30, height: 30}}
-                        glowColor={Colors.black}
-                        showBorder={false}
-                        />
+                    <Text style={styles.cross_image}>{"+"}</Text>
                 </View>
-            </View>
+            </Panel>
         );
     }
 
@@ -128,24 +110,51 @@ export default class AlarmItem extends React.Component<PropsType> {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        height: 110,
-        justifyContent: 'center'
+        height: 120,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     alarm_container: {
-        flex: 1,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        width: 300,
+        height: 110,
     },
     alarm_text_container: {
         flex: 3
     },
+    alarm_text: {
+        lineHeight: 25,
+        flexShrink: 1,
+        color: Colors.black,
+        fontSize: 22,
+        ...TypeFaces.light,
+    },
+    plus_image: {
+        fontSize: 60,
+        marginRight: 10,
+        lineHeight: 60,
+        flexShrink: 1,
+        color: Colors.black,
+        ...TypeFaces.light,
+    },
+    cross_image: {
+        fontSize: 60,
+        marginRight: 10,
+        lineHeight: 60,
+        flexShrink: 1,
+        color: Colors.black,
+        ...TypeFaces.light,
+        transform: [{ rotate: '45deg'}],
+    },
     delete_alarm_container: {
-        flex: 1
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     today_or_tomorrow_text_container: {
-        color: Colors.white,
+        color: Colors.black,
         fontSize: 20,
         textAlign: 'left',
         ...TypeFaces.light,

@@ -5,6 +5,7 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
+const connectionActions = require ('../../redux-objects/actions/connection');
 
 import { ConfigManager } from '../../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../../js-api-utils/ConfigManager';
@@ -29,6 +30,7 @@ type PropsType = {
     name: string,
     warmer: boolean,
     displayConfig: Object,
+    setReduxRoomTemperature: number => null,
 };
 
 function mapStateToProps(state) {
@@ -38,7 +40,9 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-    return {};
+    return {
+        setReduxRoomTemperature: (temp: number) => {dispatch(connectionActions.set_room_temperature(temp));},
+    };
 }
 
 class ClimateStatusClass extends React.Component<PropsType, StateType> {
@@ -72,6 +76,9 @@ class ClimateStatusClass extends React.Component<PropsType, StateType> {
 
     onACChanged(meta: ThingMetadataType, acState: ThingStateType) {
         const { set_pt, temp, fan, fan_speeds, temp_range } = this.state;
+        const { setReduxRoomTemperature } = this.props;
+
+        setReduxRoomTemperature(acState.temp);
 
         if (JSON.stringify(fan_speeds) !== JSON.stringify(meta.fan_speeds || []) ||
             JSON.stringify(temp_range) !== JSON.stringify(meta.temp_range || []) ||
@@ -100,19 +107,23 @@ class ClimateStatusClass extends React.Component<PropsType, StateType> {
         const { set_pt, temp, fan, fan_speeds, temp_range, old_fan } = this.state;
 
         var isActive: number = fan > 0 ? 1 : 0;
-        var cooling = set_pt + 1 < temp;
-        var warming = set_pt - 1 > temp;
+        var cooling = set_pt + 0.5 <= temp;
+        var warming = set_pt - 0.5 >= temp;
         var color = cooling ? '#3737AA' : displayConfig.accentColor;
         var rounded_set_pt = set_pt.toFixed(1);
 
         return (
             <Panel active={isActive} blocks={2} onPress={() => this.changeFan(isActive ? 0 : old_fan)}>
-                <View style={styles.texts}>
-                    <View style={styles.icon}>
-                        <Text style={[styles.name, {fontWeight: 'bold'}]}>{I18n.t(isActive ? 'AC Is On' : 'AC Is Off')}</Text>
-                    </View>
-                    <Text style={styles.name}>{I18n.t('Temperature: ' + temp)}</Text>
-                    <Text style={[styles.info, {color}]}>{I18n.t(isActive ? (cooling ? 'Cooling down to ' + rounded_set_pt : (warming ? 'Warming up to ' + rounded_set_pt : ' ')) : ' ')}</Text>
+                <View style={styles.icon}>
+                    <Text style={[styles.name, TypeFaces.bold]}>{I18n.t(isActive ? 'AC Is On' : 'AC Is Off')}</Text>
+                </View>
+                <View style={I18n.l2r() ? styles.texts : styles.texts_r2l}>
+                    <Text style={styles.name}>{I18n.t('Temperature:') + ' ' + temp.toFixed(1) + " °C"}</Text>
+                    <Text style={[styles.info, {color}]}>
+                        {isActive ?
+                            (cooling ? I18n.t('Cooling down to') + ' ' + rounded_set_pt : (warming ? I18n.t('Warming up to') + ' ' + rounded_set_pt + " °C" : ' '))
+                            : ' '}
+                    </Text>
                 </View>
             </Panel>
         );
@@ -129,10 +140,15 @@ const styles = StyleSheet.create({
         left: 10,
         bottom: 10,
     },
+    texts_r2l: {
+        position: 'absolute',
+        right: 10,
+        bottom: 10,
+    },
     name: {
         color: '#000000',
         fontSize: 18,
-        height: 46,
+        height: 54,
         ...TypeFaces.light,
     },
     info: {

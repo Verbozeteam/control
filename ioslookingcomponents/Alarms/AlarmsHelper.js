@@ -3,24 +3,24 @@ import { View, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-import { ConfigManager } from '../js-api-utils/ConfigManager';
+import { ConfigManager } from '../../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
 const Sound = require('react-native-sound');
 
 import { minutesDifference, removeAlarm, snoozeAlarm, ringAlarm }
-    from '../js-api-utils/AlarmUtils';
-import MinuteTicker from '../js-api-utils/MinuteTicker';
+    from '../../js-api-utils/AlarmUtils';
+import MinuteTicker from '../../js-api-utils/MinuteTicker';
 
-import AnalogClock from './AnalogClock';
-import DigitalClock from './DigitalClock';
-import Seperatorine from './SeparatorLine';
+import AnalogClock from '../AnalogClock';
+import DigitalClock from '../DigitalClock';
+import Seperatorine from '../SeparatorLine';
 
-import MagicButton from '../react-components/MagicButton';
+import MagicButton from '../../react-components/MagicButton';
 
-import { Colors, TypeFaces } from '../constants/styles';
+import { Colors, TypeFaces } from '../../constants/styles';
 
-const I18n = require('../js-api-utils/i18n/i18n');
+const I18n = require('../../js-api-utils/i18n/i18n');
 
 type AlarmType = {
     id: number,

@@ -44,8 +44,8 @@ class LightDimmerClass extends React.Component<PropsType, StateType> {
         intensity: 0,
     };
 
-    _light_bulb_img_on = require('../../assets/images/basic_ui/lighton.png');
-    _light_bulb_img_off = require('../../assets/images/basic_ui//lightoff.png');
+    _light_bulb_img_on = require('../../assets/images/icons/lighton.png');
+    _light_bulb_img_off = require('../../assets/images/icons//lightoff.png');
 
     componentWillMount() {
         this.componentWillReceiveProps(this.props);
@@ -92,9 +92,9 @@ class LightDimmerClass extends React.Component<PropsType, StateType> {
         return (
             <Panel active={isActive} onPress={() => this.changeIntensity(isActive ? 0 : 100)}>
                 <Image style={styles.icon} source={isActive ? this._light_bulb_img_on : this._light_bulb_img_off} />
-                <View style={styles.texts}>
-                    <Text style={[styles.name, {fontWeight: isActive ? 'bold' : 'normal'}]}>{I18n.t(name)}</Text>
-                    <Text style={[styles.info, isActive ? {color: displayConfig.accentColor} : {}]}>{intensity + "%"}</Text>
+                <View style={I18n.l2r() ? styles.texts : styles.texts_r2l}>
+                    <Text style={[styles.name, isActive ? TypeFaces.bold : {}]}>{I18n.t(name)}</Text>
+                    <Text style={[styles.info, isActive ? {color: displayConfig.accentColor} : {}, I18n.r2l() ? {textAlign: 'right'} : {}]}>{intensity + "%"}</Text>
                 </View>
             </Panel>
         );
@@ -112,15 +112,20 @@ const styles = StyleSheet.create({
         left: 10,
         bottom: 10,
     },
+    texts_r2l: {
+        position: 'absolute',
+        right: 10,
+        bottom: 10,
+    },
     name: {
         color: '#000000',
-        fontSize: 18,
-        height: 46,
+        fontSize: 17,
+        height: 54,
         ...TypeFaces.light,
     },
     info: {
         color: '#000000',
-        fontSize: 18,
+        fontSize: 17,
         ...TypeFaces.light,
     },
 });
