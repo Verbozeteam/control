@@ -28,7 +28,7 @@ export default class Panel extends React.Component<PropsType, StateType> {
 
         if (!blocks) blocks = 1;
 
-        var panelStyle = [[styles.panel, active ? styles.active : {}, {width: 140 * blocks + (10*(blocks-1))}, I18n.r2l() ? {alignItems: 'flex-end'} : {}, style]];
+        var panelStyle = [[styles.panel, active ? styles.active : {}, {width: 150 * blocks + (10*(blocks-1))}, I18n.r2l() ? {alignItems: 'flex-end'} : {}, style]];
 
         if (onPress || onPressIn || onPressOut) {
             return (

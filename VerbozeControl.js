@@ -58,6 +58,7 @@ import { connect } from 'react-redux';
 
 import { ConfigManager } from './js-api-utils/ConfigManager';
 import Immersive from 'react-native-immersive';
+import DeviceEngine from './DeviceEngine';
 
 import SplashScreen from 'react-native-splash-screen';
 
@@ -67,8 +68,8 @@ import AuthPasswordPage from './components/AuthPasswordPage';
 import { SocketCommunication } from './js-api-utils/SocketCommunication';
 const UserPreferences = require('./js-api-utils/UserPreferences');
 import SleepView from './components/SleepView';
-import AlarmsHelper from './components/AlarmsHelper';
-const PagingView = require('./components/PagingView');
+import AlarmsHelper from './components/Alarms/AlarmsHelper';
+import PagingView from './components/PagingView';
 const ConnectionStatus = require('./components/ConnectionStatus');
 
 const connectionActions = require ('./redux-objects/actions/connection');
@@ -101,9 +102,7 @@ function mapDispatchToProps(dispatch) {
 
 type StateType = {
     screenDimmed: boolean,
-    hotelThingId: string,
     alarmThingId: string,
-    cardIn: boolean,
     authPasswordPage: boolean,
 };
 
@@ -114,9 +113,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     state = {
         screenDimmed: false,
-        hotelThingId: "",
         alarmThingId: "",
-        cardIn: true,
         authPasswordPage: false,
     };
 
@@ -129,6 +126,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
     componentWillMount() {
         /** Connect to the socket communication library */
         console.log("Initializing sockets...");
+        DeviceEngine.initialize();
         SocketCommunication.initialize();
         //SocketCommunication.setSSLKey(null, null, "");
         SocketCommunication.setOnConnected(this.handleSocketConnected.bind(this));
@@ -140,7 +138,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this._unsubscribe = this.context.store.subscribe(this.onReduxStateChanged.bind(this));
         this.onReduxStateChanged();
 
-        /* Detect when config changes to find hotel_controls thing id */
+        /* Detect when config changes to find alarms thing id */
         this._unsubscribe_config_change = ConfigManager.registerConfigChangeCallback(this.onConfigChanged.bind(this));
         if (ConfigManager.config)
             this.onConfigChanged(ConfigManager.config);
@@ -161,6 +159,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
             /** Load authentication token */
             SocketCommunication.setAuthenticationToken(UserPreferences.get('authentication-token'));
+            console.log('Authentication token loaded: ' + UserPreferences.get('authentication-token'));
 
             /** Load device and start discovery */
             var cur_device = UserPreferences.get('device');
@@ -215,26 +214,10 @@ class VerbozeControl extends React.Component<{}, StateType> {
                 SocketCommunication.disableSSL();
             SocketCommunication.connect(reduxState.connection.currentDevice.ip, reduxState.connection.currentDevice.port);
         }
-        if (reduxState && reduxState.connection.thingStates) {
-            var hotel_thing = reduxState.connection.thingStates[this.state.hotelThingId];
-            if (hotel_thing && hotel_thing.card != this.state.cardIn) {
-                this.setState({cardIn: hotel_thing.card});
-            }
-        }
     }
 
     onConfigChanged(config: ConfigType) {
-        var hotel_things = null;
         for (var tid in ConfigManager.thingMetas) {
-            if (ConfigManager.thingMetas[tid].category === 'hotel_controls') {
-                if (tid !== this.state.hotelThingId) {
-                    this._unsubscribe_hotel_change();
-                    this._unsubscribe_hotel_change = ConfigManager.registerThingStateChangeCallback(tid, this.onHotelControlsChanged.bind(this));
-                    this.setState({hotelThingId: tid});
-                    if (tid in ConfigManager.things)
-                        this.onHotelControlsChanged(ConfigManager.thingMetas[tid], ConfigManager.things[tid]);
-                }
-            }
             if (ConfigManager.thingMetas[tid].category === 'alarm_system') {
                 this.setState({alarmThingId: tid});
             }
@@ -251,11 +234,6 @@ class VerbozeControl extends React.Component<{}, StateType> {
         this.setState({authPasswordPage: is_required});
         if (is_required)
             ToastAndroid.show('Verboze system requires authentication', ToastAndroid.SHORT);
-    }
-
-    onHotelControlsChanged(meta: ThingMetadataType, hcState: ThingStateType) {
-        if (hcState.card !== this.state.cardIn)
-            this.setState({cardIn: hcState.card});
     }
 
     handleSocketConnected() {
@@ -282,13 +260,15 @@ class VerbozeControl extends React.Component<{}, StateType> {
     _resetScreenDim() {
         SystemSetting.setBrightnessForce(1);
         clearTimeout(this._screen_dim_timeout);
-        this._screen_dim_timeout = setTimeout((() => {
-            this.setState({
-                screenDimmed: true,
-            });
-            this.props.setScreenDimmingState(true);
-            SystemSetting.setBrightnessForce(0);
-        }).bind(this), this._screen_dim_timeout_duration);
+        if (!__DEV__) { // in dev mode, disable screen dimming
+            this._screen_dim_timeout = setTimeout((() => {
+                this.setState({
+                    screenDimmed: true,
+                });
+                this.props.setScreenDimmingState(true);
+                SystemSetting.setBrightnessForce(0);
+            }).bind(this), this._screen_dim_timeout_duration);
+        }
     }
 
     wakeupScreen() {
@@ -303,7 +283,7 @@ class VerbozeControl extends React.Component<{}, StateType> {
 
     render() {
         const { connectionStatus } = this.props;
-        const { screenDimmed, alarmThingId, cardIn, authPasswordPage } = this.state;
+        const { screenDimmed, alarmThingId, authPasswordPage } = this.state;
 
         if (authPasswordPage)
             return <AuthPasswordPage onDone={(pw => {
@@ -315,13 +295,13 @@ class VerbozeControl extends React.Component<{}, StateType> {
             }).bind(this)} />
 
         var inner_ui = null;
-        if (screenDimmed || (!cardIn && connectionStatus)) {
-            inner_ui = <SleepView displayWarning={(cardIn || !connectionStatus) ? "" : I18n.t("Please insert the room card to use.")}/>;
+        if (screenDimmed) {
+            inner_ui = <SleepView displayWarning={""}/>;
         }
 
         return <View style={styles.container}
-            onTouchStart={(cardIn || !connectionStatus) ? this.wakeupScreen.bind(this) : null}
-            onTouchMove={(cardIn || !connectionStatus) ? this.wakeupScreen.bind(this) : null}>
+            onTouchStart={this.wakeupScreen.bind(this)}
+            onTouchMove={this.wakeupScreen.bind(this)}>
             <PagingView />
             {inner_ui}
             {(alarmThingId) ?

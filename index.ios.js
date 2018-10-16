@@ -3,6 +3,6 @@
 'use strict';
 
 const { AppRegistry } = require('react-native');
-const IOSLookingVerbozeControl = require('./IOSLookingVerbozeControl');
+const VerbozeControl = require('./VerbozeControl');
 
-AppRegistry.registerComponent('VerbozeControl', IOSLookingVerbozeControl);
+AppRegistry.registerComponent('VerbozeControl', VerbozeControl);

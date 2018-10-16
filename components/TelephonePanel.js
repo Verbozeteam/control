@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { ConfigManager } from '../js-api-utils/ConfigManager';
 import type { ThingStateType, ThingMetadataType } from '../js-api-utils/ConfigManager';
 
-import MagicButton from '../react-components/MagicButton';
+import MagicButton from './MagicButton';
 import Panel from './ControlButtons/Panel';
 
 import { TypeFaces } from '../constants/styles';

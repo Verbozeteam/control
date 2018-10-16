@@ -6,7 +6,6 @@ import { minutesDifference } from '../../js-api-utils/AlarmUtils';
 import type { AlarmType } from '../../js-api-utils/AlarmUtils';
 
 import { TypeFaces, Colors } from '../../constants/styles';
-import MagicButton from '../../react-components/MagicButton';
 import Panel from '../ControlButtons/Panel';
 
 import DigitalClock from '../DigitalClock';

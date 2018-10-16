@@ -14,9 +14,8 @@ import MinuteTicker from '../../js-api-utils/MinuteTicker';
 
 import AnalogClock from '../AnalogClock';
 import DigitalClock from '../DigitalClock';
-import Seperatorine from '../SeparatorLine';
 
-import MagicButton from '../../react-components/MagicButton';
+import MagicButton from '../MagicButton';
 
 import { Colors, TypeFaces } from '../../constants/styles';
 
@@ -140,12 +139,14 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
     }
 
     startAlarmAudio() {
-        const { wakeupScreen } = this.props;
+        setTimeout((() => {
+            const { wakeupScreen } = this.props;
 
-        if (this._alarm_audio) {
-            this._alarm_audio.play(this.startAlarmAudio.bind(this));
-            wakeupScreen();
-        }
+            if (this._alarm_audio) {
+                this._alarm_audio.play(this.startAlarmAudio.bind(this));
+                wakeupScreen();
+            }
+        }).bind(this), 0);
     }
 
     stopAlarmAudio() {
@@ -200,7 +201,6 @@ class AlarmsHelper extends React.Component<PropsType, StateType> {
                             providedDateTime={new Date(alarm_ring.time)}
                             extraTimeStyle={styles.alarm_info} />
                     </View>
-                    <Seperatorine />
                     <View style={styles.alarm_actions_container}>
                         <MagicButton height={70}
                             width={250}
