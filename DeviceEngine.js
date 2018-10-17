@@ -1,7 +1,7 @@
 /** @flow */
 
 class DeviceEngineClass {
-    _devices = {
+    _devices: Object = {
         lenovo_tablet: {
             orientation: 'horizontal',
             blockSize: {
