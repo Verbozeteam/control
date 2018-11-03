@@ -37,7 +37,7 @@ type PropsType = {
 type RenderedThing = {
     meta: ThingMetadataType,
     render: RenderedThing => Array<any>,
-    blockSize: number,
+    blockSize: Array<number> | RenderedThing => Array<number>,
 }
 
 type GroupType = {
@@ -107,21 +107,21 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
 
         var definitions = {
             'Lights': {
-                blockSize: 1,
-                render: thing => [thing.meta.category == 'light_switches' ?
+                blockSize: thing => [thing.meta.category === 'light_switches' ? 1 : 2],
+                render: thing => [thing.meta.category === 'light_switches' ?
                     <LightSwitch key={'thing-' + thing.meta.id} id={thing.meta.id} name={thing.meta.name} /> :
                     <LightDimmer key={'thing-' + thing.meta.id} id={thing.meta.id} name={thing.meta.name} />
                 ]
             },
             'Curtains': {
-                blockSize: 1,
+                blockSize: [1, 1],
                 render: thing => [
                     <Curtain key={'thing-'+thing.meta.id+'-open'} id={thing.meta.id} name={thing.meta.name} open={true} />,
                     <Curtain key={'thing-'+thing.meta.id+'-close'} id={thing.meta.id} name={thing.meta.name} open={false} />,
                 ],
             },
             'Climate': {
-                blockSize: 1,
+                blockSize: [2, 1, 1],
                 render:  thing => [
                     <ClimateStatus key={'thing-'+thing.meta.id+'-status'} id={thing.meta.id} name={thing.meta.name} />,
                     <ClimateControl key={'thing-'+thing.meta.id+'-cooler'} id={thing.meta.id} name={thing.meta.name} warmer={false} />,
@@ -129,7 +129,7 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
                 ],
             },
             'Room Status': {
-                blockSize: 1,
+                blockSize: [2, 2],
                 render:  thing => [
                     <RoomStatus key={'thing-'+thing.meta.id+'-hk'} id={thing.meta.id} name={thing.meta.name} propertyName={'room_service'} />,
                     <RoomStatus key={'thing-'+thing.meta.id+'-dnd'} id={thing.meta.id} name={thing.meta.name} propertyName={'do_not_disturb'} />,
@@ -175,15 +175,20 @@ class RoomControlsPanelClass extends React.Component<PropsType, StateType>  {
     renderGroup(group: GroupType) {
         var blocksPerRow = 6;
         var rows: Array<Array<RenderedThing>> = [[]];
+        var curRowBlocks = 0;
         for (var i = 0; i < group.things.length; i++) {
             const thing = group.things[i];
-            var curRowBlocks = rows[rows.length-1].map(r => r.blockSize).reduce((a, b) => a+b, 0);
-            if (curRowBlocks + thing.blockSize > blocksPerRow)
-                rows.push([]);
-            rows[rows.length-1].push(thing);
+            const panels = thing.render(thing);
+            for (var p = 0; p < panels.length; p++) {
+                const curPanelBlockSize = typeof(thing.blockSize) === 'function' ? thing.blockSize(thing)[p] : thing.blockSize[p];
+                if (curRowBlocks + curPanelBlockSize > blocksPerRow) {
+                    rows.push([]);
+                    curRowBlocks = 0;
+                }
+                rows[rows.length-1].push(panels[p]);
+                curRowBlocks += curPanelBlockSize;
+            }
         }
-        for (var i = 0; i < rows.length; i++)
-            rows[i] = this.flatten(rows[i].map(t => t.render(t)));
 
         return (
             <View key={'group-' + group.name} style={groupStyles.container}>
