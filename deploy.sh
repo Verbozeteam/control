@@ -50,6 +50,7 @@ fi
 if (( $debug == 0 )); then
     echo -e "\033[31mInstalling APK...\033[0m"
     adb install -r android/app/build/outputs/apk/app-release.apk
+    adb shell am start -n com.verbozecontrol/com.verbozecontrol.MainActivity
 else
     echo -e "\033[31mRunning react-native...\033[0m"
     react-native run-android
