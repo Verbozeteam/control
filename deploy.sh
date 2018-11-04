@@ -40,7 +40,7 @@ fi
 
 # Create the APK
 if (( $do_assemble == 1 && $debug == 0 )); then
-    echo -e "\033[31mAssemblign APK...\033[0m"
+    echo -e "\033[31mAssembling APK...\033[0m"
     cd android && ./gradlew assembleRelease && cd ..
 else
     echo -e "\033[31mSkipping APK assembly\033[0m"
